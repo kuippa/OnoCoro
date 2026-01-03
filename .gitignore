@@ -36,6 +36,25 @@
 /[Aa]ssets/[Aa]rt/**
 /[Aa]ssets/[Mm]odels/**
 
+# Exclude PLATEAU GIS/geographic data
+/[Aa]ssets/[Ss]treaming[Aa]ssets/.PLATEAU/
+/[Aa]ssets/[Ss]treaming[Aa]ssets/**/*.dem
+/[Aa]ssets/[Ss]treaming[Aa]ssets/**/*.gml
+
+# Exclude PLATEAU SDK sample data
+/[Pp]ackages/com.synesthesias.plateau-unity-sdk/[Ss]amples/
+
+# Exclude entire Packages directory (managed by Package Manager)
+/[Pp]ackages/
+
+# Exclude large binary asset files
+*.fbx
+*.blend
+*.max
+*.psd
+*.tga
+*.exr
+
 # Uncomment to exclude the entire /Assets folder
 #/[Aa]ssets/
 
