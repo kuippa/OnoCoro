@@ -1,0 +1,50 @@
+---
+# 三鷹大沢
+# 
+stagename: 三鷹大沢
+stagenotice: "水害チュートリアル"
+stageid: test1
+ver: 1.0.0 # 2024/2/1 0:00:00
+stages:
+  - name: 三鷹大沢
+    note: "チュートリアル"
+    BIT: 5000
+    CLK: 5000
+itemlists:
+  - item: GarbageCube
+  - item: GarbageCubeBox
+  - item: PowerCube
+  - item: Sweeper
+  - item: Litter
+  # - item: Bugbug  # これは定義にないアイテムなのでエラーになる
+goals:
+  - building: repair_all
+boards:
+  - code: ReadMeText1
+    text: "掲示板のある場所にむかってください。WASDキーで移動できます。"
+events:
+  # - time: 0
+  #   event: building_break
+  #   value: all
+  # - time: 0.5
+  #   event: spawn_unit
+  #   value: GarbageCubeBox, -185, 40, -58
+
+
+  # - time: 1
+  #   event: earthquake
+  #   value: 1.8
+
+  # - time: 3
+  #   event: notice
+  #   value: "地震が発生しました。"
+
+  # # - time: 3.5
+  # #   event: building_break
+  # #   value: all
+  # - time: 3.5
+  #   event: building_break
+  #   value: 12
+
+
+

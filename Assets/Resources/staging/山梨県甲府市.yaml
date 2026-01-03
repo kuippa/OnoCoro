@@ -1,0 +1,33 @@
+---
+# 山梨県甲府市
+# 
+stagename: 山梨県甲府市
+stagenotice: "すべての建物を修復できたらクリア"
+stageid: s1
+ver: 1.0.0 # 2023/12/4 0:00:00
+stages:
+  - name: 山梨県甲府市
+    note: "破壊されているすべての建物を再建築しよう"
+    BIT: 1000
+    CLK: 800
+goals:
+  - building: repair_all
+
+events:
+  # - time: 1
+  #   event: earthquake
+  #   value: 1.8
+
+  # - time: 3
+  #   event: notice
+  #   value: "地震が発生しました。"
+
+  # # - time: 3.5
+  # #   event: building_break
+  # #   value: all
+  # - time: 3.5
+  #   event: building_break
+  #   value: 12
+
+
+

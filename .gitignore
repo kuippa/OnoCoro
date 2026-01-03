@@ -168,3 +168,9 @@ Thumbs.db
 ._*
 .Spotlight-V100
 .Trashes
+# Ignore specific folders and packages
+/[Aa]ssets/*[Ee]ditor/
+/[Aa]ssets/.*[Ee]ditor/
+/[Aa]ssets/Farming_game_FX/
+/[Aa]ssets/Jammo-Character/
+/[Aa]ssets/Samples/
