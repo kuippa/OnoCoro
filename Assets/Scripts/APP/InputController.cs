@@ -192,7 +192,7 @@ namespace StarterAssets
 
         private void CameraRotation()
         {
-            if (_input._TabMenuOpen)
+            if (_input._TabMenuOpen || _input._EscMenuOpen)
             {
                 // Debug.Log("CameraRotation _input._cursorInputForLook");
                 return;
@@ -219,7 +219,7 @@ namespace StarterAssets
 
         private void Move()
         {
-            if (_input._TabMenuOpen)
+            if (_input._TabMenuOpen || _input._EscMenuOpen)
             {
                 _input.MoveInput(Vector2.zero);
             }

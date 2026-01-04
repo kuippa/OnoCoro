@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+// Unity6 と HDRP にしたらVFXが動かなくなったので、このクラスは現在休眠中
+
+
 public class Flame : MonoBehaviour
 {
     private float _time = 0.0f;

@@ -178,7 +178,7 @@ public class ItemHolderCtrl : MonoBehaviour , IDragHandler, IEndDragHandler, IDr
         // Debug.Log("click " + this.name + " :" + this.transform.GetSiblingIndex() + " :" + _item.Name + " " + _item.Stack);
         // Debug.Log(_item.ItemID + " " + _item.Name + " " + _item.ToolTip + " " + _item.Info + " " + _item.CreateCost + " " + _item.CostType + " " + _item.CostTime + " " + _item.Stack + " " + _item.ItemIconPath + " " + _item.ItemImagePath + " " + _item.HolderIndex);
 
-        // MarkerPointerCtrl.SetMarkerActive(true);
+        // SpawnMarkerPointerCtrl.SetMarkerActive(true);
     }
 
 

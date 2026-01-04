@@ -140,6 +140,19 @@ namespace CommonsUtility
             ColorChange(targetObject, setColor);
         }
 
+        internal static Transform GetParentTransform(string parentName)
+        {
+            GameObject parent = GameObject.Find(parentName);
+            Transform parentTransform = null;
+            if (parent == null)
+            {
+                parent = new GameObject(parentName);
+            }
+            parentTransform = parent.transform;
+            return parentTransform;
+        }
+
+
         // Scriptのファイル名リストを一覧で出力
         internal static void DebugScriptList()
         {

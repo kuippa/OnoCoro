@@ -27,6 +27,7 @@ namespace StarterAssets
 		// public bool cursorLocked = true;
 		// public bool _cursorLocked = false;
 		public bool _TabMenuOpen = false;
+		public bool _EscMenuOpen = false;
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 		public void OnMove(InputValue value)
@@ -42,7 +43,7 @@ namespace StarterAssets
 
 			// Debug.Log("Look");
 			SetCursorPointer(true);
-			if(!_TabMenuOpen)
+			if(!_TabMenuOpen && !_EscMenuOpen)
 			{
 				LookInput(value.Get<Vector2>());
 			}
@@ -60,7 +61,7 @@ namespace StarterAssets
 
 		public void OnLeftClick(InputValue value)
 		{
-			if (_TabMenuOpen || _esc_menu_window != null)
+			if (_TabMenuOpen || _EscMenuOpen)
 			{
 				return;
 			}
@@ -69,7 +70,7 @@ namespace StarterAssets
 
 		public void OnRightClick(InputValue value)
 		{
-			if (_TabMenuOpen || _esc_menu_window != null)
+			if (_TabMenuOpen || _EscMenuOpen)
 			{
 				return;
 			}
@@ -83,7 +84,14 @@ namespace StarterAssets
 			{
 				return;
 			}
-			CameraCtrl.ChangeCameraMode(mouseScroll.y);
+    		if (SpawnMarkerPointerCtrl.IsMarkerActive())
+			{
+				SpawnMarkerPointerCtrl.RotateMarker(mouseScroll.y);
+			}
+			else
+			{
+				CameraCtrl.ChangeCameraMode(mouseScroll.y);
+			}
 		}
 
 		public void MoveInput(Vector2 newMoveDirection)
@@ -173,8 +181,9 @@ namespace StarterAssets
         {
             if (_esc_menu_window != null)
             {
-				_TabMenuOpen = !isOn;
+				// _TabMenuOpen = !isOn;
                 escMenuCtrl.ToggleEscMenuWindow(isOn);
+				_EscMenuOpen = escMenuCtrl.GetEscMenuWindowStatus();
             }
         }
 

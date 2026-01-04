@@ -58,22 +58,22 @@ public class TitleStartCtrl : MonoBehaviour
 
         GameObject prefab = Resources.Load<GameObject>("Prefabs/UI/pnlStage");
         GameObject instance = Instantiate(prefab, content.transform);
-        TextMeshProUGUI txtStageDisplayName = instance.transform.Find("txtStageDisplayName").gameObject.GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI txtStageDisplayName = instance.transform.Find("txtStageDisplayName").GetComponent<TextMeshProUGUI>();
         // txtStageDisplayName.text = GlobalConst._scene_path[scenepath][0];
         txtStageDisplayName.text = vals[0];
 
         // imgStageIcon
-        Image imgStageIcon = instance.transform.Find("imgStageIcon").gameObject.GetComponent<Image>();
+        Image imgStageIcon = instance.transform.Find("imgStageIcon").GetComponent<Image>();
         // imgStageIcon.sprite = Resources.Load<Sprite>("Sprites/StageIcon/StageIcon1");
         imgStageIcon.sprite = Resources.Load<Sprite>(vals[1]);
 
         // txtStageInfo
-        TextMeshProUGUI txtStageInfo = instance.transform.Find("txtStageInfo").gameObject.GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI txtStageInfo = instance.transform.Find("txtStageInfo").GetComponent<TextMeshProUGUI>();
         // txtStageInfo.text = "StageInfo1";
         txtStageInfo.text = vals[2];
 
         // txtStagePath
-        Text txtStagePath = instance.transform.Find("txtStagePath").gameObject.GetComponent<Text>();
+        Text txtStagePath = instance.transform.Find("txtStagePath").GetComponent<Text>();
         // txtStagePath.text = "path1";
         txtStagePath.text = scenepath;
 
@@ -138,7 +138,7 @@ public class TitleStartCtrl : MonoBehaviour
         GameObject content = GameObject.Find("pnlStageSelector/Scroll View/Viewport/Content");
         SetStageContents(content);
 
-        _pnlStageSelector = GameObject.Find("pnlStageSelector").gameObject;
+        _pnlStageSelector = GameObject.Find("pnlStageSelector");
         _pnlStageSelector.SetActive(false);
     }
 

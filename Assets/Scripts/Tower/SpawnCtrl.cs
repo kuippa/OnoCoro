@@ -29,15 +29,6 @@ public class SpawnCtrl : MonoBehaviour
 
     void Awake()
     {
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-        // // ボタンを探してクリックイベントに登録する
-        // // GameObject button = GameObject.Find("Button");
-        // // GameObject button = GameObject.Find("btnSpawnUnit");
-        // GameObject button = this.gameObject;
-
-        // // buttonにイベントリスナーを登録する
-        // button.GetComponent<Button>().onClick.AddListener(OnClickButton);
-
         if (_instance == null)
         {
             _instance = this;
@@ -52,85 +43,6 @@ public class SpawnCtrl : MonoBehaviour
             _instance = null;
         }
     }
-
-
-    // void OnClickButton()
-    // {
-
-    //     Debug.Log("OnClickButton()");
-    //     // Dropdownから現在のオプションを取得する
-    //     GameObject dropdown = GameObject.Find("Dropdown");
-    //     if (dropdown == null)
-    //     {
-    //         Debug.Log("dropdown is null");
-    //         return;
-    //     }
-    //     // Dropdown compdropdown = dropdown.GetComponent<Dropdown>();
-    //     // if (compdropdown == null)
-    //     // {
-    //     //     Debug.Log("compdropdown is null");
-    //     //     return;
-    //     // }
-
-    //     TMP_Dropdown compdropdown2 = dropdown.GetComponent<TMP_Dropdown>();
-    //     if (compdropdown2 == null)
-    //     {
-    //         Debug.Log("compdropdown2 is null");
-    //         return;
-    //     }
-    //     int option = compdropdown2.value;
-
-    //     // int option = dropdown.GetComponent<Dropdown>().value;
-    //     // ラベルを取得
-    //     // string label = dropdown.GetComponent<Dropdown>().options[option].text;
-    //     string label = compdropdown2.options[option].text;
-    //     Debug.Log("option = " + option + ", label = " + label);
-
-    //     // optionに応じて処理を分岐する
-    //     if (CallUnitSpawn(option)){
-    //         Debug.Log("CallUnitSpawn() is true");
-    //     }
-
-
-    // }
-
-    // private bool CallUnitSpawn(int option)
-    // {
-    //     Debug.Log("CallUnitSpawn()");
-    //     // 3D オブジェクトを生成する
-    //     // GameObject unit = Instantiate(Resources.Load("Unit")) as GameObject;
-    //     GameObject unit;
-    //     switch (option)
-    //     {
-    //         case 0:
-    //             // 3Dキューブを生成する
-    //             CubeSpawner();
-    //             break;
-    //         case 1:
-    //             // ゴミ収集人
-    //             GarbageCubeCollector();
-    //             break;
-    //         case 2:
-    //             // 3D 球を生成する
-    //             unit = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-    //             // GameObject unit = GameObject.CreatePrimitive(PrimitiveType.Cube);
-    //             unit.transform.position = new Vector3(0, 3, -4);
-    //             Debug.Log("case 2");
-    //             break;
-    //         case 3: // ゴミ散らかし人
-    //             Debug.Log("case 3");
-    //             SpawnEnemyLitter();
-    //             break;
-    //         case 4: // ゴミ掃除人
-    //             Debug.Log("case 4");
-    //             SpawnTowerSweeper();
-    //             break;
-    //         default:
-    //             Debug.Log("default");
-    //             break;
-    //     }
-    //     return true;
-    // }
 
     // private void SpawnEnemyLitter()
     // {
@@ -168,11 +80,41 @@ public class SpawnCtrl : MonoBehaviour
         {
             ret = SpawnPowerCube();
         }
+        else if (unitName == GameEnum.ModelsType.StopPlate.ToString())
+        {
+            ret = SpawnStopPlate();
+        }
+        else if (unitName == GameEnum.ModelsType.FireCube.ToString())
+        {
+            ret = SpawnFireCube(spawnPoint);
+        }
         else
         {
             Debug.Log("default" + unitName);
         }
         return ret;
+    }
+
+    private bool SpawnFireCube(Vector3 spawnPoint = default(Vector3))
+    {
+        float dropbuffer = 1.5f;        
+        bool result = false;
+        if (spawnPoint == default(Vector3))
+        {
+            spawnPoint = GetSpawnPoint(dropbuffer);
+        }
+        else
+        {
+            spawnPoint.z += dropbuffer;
+        }
+        Vector3 setPoint = spawnPoint;
+        // GameObject garbageObj = FireCubeCtrl.SpawnFireCube(spawnPoint, FireCubeCtrl._SIZE_BIG, false);
+        GameObject garbageObj = FireCubeCtrl.SpawnFireCube(spawnPoint, FireCubeCtrl._SIZE_NORMAL, false);
+        if (garbageObj != null)
+        {
+            result = true;
+        }
+        return result;
     }
 
     private bool SpawnGarbageCubeBig(Vector3 spawnPoint = default(Vector3))
@@ -228,6 +170,22 @@ public class SpawnCtrl : MonoBehaviour
         return ret;
     }
 
+    private bool SpawnStopPlate(float dropbuffer = 0.05f)
+    {
+        bool ret = false;
+		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/StopPlate");
+        Vector3 setPoint = GetSpawnPoint(dropbuffer);
+        Quaternion setRotation = SpawnMarkerPointerCtrl.GetMarkerRotateAngle();
+        GameObject unit = Instantiate(prefab, setPoint, setRotation);
+        int idx = GameObjectTreat.IndexObjectByTag(GameEnum.TagType.StopPlate.ToString());
+        unit.name = GameEnum.ModelsType.StopPlate.ToString() + idx.ToString();
+        unit.AddComponent<StopPlate>();
+        unit.GetComponent<StopPlate>()._item_struct.ItemID = unit.name;
+
+        ret = true;
+        return ret;
+    }
+
     private bool SpawnPowerCube(float dropbuffer = 0.25f)
     {
         bool ret = false;
@@ -266,7 +224,7 @@ public class SpawnCtrl : MonoBehaviour
         {
             return new Vector3(0, 0, 0);
         }
-        MarkerPointerCtrl markerPointerCtrl = spawnMarker.GetComponent<MarkerPointerCtrl>();
+        SpawnMarkerPointerCtrl markerPointerCtrl = spawnMarker.GetComponent<SpawnMarkerPointerCtrl>();
         Vector3 setPoint = markerPointerCtrl.GetMarkerPosition();
         setPoint.y += dropbuffer;
         return setPoint;

@@ -91,7 +91,7 @@ public class ClickCtrl : MonoBehaviour
             Instance._isProcessingClick = false;
             yield break; // コルーチンを終了            
         }
-        else if (MarkerPointerCtrl.IsMarkerActive())
+        else if (SpawnMarkerPointerCtrl.IsMarkerActive())
         {
             ItemAction.ActItemUse();
             Instance._isProcessingClick = false;

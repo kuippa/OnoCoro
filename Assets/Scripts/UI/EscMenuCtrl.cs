@@ -9,9 +9,23 @@ using CommonsUtility;
 public class EscMenuCtrl : MonoBehaviour
 {
     private GameObject _esc_menu_window = null;
+    private GameObject _environment = null;
+    private GameTimerCtrl _gameTimerCtrl = null;
 
     void Awake()
     {
+        _environment = GameObject.Find("Environment").gameObject;
+        if (_environment == null)
+        {
+            Debug.Log("Environment is not found");
+        }
+
+        GameObject txtGameTime = GameObject.Find("txtGameTime");
+        if (txtGameTime != null)
+        {
+            _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
+        }
+
         // menuWindowを非表示にする
         _esc_menu_window = this.gameObject.transform.Find("menuWindow").gameObject;
         ToggleEscMenuWindow(false);
@@ -43,6 +57,7 @@ public class EscMenuCtrl : MonoBehaviour
             Button btn = txtOptions.GetComponent<Button>();
             btn.onClick.AddListener(OnClickOptions);
         }
+
     }
 
     public void OnClickOptions()
@@ -71,13 +86,20 @@ public class EscMenuCtrl : MonoBehaviour
 
     }
 
-
     public void OnClickBackToGame()
     {
         ToggleEscMenuWindow(false);
-
     }
 
+    public bool GetEscMenuWindowStatus()
+    {
+        bool ret = false;
+        if (_esc_menu_window != null)
+        {
+            ret = _esc_menu_window.activeSelf;
+        }        
+        return ret;
+    }
 
     public void ToggleEscMenuWindow(bool isOn)
     {
@@ -87,11 +109,32 @@ public class EscMenuCtrl : MonoBehaviour
             EventSystem.current.SetSelectedGameObject(null);
             _esc_menu_window.SetActive(isOn);
         }
+
         // ゲーム内時間を一時停止
-        Time.timeScale = isOn ? 0 : 1;
-        // Time.timeScale = isOn ? 1 : 0;
+        // Environment
+        // _environment.SetActive(isOn ? false : true);
+
+        // Invalid AABB aabb でアニメーション関係でバグが発生するため、Time.timeScaleを使わない
+        // // Physics.autoSimulation = isOn ? false : true;
+        // Time.timeScale = isOn ? 0 : 1;
+        // Time.fixedDeltaTime = 0.02f * Time.timeScale;
+        // // Animator animator = GetComponent<Animator>();
+        // // animator.speed = isOn ? 0 : 1;
+
+
+        // GameTimerCtrl gameTimerCtrl = this.gameObject.AddComponent<GameTimerCtrl>();
+        // gameTimerCtrl._buf_time = Time.time;
+
+        // 時計の進行だけを止めているのでマウスカーソルや他のイベントは動いてしまう
+        // TODO: 他のイベントも止める
+        if (_gameTimerCtrl != null)
+        {
+            _gameTimerCtrl._isPaused = isOn;
+        }
+
         // Debug.Log("ToggleEscMenuWindow:" + isOn + Time.timeScale);
     }
 
+    
 
 }

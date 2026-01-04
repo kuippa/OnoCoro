@@ -16,6 +16,11 @@ public class GameEnum
         Ground,
         Naraku,
         Untagged,
+        RainDrop,
+        Puddle,
+        StopPlate,
+        FireCube,
+        Ash,
     }
 
     internal enum ModelsType
@@ -26,6 +31,8 @@ public class GameEnum
         Litter,
         Sweeper,
         PowerCube,
+        StopPlate,
+        FireCube,
     }
 
 

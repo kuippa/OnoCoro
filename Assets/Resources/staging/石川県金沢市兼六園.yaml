@@ -14,9 +14,11 @@ itemlists:
   - item: GarbageCube
   - item: GarbageCubeBox
   - item: GarbageCubeBig
+  - item: FireCube
   - item: PowerCube
   - item: Sweeper
   - item: Litter
+  - item: StopPlate
   # - item: Bugbug  # これは定義にないアイテムなのでエラーになる
 goals:
   # 複数条件の場合はAND条件

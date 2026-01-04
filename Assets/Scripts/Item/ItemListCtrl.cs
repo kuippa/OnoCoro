@@ -60,12 +60,12 @@ public class ItemListCtrl : MonoBehaviour
             if (item_struct.Name != null)
             {
                 // Debug.Log($"item_struct: {item_struct.Name} {item_struct.Info}");
-                MarkerPointerCtrl.SetMarkerActive(true);
+                SpawnMarkerPointerCtrl.SetMarkerActive(true);
                 button.Select();
             }
             else
             {
-                MarkerPointerCtrl.SetMarkerActive(false);
+                SpawnMarkerPointerCtrl.SetMarkerActive(false);
                 button.Select();
                 button.OnDeselect(null);
             }

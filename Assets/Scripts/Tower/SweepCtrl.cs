@@ -60,7 +60,7 @@ public class SweepCtrl : MonoBehaviour
     internal void SweepGarbage(Collider other)
     {
         // 射程に入ったターゲットを消去する
-        if (other.tag == GameEnum.TagType.Garbage.ToString() )
+        if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
         {
             float scoreMag = ScoreCtrl.CalcGarbageMagnification(other.transform.localScale);
             CalcScore(other);

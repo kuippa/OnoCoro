@@ -17,6 +17,7 @@ public class GameTimerCtrl : MonoBehaviour
 
     // internal EventLoader _eventLoader = null;
     internal EventLoader _eventLoader = EventLoader.instance;
+    internal bool _isPaused = false; // 一時停止中かどうか
 
     // イベント発生時間リスト
     private List<float> _eventTimeList = new List<float>(); 
@@ -157,6 +158,11 @@ public class GameTimerCtrl : MonoBehaviour
 
     void Update()
     {
+        if (_isPaused)
+        {
+            return;
+        }
+
         _buf_time += Time.deltaTime;
         _time += Time.deltaTime;
         _time_stock += Time.timeAsDouble;

@@ -118,7 +118,7 @@ public class TowerSweeper : MonoBehaviour
         _lastTriggerStayTime = currentTime;
 
         // 視界に入ったゴミをターゲットにする
-        if (other.tag == GameEnum.TagType.Garbage.ToString() )
+        if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
         {
             GameObject otherGameObject = other.gameObject;
             GameObjectTreat.DebugColorChange(otherGameObject, Color.red);
