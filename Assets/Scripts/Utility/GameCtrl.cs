@@ -18,12 +18,6 @@ namespace CommonsUtility
 
         }
     
-        // 
-        // 処理落ちさせないためガベージコレクターを止めることができる。
-        // GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
-
-
-
     }
 
 

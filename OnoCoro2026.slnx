@@ -77,9 +77,9 @@
   <Project Path="PLATEAU.TestUtils.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
   <Project Path="PlateauToolkit.Utilities.Editor.csproj" />
-  <Project Path="PlateauToolkit.Sandbox.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
   <Project Path="Unity.Collections.CodeGen.csproj" />
+  <Project Path="PlateauToolkit.Sandbox.csproj" />
   <Project Path="Unity.XR.Management.csproj" />
   <Project Path="Unity.VectorGraphics.Editor.csproj" />
   <Project Path="Unity.Mathematics.Editor.csproj" />

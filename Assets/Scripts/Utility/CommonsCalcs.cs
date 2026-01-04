@@ -34,7 +34,6 @@ namespace CommonsUtility
             string app_versions = 
                 "Version: " + 
                 string.Join(".",versiontxt.text.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None));
-                // string.Join(".", versiontxt.text.Split(GlobalConst.LINE_FEEDS, StringSplitOptions.None));
             return app_versions;
         }
 

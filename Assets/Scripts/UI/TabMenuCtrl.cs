@@ -32,7 +32,6 @@ public class TabMenuCtrl : MonoBehaviour
                 ToggleCreateWindow(false);
                 CloseUIInfoWindow();
                 EventSystem.current.SetSelectedGameObject(null);
-                SpawnMarkerPointerCtrl.SetMarkerActive(false);                
             }
             rect.anchoredPosition = new Vector3(rect.anchoredPosition.x, -1*rect.sizeDelta.y/2, 0f);
             _item_box_open = !_item_box_open;

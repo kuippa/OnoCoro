@@ -17,7 +17,7 @@ public class BuildingBreak : MonoBehaviour
         }
         GameObject _plateauInfo = null;
         _plateauInfo = GameObject.Find("Plateau");
-        PlateauInfoManager plateauInfo = _plateauInfo.GetComponent<PlateauInfoManager>();
+        PlateauInfo plateauInfo = _plateauInfo.GetComponent<PlateauInfo>();
         if (_plateauInfo == null || plateauInfo == null)
         {
             // Debug.Log("PlateauInfo is null");
@@ -32,7 +32,7 @@ public class BuildingBreak : MonoBehaviour
                 {
                     continue;
                 }
-                plateauInfo.SetBuildingToDoom(obj);
+                plateauInfo.SetMaterialToDoom(obj);
             }
             return;
         }
@@ -45,14 +45,13 @@ public class BuildingBreak : MonoBehaviour
                 return;
             }
             int i = 0;
-            // TODO: random に選択する
             foreach (var obj in _buildingGameObject)
             {
                 if (i > n)
                 {
                     return;
                 } 
-                plateauInfo.SetBuildingToDoom(obj);
+                plateauInfo.SetMaterialToDoom(obj);
                 i++;
             }
             return;

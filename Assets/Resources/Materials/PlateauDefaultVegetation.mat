@@ -34,8 +34,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: PlateauDefaultVegetation
-  m_Shader: {fileID: -6465566751694194690, guid: aff85e3532d6c4d1489cce2e6c2762d5,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: aff85e3532d6c4d1489cce2e6c2762d5, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -46,10 +45,8 @@ Material:
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2750
-  stringTagMap:
-    MotionVector: User
-    RenderType: Transparent
+  m_CustomRenderQueue: 2000
+  stringTagMap: {}
   disabledShaderPasses:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
@@ -160,15 +157,11 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 10
-    - _DstBlend2: 10
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 1
-    - _ExcludeFromTUAndAA: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _MaterialID: 1
-    - _MaterialTypeMask: 2
     - _Metallic: 0
     - _Mode: 0
     - _NormalStrength: 2
@@ -176,7 +169,6 @@ Material:
     - _Opacity: 1
     - _OpaqueCullMode: 2
     - _Parallax: 0.02
-    - _PerPixelSorting: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RayTracing: 0
@@ -195,14 +187,13 @@ Material:
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 32
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 9
+    - _StencilWriteMaskDepth: 8
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 15
-    - _StencilWriteMaskMV: 41
+    - _StencilWriteMaskGBuffer: 14
+    - _StencilWriteMaskMV: 40
     - _SupportDecals: 1
     - _SurfaceType: 1
     - _Titling: 0.2
-    - _TransmissionEnable: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
@@ -219,7 +210,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
-    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MainColor: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

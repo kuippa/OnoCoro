@@ -100,8 +100,6 @@ public class Earthquake : MonoBehaviour
 
     void Awake()
     {
-        // TODO:Naraku の demのところを別クラス化
-
         GameObject ground = GameObject.FindGameObjectWithTag("Ground");
         if (ground != null)
         {

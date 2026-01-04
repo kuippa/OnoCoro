@@ -7,9 +7,46 @@ using UnityEngine.InputSystem.XInput;
 public class SweepCtrl : MonoBehaviour
 {
     private float _lastTriggerStayTime;
-    private const float _TRIGGER_STAY_INTERVAL = 0.02f;     // この感覚が長すぎるとゴミを消せずに残る
+    private const float _TRIGGER_STAY_INTERVAL = 0.1f; 
 
-    private void ChangeCubeSize(Collider other)
+    private const float _BASE_DECREASE_SIZE = 0.5f;
+    private const float _MINIMUM_SIZE = 0.5f;
+
+
+    void OnTriggerEnter(Collider other)
+    {
+        // #if UNITY_EDITOR
+        //     Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+        // #endif
+
+        // 射程に入ったターゲットをロックする
+        if (other.tag == GameEnum.EnemyType.Garbage.ToString() )
+        {
+            GameObjectTreat.DebugColorChange(other.gameObject, Color.white);
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        // #if UNITY_EDITOR
+        //     Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+        // #endif
+        if (other.tag == GameEnum.EnemyType.Garbage.ToString() )
+        {
+            GameObjectTreat.DebugColorChange(other.gameObject, Color.magenta);
+        }    
+    }
+
+    // スコア倍率を計算する
+    private float CalcScoreMagnification(Vector3 ScaleMagnification)
+    {
+        float ret = 1f;
+        // ret = ScaleMagnification.x * ScaleMagnification.y * ScaleMagnification.z;
+        ret = ScaleMagnification.x + ScaleMagnification.y + ScaleMagnification.z;
+        return ret;
+    }
+
+    private void ChangeCubeSize(Collider other, float scoreMag)
     {
         Vector3 scale = other.transform.localScale;
         other.transform.localScale = ChangeScaleLimiter(scale);
@@ -25,55 +62,28 @@ public class SweepCtrl : MonoBehaviour
 
     private float CalcScale(float scale)
     {
-        if (scale <= GlobalConst.GARBAGE_MINIMUM_SIZE)
+        if (scale <= _MINIMUM_SIZE)
         {
         }
         else
         {
-            scale -= GlobalConst.GARBAGE_BASE_SLICE_SIZE;
-            if (scale < GlobalConst.GARBAGE_MINIMUM_SIZE)
+            scale -= _BASE_DECREASE_SIZE;
+            if (scale < _MINIMUM_SIZE)
             {
-                scale = GlobalConst.GARBAGE_MINIMUM_SIZE;
+                scale = _MINIMUM_SIZE;
             }
         }
         return scale;
     }
 
-    private GarbageCube GetGarbageCube(Collider other)
+    private void CalcScore(Collider other, float scoreMag)
     {
+        GameObjectTreat.DebugColorChange(other.gameObject, Color.yellow);
         GarbageCube garbageCube = other.gameObject.GetComponent<GarbageCube>();
-        if (garbageCube == null)
-        {
-            garbageCube = other.gameObject.AddComponent<GarbageCube>();
-        }
-        return garbageCube;
-    }
-
-    private void CalcScore(Collider other)
-    {
-        GarbageCube garbageCube = GetGarbageCube(other);
-        UnitStruct unitStruct =  garbageCube.GetUnitStruct();
-        int score = ScoreCtrl.GetSliceGarbageScore(other);
-        ScoreCtrl.UpdateAndDisplayScore(score, unitStruct.ScoreType);
-    }
-
-    internal void SweepGarbage(Collider other)
-    {
-        // 射程に入ったターゲットを消去する
-        if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
-        {
-            float scoreMag = ScoreCtrl.CalcGarbageMagnification(other.transform.localScale);
-            CalcScore(other);
-            if (scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3)
-            {
-                // 対象オブジェクトを消す
-                GameObjectTreat.DestroyAll(other.gameObject);
-            }
-            else
-            {
-                ChangeCubeSize(other);
-            }
-        }
+        CharacterStruct CharacterStruct =  garbageCube.GetCharacterStruct();
+        int score = CharacterStruct.BaseScore;
+        score = (int)(score * scoreMag);
+        ScoreCtrl.CalcScore(score, CharacterStruct.ScoreType);
     }
 
     void OnTriggerStay(Collider other)
@@ -85,7 +95,26 @@ public class SweepCtrl : MonoBehaviour
             return;
         }
         _lastTriggerStayTime = currentTime;
-        SweepGarbage(other);
+
+        // 射程に入ったターゲットを消去する
+        if (other.tag == GameEnum.EnemyType.Garbage.ToString() )
+        {
+            // Debug.Log("SweepCtrl OnTriggerStay " + other.name);
+
+            // TODO:: 与ダメージを計算する
+            float scoreMag = CalcScoreMagnification(other.transform.localScale);
+            CalcScore(other, scoreMag);
+
+            if (scoreMag <= _MINIMUM_SIZE * 3)
+            {
+                // 対象オブジェクトを消す
+                GameObjectTreat.DestroyAll(other.gameObject);
+            }
+            else
+            {
+                ChangeCubeSize(other, scoreMag);
+            }
+        }        
     }
 
     void Awake()

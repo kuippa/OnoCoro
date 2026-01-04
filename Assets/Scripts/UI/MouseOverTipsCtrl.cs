@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using CommonsUtility;
-// using UnityEngine.Rendering.Universal.Internal;
+using UnityEngine.Rendering.Universal.Internal;
 
 public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {

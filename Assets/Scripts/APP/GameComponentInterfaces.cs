@@ -4,16 +4,10 @@
     {
         ItemStruct ItemStruct { get; }
     }
-
-    public interface IUnitStructProvider
+    public interface ICharacterStructProvider
     {
-        UnitStruct UnitStruct { get; }
+        CharacterStruct CharacterStruct { get; }
     }
-
-    // public interface ICharacterStructProvider
-    // {
-    //     CharacterStruct CharacterStruct { get; }
-    // }
 
     // public interface IWeaponProvider
     // {

@@ -13,17 +13,12 @@ stages:
 itemlists:
   - item: GarbageCube
   - item: GarbageCubeBox
-  - item: GarbageCubeBig
-  - item: FireCube
   - item: PowerCube
   - item: Sweeper
   - item: Litter
-  - item: StopPlate
   # - item: Bugbug  # これは定義にないアイテムなのでエラーになる
 goals:
-  # 複数条件の場合はAND条件
   - building: repair_all
-  # - score: 1000 # 1000点以上
 boards:
   - code: ReadMeText1
     text: "掲示板のある場所にむかってください。WASDキーで移動できます。"
@@ -33,28 +28,14 @@ boards:
     text: "この光っているパワーキューブはふれると取ることができます。ユニット作成に必要なCLKが増えます。SPACEキーを押すとジャンプできます。"
   - code: ReadMeText4
     text: "この散らばっているゴミはプレイヤーは片付けることができません。TABキーを押してお掃除ロボットを作成し配置してください。"
-  - code: ReadMeText5
-    text: "お掃除ロボットを右クリックで詳細情報を呼び出すことができます。"
 events:
-  # - time: 0
-  #   event: notice
-  #   value: "チュートリアルです。"
-  
   - time: 0
     event: building_break
     value: all
-
-  - time: 0.1
+  - time: 0.5
     event: spawn_unit
     value: GarbageCubeBox, -185, 40, -58
 
-  - time: 1
-    event: telop
-    value: "石川県金沢市兼六園"
-
-  - time: 1
-    event: subtelop
-    value: "すべての建物を修復しよう"
 
   # - time: 1
   #   event: earthquake

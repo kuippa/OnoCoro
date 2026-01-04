@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using CommonsUtility;
 
-public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
+public class PowerCube : MonoBehaviour, IItemStructProvider
 {
     public ItemStruct ItemStruct => _item_struct;
     internal ItemStruct _item_struct = new ItemStruct();
-    public UnitStruct UnitStruct => _unit_struct;
-    internal UnitStruct _unit_struct = new UnitStruct();
+    public CharacterStruct CharacterStruct => _chara_struct;
+    internal CharacterStruct _chara_struct = new CharacterStruct();
+
 
     void Awake()
     {
@@ -20,25 +21,31 @@ public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             , "powerID"
             , "Tips powerCube"
             , "power Cube Info"
-            , 0 // CreateCost
+            , 0
             , GlobalConst.SHORT_SCORE1_SCALE
             , 0.1f
             , 1
             , "imgs/icons/virus-covid-solid"
             , "imgs/icons/virus-covid-solid"
-            , 2
+            , 2);
+
+        _chara_struct = new CharacterStruct(
+            10
+            , 2000
+            , GlobalConst.SHORT_SCORE2_SCALE
         );
 
-        _unit_struct = new UnitStruct(
-            _item_struct.Name // name
-            , _item_struct.ItemID   // UnitID
-            , 1 // Lv
-            , _item_struct.Info    // Info
-            , 0 // UpdateCost
-            , 0 // DeleteCost
-            , 1000  // BaseScore
-            , GlobalConst.SHORT_SCORE2_SCALE    // ScoreType
-        );
+        // this.Name = name;
+        // this.ItemID = ItemID;
+        // this.ToolTip = ToolTip;
+        // this.Info = Info;
+        // this.CreateCost = CreateCost;
+        // this.CostType = CostType;
+        // this.CostTime = CostTime;
+        // this.Stack = Stack;
+        // this.ItemIconPath = ItemIconPath;
+        // this.ItemImagePath = ItemImagePath;
+        // this.HolderIndex = HolderIndex;
 
     }
 
@@ -46,10 +53,4 @@ public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     {
         return _item_struct;
     }
-
-    internal UnitStruct GetUnitStruct()
-    {
-        return _unit_struct;
-    }
-
 }

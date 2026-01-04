@@ -4,13 +4,12 @@ using UnityEngine;
 using CommonsUtility;
 using UnityEngine.TextCore.Text;
 
-public class GarbageCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
+public class GarbageCube : MonoBehaviour, IItemStructProvider, ICharacterStructProvider
 {
     public ItemStruct ItemStruct => _item_struct;
     internal ItemStruct _item_struct = new ItemStruct();
-    public UnitStruct UnitStruct => _unit_struct;
-    internal UnitStruct _unit_struct = new UnitStruct();
-
+    public CharacterStruct CharacterStruct => _chara_struct;
+    internal CharacterStruct _chara_struct = new CharacterStruct();
 
     void Awake()
     {
@@ -18,28 +17,22 @@ public class GarbageCube : MonoBehaviour, IItemStructProvider, IUnitStructProvid
             // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         _item_struct = new ItemStruct(
-            "GarbageCube" // name
-            , "GarbageID"   // ID
+            "GarbageCube"
+            , "GarbageID"
             , "Tips GarbageCube"
             , "GarbageCube Info"
-            , 30    // CreateCost
-            , GlobalConst.SHORT_SCORE1_SCALE    // CostType
-            , 0.2f  // CostTime
-            , 1 // Stack
-            , "imgs/icons/virus-covid-solid"    // ItemIconPath
-            , "imgs/icons/virus-covid-solid"    // ItemImagePath
-            , 2
-        );
+            , 30
+            , GlobalConst.SHORT_SCORE1_SCALE
+            , 0.2f
+            , 1
+            , "imgs/icons/virus-covid-solid"
+            , "imgs/icons/virus-covid-solid"
+            , 2);
 
-        _unit_struct = new UnitStruct(
-            _item_struct.Name // name
-            , _item_struct.ItemID   // UnitID
-            , 1 // Lv
-            , _item_struct.Info    // Info
-            , 0 // UpdateCost
-            , 0 // DeleteCost
-            , 10  // BaseScore
-            , GlobalConst.SHORT_SCORE1_SCALE    // ScoreType
+        _chara_struct = new CharacterStruct(
+            10
+            ,10
+            , GlobalConst.SHORT_SCORE1_SCALE
         );
     }
 
@@ -48,9 +41,9 @@ public class GarbageCube : MonoBehaviour, IItemStructProvider, IUnitStructProvid
         return _item_struct;
     }
 
-    internal UnitStruct GetUnitStruct()
+    internal CharacterStruct GetCharacterStruct()
     {
-        return _unit_struct;
+        return _chara_struct;
     }
 
 }

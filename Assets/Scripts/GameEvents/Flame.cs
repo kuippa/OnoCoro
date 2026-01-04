@@ -4,9 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-// Unity6 と HDRP にしたらVFXが動かなくなったので、このクラスは現在休眠中
-
-
 public class Flame : MonoBehaviour
 {
     private float _time = 0.0f;
@@ -46,7 +43,7 @@ public class Flame : MonoBehaviour
                 {
                     // rb.velocity = Vector3.zero;
                     // rb.angularVelocity = Vector3.zero;
-                    Debug.Log("GarbageToFire" + i + " "+ rb.linearVelocity + rb.angularVelocity);
+                    Debug.Log("GarbageToFire" + i + " "+ rb.velocity + rb.angularVelocity);
 
                     // if (rb.velocity == Vector3.zero)
                     // if (rb.angularVelocity == Vector3.zero)

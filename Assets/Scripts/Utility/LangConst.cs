@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.IO;
-using CommonsUtility;
+
 
 namespace CommonsUtility
 {
@@ -20,6 +20,7 @@ namespace CommonsUtility
             {"bldg:floors", "階数"},
             {"bldg:floor", "床面積[㎥]"},
             {"bldg:totalarea", "延べ面積[㎥]"},
+            {"bldg:person", "想定人数[人]"},
             {"bldg:measuredheight", "建物高さ[m]"},
             {"uro:depth", "浸水時深さ[m]"},
             {"uro:duration", "浸水継続時間[h]"},
@@ -28,16 +29,11 @@ namespace CommonsUtility
             {"uro:prefecture", "都道府県"},
             {"uro:city", "市町村"},
 
-            {"uro:areaClassificationType", "用途区域"},
-
             {"dem:lod", "道"},
             {"gml:name", "名称"},
 
-            // 独自追加パラメーター
-            // {"bldg:person", "想定人数[人]"},
-            {"bldg:estimatedpersons", "想定人数[人]"},
-            {"bldg:rebuildcost", "再建コスト[BIT]"},
-            {"bldg:rebuildbouns", "再建ボーナス[CLK]"},
+
+            {"rebuildcost", "再建コスト[BIT]"},
 
         };
 

@@ -1,120 +1,195 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEditor;
 using UnityEngine.EventSystems;
 using CommonsUtility;
-using UnityEditor;
 using Unity.VisualScripting;
-using System.Collections;   // IEnumerator を使うために追加
 
 public class ClickCtrl : MonoBehaviour
 {
+    // private GameObject _esc_menu_window = null;
     const float _click_limit_distance = GlobalConst.UI_RAYCAST_MAX_DISTANCE;
 
-    private bool _isProcessingClick = false;
-    private static ClickCtrl _instance;
-    public static ClickCtrl Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindFirstObjectByType<ClickCtrl>();
-                if (_instance == null)
-                {
-                    GameObject go = new GameObject("ClickCtrl");
-                    _instance = go.AddComponent<ClickCtrl>();
-                }
-            }
-            return _instance;
-        }
-    }
+    private static bool _loupeMode = false;
+    private static ItemStruct _item = new ItemStruct();
+    private static ItemHolderCtrl _itemHolderCtrl = null;
+    private static SpawnCtrl _spawnCtrl = null;
 
     void Awake()
     {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(this.gameObject);
-        }
-        else
-        {
-            _instance = this;
-            DontDestroyOnLoad(this.gameObject);
-        }
+        _spawnCtrl = GetSpawnCtrl();
     }
+
+    // TODO: EventSystem Ctrlに移動
+    private static SpawnCtrl GetSpawnCtrl()
+    {
+        if (_spawnCtrl == null)
+        {
+            GameObject eventSystem = GameObject.Find("EventSystem");
+            if (eventSystem == null)
+            {
+                eventSystem = new GameObject("EventSystem");
+            }
+            _spawnCtrl = eventSystem.transform.GetComponent<SpawnCtrl>();
+            if (_spawnCtrl == null)
+            {
+                _spawnCtrl = eventSystem.transform.AddComponent<SpawnCtrl>();
+            }
+        }
+        return _spawnCtrl;
+    }
+
 
     public static void OnRightClick(InputValue value)
     {
-        if (!Instance._isProcessingClick)
-        {
-            Instance._isProcessingClick = true;
-            Instance.StartCoroutine(Instance.ProcessRightClickNextFrame());
-        }
+        ActLoupe();
+        // Vector2 mousePosision = Mouse.current.position.ReadValue();
+        // Ray PointRay = Camera.main.ScreenPointToRay(mousePosision);
+        // RaycastHit hit;
+        // if (Physics.Raycast(PointRay, out hit, _click_limit_distance))
+        // {
+        //     CreateBonFire(PointRay, hit);
+        // }
     }
 
-    private IEnumerator ProcessRightClickNextFrame()
-    {
-        // await Task.Yield(); // 次のフレームまで待機 C#の標準的な非同期プログラミングモデル
-        yield return null; // 次のフレームまで待機
 
-        if (!CheckAndCloseNoticeWindow()){
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
-        }
-        LoupeCtrl.ActLoupe();
-        Instance._isProcessingClick = false;
-    }
-
-    // マウス押下時ではなく、リリース時に発火する
     public static void OnLeftClick(InputValue value)
     {
-        if (!Instance._isProcessingClick)
-        {
-            Instance._isProcessingClick = true;
-            Instance.StartCoroutine(Instance.ProcessLeftClickNextFrame());
+        // EventSystem.current.currentSelectedGameObject が 一個前の選択されているオブジェクトが入ってきているので、
+        // マウス押下時ではなく、リリース時に発火するように変更。
+        // Assets/Editor/package/InputSystem/StarterAssets.inputactions
+
+        if (!IsNoticeWindow()){
+            // UINotice が 表示されているとき
+            // Debug.Log("IsNoticeWindow");
+            return;
         }
+        else if (_loupeMode)
+        {
+            ActLoupe();
+            return;
+        }
+        else if (MarkerPointerCtrl.IsMarkerActive())
+        {
+            ActItemUse();
+            return;
+        }
+
+        // // mouse Down とUPの二回走るので、ボタンの挙動側で TrigarBehavior Press Onlyに変更
+        // Vector2 mousePosision = Mouse.current.position.ReadValue();
+        // Ray PointRay = Camera.main.ScreenPointToRay(mousePosision);
+        // RaycastHit hit;
+        // if (Physics.Raycast(PointRay, out hit, _click_limit_distance))
+        // {
+        //     // CreateBonFire(PointRay, hit);
+        // }
+        // else
+        // {
+        //     // CreateCube(mousePosision);
+        // }
+        GetSelectedItem();
     }
 
-    private IEnumerator ProcessLeftClickNextFrame()
+    private static bool IsNoticeWindow()
     {
-        // await Task.Yield(); // 次のフレームまで待機 C#の標準的な非同期プログラミングモデル
-        yield return null; // 次のフレームまで待機
-
-        if (!CheckAndCloseNoticeWindow()){
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
-        }
-
-        if (LoupeCtrl.IsLoupe())
+        GameObject UINotice = GameObject.Find("UINotice");
+        if (UINotice != null)
         {
-            LoupeCtrl.ActLoupe();
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
-        }
-        else if (SpawnMarkerPointerCtrl.IsMarkerActive())
-        {
-            ItemAction.ActItemUse();
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
-        }
-        ItemAction.GetSelectedItem();
-        Instance._isProcessingClick = false;
-    }
-
-    private static bool CheckAndCloseNoticeWindow()
-    {
-        GameObject uiNotice = GameObject.Find("UINotice");
-        if (uiNotice != null)
-        {
-            NoticeCtrl noticeCtrl = uiNotice.GetComponent<NoticeCtrl>();
-            bool isActive = noticeCtrl.IsNoticeWindowActive();
+            bool isActive = UINotice.GetComponent<NoticeCtrl>().IsNoticeWindowActive();
             if (isActive)
             {
-                noticeCtrl.ToggleNoticeWindow(false);
+                // UINotice.GetComponent<NoticeCtrl>().ToggleNoticeWindow(!isActive);
+                UINotice.GetComponent<NoticeCtrl>().ToggleNoticeWindow(false);
+                // UINotice.SetActive(false);
                 return false;
             }
         }
         return true;
+    }
+
+    // private void ToggleNoticeWindow(bool isOn, NoticeCtrl noticeCtrl)
+    // {
+    //     if (_esc_menu_window != null)
+    //     {
+    //         escMenuCtrl.ToggleEscMenuWindow(isOn);
+    //     }
+    // }
+
+
+    private static void GetSelectedItem()
+    {
+        MarkerPointerCtrl.SetMarkerActive(false);
+        GameObject item_holder = GameObject.Find("ItemList");
+        if (item_holder == null)
+        {
+            return;
+        }
+        GameObject selected = EventSystem.current.currentSelectedGameObject;
+        if (selected == null)
+        {
+            return;
+        }
+
+        if (selected.name.StartsWith("Item_"))
+        {
+            _itemHolderCtrl = selected.GetComponent<ItemHolderCtrl>();
+            ItemStruct item = _itemHolderCtrl.GetItem();
+            if (item.Name == "Loupe")
+            {
+                _loupeMode = true;
+                return;
+            }
+            _item = item;
+            MarkerPointerCtrl.SetMarkerActive(true);
+            return;
+        }
+
+    }
+
+
+    private static void ActLoupe()
+    {
+        _loupeMode = false;
+        GameObject plateauInfo  = GameObject.Find("Plateau");
+        if (plateauInfo == null)
+        {
+            // Debug.Log("PlateauInfo is null");
+            return;
+        }
+        bool boolplateau = plateauInfo.GetComponent<PlateauInfo>().GetPlateauInfo();
+        if (!boolplateau)
+        {
+            GameObject uiInfo = GameObject.Find("UIInfo");
+            if (uiInfo != null)
+            {
+                uiInfo.GetComponent<InfoWindowCtrl>().ToggleInfoWindow(true);
+            }
+            return;
+        }
+    }
+
+    private static void ActItemUse()
+    {
+        // Debug.Log("BuildMode: " + _item.Name + " stack:" + _item.Stack);
+        Vector2 mousePosision2 = Mouse.current.position.ReadValue();
+        _spawnCtrl = GetSpawnCtrl();
+        if (!_spawnCtrl.CallUnitByName(_item.Name))
+        {
+            return;
+        }
+        _item.Stack = -1;
+        _itemHolderCtrl.AddItemToHolder(_item);
+        MarkerPointerCtrl.SetMarkerActive(false);
+    }
+
+    private static void CreateCube(Vector2 mousePosision)
+    {
+        Vector3 worldPoint = Camera.main.ScreenToWorldPoint(mousePosision);	 // マウスをクリックしたときのメインカメラの位置
+        // GameObject prefab = Resources.Load<GameObject>("Prefabs/Bonfire");
+        GameObject prefab = Resources.Load<GameObject>("Prefabs/Cube");
+        Vector3 setPoint = worldPoint + Camera.main.transform.forward * 10;
+        GameObject instance = Instantiate(prefab, setPoint, Quaternion.identity);
     }
 
     private static void CreateBonFire(Ray PointRay, RaycastHit hit)
@@ -134,6 +209,8 @@ public class ClickCtrl : MonoBehaviour
         }
         Quaternion setRotate = hit.collider.gameObject.transform.localRotation;
         GameObject instance = Instantiate(prefab, setPoint, setRotate);
+        // GameObject instance = Instantiate(prefab, setPoint, Quaternion.identity);
+        // Debug.Log("Did Hit:" + hit.collider.gameObject.name + setPoint);
         Transform parent = hit.collider.gameObject.transform.parent;
         if (parent != null)
         {
@@ -174,6 +251,27 @@ public class ClickCtrl : MonoBehaviour
         Debug.Log("ClosestPoint:" + meshFilter.mesh.bounds.ClosestPoint(setPoint));
         Debug.Log("Submeshes: " + meshFilter.mesh.subMeshCount);
         Debug.Log("isReadable: " + meshFilter.mesh.isReadable);
+
+        // Not allowed to access vertices on mesh 'Combined Mesh
+        // Debug.Log("uv: " + meshFilter.mesh.uv);
+        // Debug.Log("uv2: " + meshFilter.mesh.uv2);
+        // Debug.Log("uv3: " + meshFilter.mesh.uv3);
+
+        // Vector3[] vertices = meshFilter.mesh.vertices;
+        // for (var i = 0; i < vertices.Length; i++)
+        // {
+        // 	// vertices[i] += Vector3.up * Time.deltaTime;
+        // 	Debug.Log("vertices[" + i + "]:" + vertices[i]);
+        // }					
+
+        // Vector3[] vertices = meshFilter.mesh.vertices;
+        // Vector2[] uvs = new Vector2[vertices.Length];
+        // for (int i = 0; i < uvs.Length; i++)
+        // {
+        // 	uvs[i] = new Vector2(vertices[i].x, vertices[i].z);
+        // 	Debug.Log(uvs[i]);
+        // }
+
     }
 
 

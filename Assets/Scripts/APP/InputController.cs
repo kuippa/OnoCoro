@@ -192,7 +192,7 @@ namespace StarterAssets
 
         private void CameraRotation()
         {
-            if (_input._TabMenuOpen || _input._EscMenuOpen)
+            if (_input._MenuOpen)
             {
                 // Debug.Log("CameraRotation _input._cursorInputForLook");
                 return;
@@ -219,7 +219,7 @@ namespace StarterAssets
 
         private void Move()
         {
-            if (_input._TabMenuOpen || _input._EscMenuOpen)
+            if (_input._MenuOpen)
             {
                 _input.MoveInput(Vector2.zero);
             }
@@ -411,15 +411,10 @@ namespace StarterAssets
             // Time.timeScale = 0.0f;
             // _input.enabled = false;
             // _playerInput.enabled = false;
-
-            // Unity6では、CharacterControllerのenabledをfalseにすると、transform.position = setPos; が効かない
-            _controller.Move(Vector3.zero);
             _controller.enabled = false;    // これを入れないと、transform.position = setPos; が効かない
 
-
             _input._move = Vector2.zero;
-            // _controller.Move(Vector3.zero);
-            // _controller.Move(setPos);
+            _controller.Move(Vector3.zero);
             // _controller.center = setPos;
             _speed = 0.0f;
             Grounded = false;

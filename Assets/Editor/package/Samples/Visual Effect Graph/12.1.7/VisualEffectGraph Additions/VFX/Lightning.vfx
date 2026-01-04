@@ -158,7 +158,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 18
+  m_GraphVersion: 19
   m_ResourceVersion: 1
   m_SubgraphDependencies:
   - {fileID: 5371698748595113096, guid: 56bc4730042734b418e6445a2b32dade, type: 3}
@@ -180,10 +180,6 @@ VisualEffectResource:
     m_RendererSettings:
       motionVectorGenerationMode: 0
       shadowCastingMode: 0
-      rayTracingMode: 0
-      receiveShadows: 0
-      reflectionProbeUsage: 0
-      lightProbeUsage: 0
     m_CullingFlags: 3
     m_UpdateMode: 0
     m_PreWarmDeltaTime: 0.05
@@ -1038,8 +1034,7 @@ MonoBehaviour:
   m_OutputSlots: []
   m_Disabled: 0
   m_ActivationSlot: {fileID: 8926484042661615599}
-  m_Subgraph: {fileID: 5371698748595113096, guid: 56bc4730042734b418e6445a2b32dade,
-    type: 3}
+  m_Subgraph: {fileID: 5371698748595113096, guid: 56bc4730042734b418e6445a2b32dade, type: 3}
 --- !u!114 &8926484042661615134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1061,8 +1056,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615135}
-  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f,
-    type: 3}
+  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f, type: 3}
 --- !u!114 &8926484042661615135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1180,6 +1174,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615149}
   - {fileID: 8926484042661615635}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -2403,8 +2398,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615187}
-  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f,
-    type: 3}
+  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f, type: 3}
 --- !u!114 &8926484042661615187
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3626,8 +3620,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615283}
   - {fileID: 8926484042661615287}
   - {fileID: 8926484042661615291}
-  m_Subgraph: {fileID: 5371698745253816930, guid: e69ba71723af69a44a18cd26c948c781,
-    type: 3}
+  m_Subgraph: {fileID: 5371698745253816930, guid: e69ba71723af69a44a18cd26c948c781, type: 3}
 --- !u!114 &8926484042661615278
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5786,6 +5779,7 @@ MonoBehaviour:
   m_SubOutputs:
   - {fileID: 8926484042661615391}
   - {fileID: 8926484042661615636}
+  useBaseColorMap: 3
   colorMapping: 0
   uvMode: 0
   flipbookLayout: 0
@@ -7576,8 +7570,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615501}
-  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f,
-    type: 3}
+  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f, type: 3}
 --- !u!114 &8926484042661615501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7637,8 +7630,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615539}
   m_OutputSlots:
   - {fileID: 8926484042661615537}
-  m_Subgraph: {fileID: 5371698745253816930, guid: 76aa10813be98324298c468f3ea0e5a2,
-    type: 3}
+  m_Subgraph: {fileID: 5371698745253816930, guid: 76aa10813be98324298c468f3ea0e5a2, type: 3}
 --- !u!114 &8926484042661615534
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8352,8 +8344,7 @@ MonoBehaviour:
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 8926484042661615572}
-  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f,
-    type: 3}
+  m_Subgraph: {fileID: 5371698745253816930, guid: 948af06adc61e7c40956e291a41c3b6f, type: 3}
 --- !u!114 &8926484042661615572
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11879,7 +11870,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat3
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 0}
   m_Children:
@@ -11917,7 +11908,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615693}
   m_Children: []
@@ -11950,7 +11941,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615693}
   m_Children: []
@@ -11983,7 +11974,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615693}
   m_Children: []
@@ -12016,7 +12007,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ac39bd03fca81b849929b9c966f1836a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat3
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 0}
   m_Children:
@@ -12054,7 +12045,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615697}
   m_Children: []
@@ -12087,7 +12078,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615697}
   m_Children: []
@@ -12120,7 +12111,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 8926484042661615697}
   m_Children: []
@@ -12153,7 +12144,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Unity.VisualEffectGraph.Editor::UnityEditor.VFX.VFXSlotFloat
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 0}
   m_Children: []

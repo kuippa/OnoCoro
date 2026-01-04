@@ -8,7 +8,7 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 12408, guid: 0000000000000000e000000000000000, type: 0}
-  svgType: 3
+  svgType: 0
   texturedSpriteMeshType: 0
   svgPixelsPerUnit: 100
   gradientResolution: 64
@@ -18,7 +18,7 @@ ScriptedImporter:
   viewportOptions: 0
   preserveViewport: 0
   advancedMode: 0
-  tessellationMode: 1
+  tessellationMode: 0
   predefinedResolutionIndex: 1
   targetResolution: 1080
   resolutionMultiplier: 1
@@ -49,5 +49,5 @@ ScriptedImporter:
       y: 0
       width: 0
       height: 0
-    SpriteID: 
+    SpriteID: 0091baff99473a64684efeaccfe9e416
     PhysicsOutlines: []
