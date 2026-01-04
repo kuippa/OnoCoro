@@ -16,7 +16,7 @@ public class ItemAction : MonoBehaviour
 
     internal static void GetSelectedItem()
     {
-        SpawnMarkerPointerCtrl.SetMarkerActive(false);
+        MarkerPointerCtrl.SetMarkerActive(false);
         GameObject item_holder = GameObject.Find("ItemList");
         GameObject selected = EventSystem.current.currentSelectedGameObject;
         if (item_holder == null || selected == null)
@@ -35,11 +35,11 @@ public class ItemAction : MonoBehaviour
             }
             if (item.Name != null)
             {
-                SpawnMarkerPointerCtrl.SetMarkerActive(true);
+                MarkerPointerCtrl.SetMarkerActive(true);
             }
             else
             {
-                SpawnMarkerPointerCtrl.SetMarkerActive(false);
+                MarkerPointerCtrl.SetMarkerActive(false);
             }
             return;
         }
@@ -56,7 +56,7 @@ public class ItemAction : MonoBehaviour
         }
         _item.Stack = -1;
         _itemHolderCtrl.AddItemToHolder(_item);
-        SpawnMarkerPointerCtrl.SetMarkerActive(false);
+        MarkerPointerCtrl.SetMarkerActive(false);
     }
 
     internal static bool IsItemSelected()

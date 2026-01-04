@@ -6,14 +6,13 @@ using Cinemachine;
 using AppCamera;
 using UnityEngine.AI;
 
-
 namespace StarterAssets
+// namespace InputActions
 {
 	public class PlayerInputs : MonoBehaviour
 	{
         private GameObject _esc_menu_window = null;
 		const float _click_limit_distance = 20.0f;
-
 
 		[Header("Character Input Values")]
 		public Vector2 _move;
@@ -26,14 +25,13 @@ namespace StarterAssets
 
 		[Header("Mouse Cursor Settings")]
 		// public bool cursorLocked = true;
-		public bool _cursorLocked = false;
-		public bool _MenuOpen = false;
+		// public bool _cursorLocked = false;
+		public bool _TabMenuOpen = false;
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 		public void OnMove(InputValue value)
 		{
 			// 他の移動キーを押しながら移動中にさらに呼び出された場合
-
 			SetCursorPointer(false);
 			MoveInput(value.Get<Vector2>());
 		}
@@ -44,9 +42,7 @@ namespace StarterAssets
 
 			// Debug.Log("Look");
 			SetCursorPointer(true);
-			// todo ポインター表示まで少しディレイがあってもいいかもしれない
-
-			if(!_MenuOpen)
+			if(!_TabMenuOpen)
 			{
 				LookInput(value.Get<Vector2>());
 			}
@@ -64,11 +60,19 @@ namespace StarterAssets
 
 		public void OnLeftClick(InputValue value)
 		{
+			if (_TabMenuOpen || _esc_menu_window != null)
+			{
+				return;
+			}
 			ClickCtrl.OnLeftClick(value);
 		}
 
 		public void OnRightClick(InputValue value)
 		{
+			if (_TabMenuOpen || _esc_menu_window != null)
+			{
+				return;
+			}
 			ClickCtrl.OnRightClick(value);
 		}
 
@@ -81,8 +85,6 @@ namespace StarterAssets
 			}
 			CameraCtrl.ChangeCameraMode(mouseScroll.y);
 		}
-
-#endif
 
 		public void MoveInput(Vector2 newMoveDirection)
 		{
@@ -104,26 +106,26 @@ namespace StarterAssets
 			_sprint = newSprintState;
 		}
 
-		private void OnApplicationFocus(bool hasFocus)
-		{
-			// true onFocus false lost Forcus
-			// Debug.Log("hasFocus:" + hasFocus);
-			SetCursorState(hasFocus?!_cursorLocked:_cursorLocked);
-			// SetCursorState(cursorLocked);
-		}
+		// private void OnApplicationFocus(bool hasFocus)
+		// {
+		// 	// SetCursorState(hasFocus?!_cursorLocked:_cursorLocked);
+		// 	SetCursorState(hasFocus);
+		// }
+
 		// void OnApplicationPause(bool pauseStatus)
 		// {
-		// 	isPaused = pauseStatus;
+		// 	Debug.Log("OnApplicationPause");
+		// 	// isPaused = pauseStatus;
 		// }		
 
-		private void SetCursorState(bool newState)
-		{
-			// Cursor.lockState = newState ? CursorLockMode.None : CursorLockMode.Locked;
-			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
-			// Cursor.lockState = CursorLockMode.None;		// カーソルの動作を変更させません。
-			// Cursor.lockState = CursorLockMode.Locked;	// カーソルが消える(ゲームウィンドウの中央にカーソルをロックします。)			
-			// Cursor.lockState = CursorLockMode.Confined;		// カーソルがゲーム内からでれなくなる カーソルをゲーム内のみ表示させます。
-		}
+		// private void SetCursorState(bool newState)
+		// {
+		// 	// Cursor.lockState = newState ? CursorLockMode.None : CursorLockMode.Locked;
+		// 	Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
+		// 	// Cursor.lockState = CursorLockMode.None;		// カーソルの動作を変更させません。
+		// 	// Cursor.lockState = CursorLockMode.Locked;	// カーソルが消える(ゲームウィンドウの中央にカーソルをロックします。)			
+		// 	// Cursor.lockState = CursorLockMode.Confined;		// カーソルがゲーム内からでれなくなる カーソルをゲーム内のみ表示させます。
+		// }
 
 		private void SetCursorPointer(bool newState)
 		{
@@ -141,8 +143,6 @@ namespace StarterAssets
 
 		private void ChangeMousePointer()
 		{
-			// TODO:: initへ移動、初回のみ
-
     		Texture2D cursorTexture;
     		CursorMode cursorMode = CursorMode.Auto;	// プラットフォームがサポートしているハードウェアカーソルを使用します
 			// CursorMode cursorMode = CursorMode.ForceSoftware;		//ソフトウェアカーソルを使用します
@@ -173,7 +173,7 @@ namespace StarterAssets
         {
             if (_esc_menu_window != null)
             {
-				_MenuOpen = !isOn;
+				_TabMenuOpen = !isOn;
                 escMenuCtrl.ToggleEscMenuWindow(isOn);
             }
         }
@@ -183,9 +183,40 @@ namespace StarterAssets
             GameObject tab_menu = GameObject.Find("UITabMenu");
             TabMenuCtrl tabMenuCtrl = tab_menu.GetComponent<TabMenuCtrl>();
             tabMenuCtrl.ToggleTabMenuWindow();
-			_MenuOpen = tabMenuCtrl.GetTabMenuWindowStatus();
+			_TabMenuOpen = tabMenuCtrl.GetTabMenuWindowStatus();
 		}
 
+		public void OnMenuShortCut(InputValue value)
+		{
+			// キーボードからの入力を取得
+			var keyboard = Keyboard.current;
+			if (keyboard == null) return;
+
+			// 数字キー（1から5）をチェック
+			for (int i = 1; i <= 5; i++)
+			{
+				if (keyboard[Key.Digit1 + i - 1].wasPressedThisFrame)
+				{
+					// Debug.Log($"数字 {i} が入力されました");
+					HandleMenuShortcut(i);
+					return;
+				}
+			}
+		}
+
+		private void HandleMenuShortcut(int number)
+		{
+            GameObject ItemList = GameObject.Find("ItemList");
+			if (ItemList == null)
+			{
+				return;
+			}
+            ItemListCtrl itemListCtrl = ItemList.GetComponent<ItemListCtrl>();
+			itemListCtrl.SelectItem(number);
+			ItemAction.GetSelectedItem();
+		}
+
+#endif
 		public void Awake()
 		{
 			// initMousePointer();

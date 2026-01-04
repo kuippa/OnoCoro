@@ -59,7 +59,7 @@ public class EscMenuCtrl : MonoBehaviour
         // タイトル画面に戻る
         // TODO:
         // UnityEngine.SceneManagement.SceneManager.LoadScene("TitleScene");
-
+        Debug.Log("OnClickBackToTitle:: これはまだ未実装です");
         ToggleEscMenuWindow(false);
     }
 

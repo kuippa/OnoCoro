@@ -1,12 +1,10 @@
 #if UNITY_EDITOR
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Reflection;
 
 namespace UnityEngine.Rendering
 {
@@ -21,8 +19,6 @@ namespace UnityEngine.Rendering
         public string propertyPath;
         public string name => m_name;
         public string description => m_description;
-
-        public string globalSettingsType;
 
         public ValueType valueType = ValueType.Bool;
         public float targetValue = 1f;
@@ -49,8 +45,10 @@ namespace UnityEngine.Rendering
         }
 
         public virtual string projectSettingsPath { get; }
-        
-        public static Action<RequiredSettingBase> showSettingCallback { get; set; } = null;
+
+        public virtual string editorAssemblyName => null;
+        public virtual string editorClassName => null;
+        public virtual string editorShowFunctionName => null;
 
         public virtual SerializedProperty property
         {
@@ -74,15 +72,6 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                if (!string.IsNullOrEmpty(globalSettingsType))
-				{
-                    var type = Type.GetType(globalSettingsType);
-                    var field = type.GetField(propertyPath, BindingFlags.NonPublic | BindingFlags.Instance);
-                    var getSettings = typeof(GraphicsSettings).GetMethod("GetRenderPipelineSettings").MakeGenericMethod(type);
-                    object settings = getSettings.Invoke(null, null);
-                    return (bool)field.GetValue(settings);
-				}
-
                 if (property == null)
                     return false;
 
@@ -96,7 +85,7 @@ namespace UnityEngine.Rendering
                         break;
                     case ValueType.Int:
                         floatValue = property.intValue;
-                        comparedValue = (int)targetValue;
+                        comparedValue = (int)comparedValue;
                         break;
                     default:
                             return property.boolValue == (targetValue > 0f);
@@ -114,10 +103,6 @@ namespace UnityEngine.Rendering
                         return floatValue <= comparedValue;
                     case ValidationType.Different:
                         return floatValue != comparedValue;
-                    case ValidationType.LayermaskContains:
-                        var intValue = property.intValue;
-                        var intCompared = (int)targetValue;
-                        return (intValue & intCompared) == intCompared;
                     default:
                         return floatValue == comparedValue;
                 }
@@ -139,8 +124,7 @@ namespace UnityEngine.Rendering
         Lower,
         GreaterEqual,
         LowerEqual,
-        Different,
-        LayermaskContains
+        Different
     };
 }
 #endif

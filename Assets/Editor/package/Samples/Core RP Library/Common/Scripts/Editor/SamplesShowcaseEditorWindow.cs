@@ -19,11 +19,54 @@ public class SamplesWindow : EditorWindow
 
     static void SceneOpened(Scene scene, OpenSceneMode openSceneMode)
     {
-        var currentShowcase = (SamplesShowcase)FindFirstObjectByType(typeof(SamplesShowcase));
-        if(currentShowcase != null)
-            Selection.activeGameObject = currentShowcase.gameObject;
+        OpenSamplesShowcaseWindow().UpdateSamplesWindow();
+
     }
 
+    public static SamplesWindow OpenSamplesShowcaseWindow()
+    {
+        SamplesWindow window = GetWindow<SamplesWindow>("Samples Showcase", true, System.Type.GetType("UnityEditor.InspectorWindow,UnityEditor.dll"));
+        return window;
+    }
+
+    void CreateGUI () 
+    {
+         UpdateSamplesWindow();
+    }
+  
+    private void UpdateSamplesWindow()
+    {
+        VisualElement root = rootVisualElement;
+        var currentShowcase = (SamplesShowcase)FindFirstObjectByType(typeof(SamplesShowcase));
+        root.Clear();
+        if (currentShowcase != null)
+        {
+            InspectorElement showcaseInspector = new InspectorElement(currentShowcase);
+            root.Add(showcaseInspector);
+        }
+        else
+        {
+            this.Close();
+        }
+    }
+
+void HideOpenWindowButton()
+{
+    VisualElement root = rootVisualElement;
+    if(root !=null)
+    {
+        var OpenInWindowButton =  root.Q<Button>(name = "OpenInWindowButton");
+        if(OpenInWindowButton !=null)
+       { 
+            OpenInWindowButton.style.display = DisplayStyle.None;
+       }
+    }
+}
+
+void OnGUI()
+{
+    HideOpenWindowButton();
+}
 
 
 }

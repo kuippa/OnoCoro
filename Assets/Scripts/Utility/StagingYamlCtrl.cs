@@ -44,12 +44,44 @@ public class StagingYamlCtrl : MonoBehaviour
             return;
         }
 
-        // ActionStageNotice(yaml);
+        ActionStageNotice(yaml);
         SetTimerEventData(yaml);
         SetStageInitData(yaml);
         SetItemList(yaml);
+        SetGoalsRequirements(yaml);
         SetBoardInitData(yaml);
+    }
 
+    private void SetGoalsRequirements(YamlStream yaml)
+    {
+        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "goals");
+        Dictionary<string, string> goals_req = new Dictionary<string, string>();
+        if (YSeqNode == null)
+        {
+            return;
+        }
+
+        foreach (YamlMappingNode yamlevent in YSeqNode)
+        {
+            foreach (var entry in yamlevent.Children)
+            {
+                // string req = ((YamlScalarNode)entry.Value).Value;
+                // if (string.IsNullOrEmpty(req))
+                // {
+                //     continue;
+                // }
+                goals_req.Add(
+                    ((YamlScalarNode)entry.Key).Value
+                    , ((YamlScalarNode)entry.Value).Value
+                );
+                // StageGoalCtrl._GoalsRequirementsList.Add(req);
+                Debug.Log(((YamlScalarNode)entry.Key).Value + " : " + ((YamlScalarNode)entry.Value).Value);
+            }
+        }
+        if (goals_req.Count > 0)
+        {
+            StageGoalCtrl._dict_req = goals_req;
+        }
     }
 
     internal static List<string> GetItemList()
@@ -82,18 +114,15 @@ public class StagingYamlCtrl : MonoBehaviour
                     continue;
                 }
 
-                // itemname が ModelsEnum.ModelsType に定義されているか確認
-                if (!Enum.IsDefined(typeof(ModelsEnum.ModelsType), itemname))
+                // itemname が GameEnum.ModelsType に定義されているか確認
+                if (!Enum.IsDefined(typeof(GameEnum.ModelsType), itemname))
                 {
-                    Debug.Log("itemname " + itemname + " は ModelsEnum.ModelsType に定義されていません");
+                    Debug.Log("itemname " + itemname + " は GameEnum.ModelsType に定義されていません");
                     continue;
                 }
-
                 _ItemList.Add(itemname);
-
             }
         }
-
     }
 
     private void ActionStageNotice(YamlStream yaml)
@@ -103,9 +132,9 @@ public class StagingYamlCtrl : MonoBehaviour
         {
             if (YamlScalarNode.Equals((YamlScalarNode)entry.Key, new YamlScalarNode("stagenotice")))
             {
-                GameObject _UINotice = null;
-                _UINotice = GameObject.Find("UINotice");
-                _UINotice.GetComponent<NoticeCtrl>().ShowNotice(((YamlScalarNode)entry.Value).Value);
+                GameObject UINotice = GameObject.Find("UINotice");
+                UINotice.GetComponent<NoticeCtrl>().ShowNotice(((YamlScalarNode)entry.Value).Value);
+                return;
             }
         }
     }
@@ -228,7 +257,30 @@ public class StagingYamlCtrl : MonoBehaviour
             }
             if (event_time >= 0f)
             {
-                _eventLoader._timer_events.Add(event_time, event_data);
+                // List<Dictionary<string, string>> event_list = new List<Dictionary<string, string>>();
+                List<Dictionary<string, string>> event_list;
+                if (_eventLoader._timer_events.ContainsKey(event_time))
+                {
+                    _eventLoader._timer_events.TryGetValue(event_time, out event_list);
+                    if (event_list == null)
+                    {
+                        Debug.Log("event_list is null ");
+                        event_list = new List<Dictionary<string, string>>();
+                    }
+                    // Debug.Log("event_list " + event_list);
+
+                    event_list.Add(event_data);
+                    // _timer_events の event_time を event_list で 上書き
+                    _eventLoader._timer_events[event_time] = event_list;
+                }
+                else
+                {
+                    event_list = new List<Dictionary<string, string>>();
+                    event_list.Add(event_data);
+                    _eventLoader._timer_events.Add(event_time, event_list);
+                    // Debug.Log("event_list new add : " + event_list);
+
+                }
             }
         }
         _eventLoader.SetEventToTimer();

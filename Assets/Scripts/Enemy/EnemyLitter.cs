@@ -28,7 +28,7 @@ public class EnemyLitter : MonoBehaviour
             Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
 
-        this.tag = GameEnum.EnemyType.EnemyLitters.ToString();
+        this.tag = GameEnum.TagType.EnemyLitters.ToString();
         int idx = GameObjectTreat.IndexObjectByTag(this.tag);
         this.name = this.tag + idx;
         myStatus = new EnemyStatus();
@@ -45,7 +45,6 @@ public class EnemyLitter : MonoBehaviour
 
     }
 
-
     private bool MakeChildLitter()
     {
         #if UNITY_EDITOR
@@ -60,16 +59,14 @@ public class EnemyLitter : MonoBehaviour
             return false;
         }
         myStatus = new EnemyStatus();
-        // myStatus.SetEnemyName("Litter");
-        // myStatus.SetEnemyName(EnemyEnum.EnemyType.Litter.ToString());
-        myStatus.SetEnemyName(GameEnum.EnemyType.Garbage.ToString());
+        myStatus.SetEnemyName(GameEnum.TagType.Garbage.ToString());
 		GameObject prefab = Resources.Load<GameObject>("Prefabs/GarbageCube");
         prefab.transform.localScale = GetRandomSize(_LitterSizeMin, _LitterSizeMax);
         Vector3 setPoint = this.transform.position;
         Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
         // unit.tag = "Garbage";
-        unit.tag = GameEnum.EnemyType.Garbage.ToString();
+        unit.tag = GameEnum.TagType.Garbage.ToString();
         Rigidbody rigidbody = unit.GetComponent<Rigidbody>();
         // rigidbody.useGravity = true;
         // Rigidbody rb        = GetComponent<Rigidbody>();
@@ -99,7 +96,7 @@ public class EnemyLitter : MonoBehaviour
         // GameConfig.InitGameConfig();
 
         // // this.tag = "EnemyLitters";
-        // this.tag = EnemyEnum.EnemyType.EnemyLitters.ToString();
+        // this.tag = GameEnum.TagType.EnemyLitters.ToString();
         // int idx = GameObjectTreat.IndexObjectByTag(this.tag);
         // this.name = this.tag + idx;
         // myStatus = new EnemyStatus();

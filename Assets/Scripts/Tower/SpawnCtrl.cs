@@ -6,12 +6,30 @@ using TMPro;
 using CommonsUtility;
 using System;
 
-public class SpawnCtrl : MonoBehaviour
+public class SpawnCtrl : MonoBehaviour 
 {
+    public static SpawnCtrl _instance = null;
+
+    public static SpawnCtrl Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindFirstObjectByType<SpawnCtrl>();
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("SpawnCtrl");
+                    _instance = go.AddComponent<SpawnCtrl>();
+                }
+            }
+            return _instance;
+        }
+    }
 
     void Awake()
     {
-        Debug.Log("SpawnCtrl.Awake()");
+        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         // // ボタンを探してクリックイベントに登録する
         // // GameObject button = GameObject.Find("Button");
         // // GameObject button = GameObject.Find("btnSpawnUnit");
@@ -19,6 +37,20 @@ public class SpawnCtrl : MonoBehaviour
 
         // // buttonにイベントリスナーを登録する
         // button.GetComponent<Button>().onClick.AddListener(OnClickButton);
+
+        if (_instance == null)
+        {
+            _instance = this;
+        }
+    }
+
+    void OnDestory()
+    {
+        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+        if (_instance == this)
+        {
+            _instance = null;
+        }
     }
 
 
@@ -111,68 +143,63 @@ public class SpawnCtrl : MonoBehaviour
 
     internal bool CallUnitByName(string unitName, Vector3 spawnPoint = default(Vector3))
     {
-
-        // Sweeper sweeper = new Sweeper();
-        // Debug.Log("SpawnCtrl.CallUnitByName() sweeper.GetItemStruct().Name:" + sweeper.GetItemStruct().Name);
-        // string sweeperName = sweeper.GetItemStruct().Name;
-        // ModelsEnum.ModelsType modelsType = (ModelsEnum.ModelsType)System.Enum.Parse(typeof(ModelsEnum.ModelsType), unitName);
-        // ModelsEnum.ModelsType.GarbageCube.ToString();
-        // Debug.Log("SpawnCtrl.CallUnitByName() unitName:" + unitName + Enum.GetName(typeof(ModelsEnum.ModelsType), unitName));
-
-
         bool ret = false;
-        switch (unitName)
+        if (unitName == null || unitName == "")
         {
-            // case ModelsEnum.ModelsType.GarbageCube.ToString() :
-            //     // ret = SpawnGarbageCubeCollector();
-            //     break;
-            // case "GarbageCubeCollector":
-            //     ret = SpawnGarbageCubeCollector();
-            //     break;
-
-            // TODO: ここで、unitName に応じて処理を分岐する
-            // 直値じゃなくてModelsEnum.ModelsType.GarbageCube.ToString() みたいな感じで
-            // case ModelsEnum.ModelsType.GarbageCube.ToString():
-            //     ret = SpawnGarbageCube();
-            //     break;
-
-            case "GarbageCube":
-                ret = SpawnGarbageCube(0, spawnPoint);
-                break;
-            case "GarbageCubeBox":
-                ret = SpawnGarbageCubeBox(spawnPoint);
-                break;
-            case "Sweeper":
-                ret = SpawnTowerSweeper();
-                break;
-            case "PowerCube":
-                ret = SpawnPowerCube();
-                break;
-            default:
-                Debug.Log("default" + unitName);
-                break;
+            return ret;
+        }
+        else if (unitName == GameEnum.ModelsType.GarbageCube.ToString())
+        {
+            ret = SpawnGarbageCube(0, spawnPoint);
+        }
+        else if (unitName == GameEnum.ModelsType.GarbageCubeBox.ToString())
+        {
+            ret = SpawnGarbageCubeBox(spawnPoint);
+        }
+        else if (unitName == GameEnum.ModelsType.GarbageCubeBig.ToString())
+        {
+            ret = SpawnGarbageCubeBig(spawnPoint);
+        }
+        else if (unitName == GameEnum.ModelsType.Sweeper.ToString())
+        {
+            ret = SpawnTowerSweeper();
+        }
+        else if (unitName == GameEnum.ModelsType.PowerCube.ToString())
+        {
+            ret = SpawnPowerCube();
+        }
+        else
+        {
+            Debug.Log("default" + unitName);
         }
         return ret;
     }
 
-    private bool SpawnGarbageCubeBox( Vector3 spawnPoint = default(Vector3))
+    private bool SpawnGarbageCubeBig(Vector3 spawnPoint = default(Vector3))
     {
-        bool ret = false;
-        // float dropnumber = rdNum(20,60);
-        float dropnumber = 10;
+        bool result = SpawnGarbageCube(GarbageCubeCtrl._GARBAGE_CUBE_SIZE_BIG_MAX, spawnPoint, GarbageCubeCtrl._SIZE_BIG, false);
+        return result;
+    }
+
+    private bool SpawnGarbageCubeBox(Vector3 spawnPoint = default(Vector3))
+    {
+        bool result = SpawnGarbageCubeBoxCoroutine(spawnPoint);
+        return result;
+    }
+
+    private bool SpawnGarbageCubeBoxCoroutine(Vector3 spawnPoint)
+    {
+        float dropnumber = 20;
         for (int i = 0; i < dropnumber; i++)
         {
-            // if (!SpawnGarbageCube(rdNum(1,4), spawnPoint))
-            if (!SpawnGarbageCube(0.5f * i, spawnPoint))
+            if (!SpawnGarbageCube(0.1f * i, spawnPoint, GarbageCubeCtrl._SIZE_SMALL, true))
             {
                 return false;
             }
-            // // 0.1 ～ 0.5 秒のランダムな時間だけ待つ
-            // yield return new WaitForSeconds(rdNum(0.1f,0.5f));
-
+            // await Task.Delay(5); // ミリ秒待機
         }
-        ret = true;
-        return ret;
+
+        return true;
     }
 
     // private IEnumerator waitSpawner(float waitTime)
@@ -181,45 +208,23 @@ public class SpawnCtrl : MonoBehaviour
     //     SpawnGarbageCube();
     // }
 
-    private bool SpawnGarbageCube(float dropbuffer = 1.5f, Vector3 spawnPoint = default(Vector3))
+    private bool SpawnGarbageCube(float dropbuffer = 1.5f, Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
     {
         bool ret = false;
-		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/GarbageCube");
-        prefab.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
-        // prefab.transform.localScale = new Vector3(rdNum(0.1f,0.3f), rdNum(0.1f,0.3f), rdNum(0.1f,0.3f));
-        // prefab.transform.localScale = new Vector3(rdNum(0.1f,3.3f), rdNum(0.1f,3.3f), rdNum(0.1f,3.3f));
-
         if (spawnPoint == default(Vector3))
         {
             spawnPoint = GetSpawnPoint(dropbuffer);
         }
         else
         {
-            // spawnPoint.y += dropbuffer;
             spawnPoint.z += dropbuffer;
         }
         Vector3 setPoint = spawnPoint;
-        // Vector3 setPoint = new Vector3(rdNum(-2,2), rdNum(0,2), -4);
-        // Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
-        Quaternion setRotation = Quaternion.identity;
-
-        // if (relativePos == Vector3.zero)
-        // {
-        //     rotation = Quaternion.identity;
-        // }
-        // else
-        // {
-        //     rotation = Quaternion.LookRotation(relativePos, Vector3.up);
-        // }
-
-        GameObject unit = Instantiate(prefab, setPoint, setRotation);
-        unit.tag = GameEnum.EnemyType.Garbage.ToString();
-
-        int countGarbage = GameObject.FindGameObjectsWithTag(GameEnum.EnemyType.Garbage.ToString()).Length;
-        unit.name = ModelsEnum.ModelsType.GarbageCube.ToString() + countGarbage.ToString();
-        unit.AddComponent<GarbageCube>();
-
-        ret = true;
+        GameObject garbageObj = GarbageCubeCtrl.SpawnGarbageCube(spawnPoint, sizeFlag, isSwayingPoint);
+        if (garbageObj != null)
+        {
+            ret = true;
+        }
         return ret;
     }
 
@@ -231,7 +236,12 @@ public class SpawnCtrl : MonoBehaviour
         Vector3 setPoint = GetSpawnPoint(dropbuffer);
         Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
-        unit.tag = GameEnum.EnemyType.Garbage.ToString();
+
+        int idx = GameObjectTreat.IndexObjectByTag(GameEnum.TagType.PowerCube.ToString());
+        unit.name = GameEnum.ModelsType.PowerCube.ToString() + idx.ToString();
+        unit.AddComponent<PowerCube>();
+        unit.GetComponent<PowerCube>()._item_struct.ItemID = unit.name;
+        unit.GetComponent<PowerCube>()._unit_struct.UnitID = unit.name;
 
         ret = true;
         return ret;
@@ -254,7 +264,6 @@ public class SpawnCtrl : MonoBehaviour
         GameObject spawnMarker = GameObject.FindWithTag(GameEnum.UIType.SpawnMarker.ToString());
         if (spawnMarker == null)
         {
-            // Debug.Log("SpawnMarker is null");
             return new Vector3(0, 0, 0);
         }
         MarkerPointerCtrl markerPointerCtrl = spawnMarker.GetComponent<MarkerPointerCtrl>();
@@ -262,16 +271,6 @@ public class SpawnCtrl : MonoBehaviour
         setPoint.y += dropbuffer;
         return setPoint;
     }
-
-// navMeshAgent.isOnNavMesh
-// false
-// navMeshAgent.isActiveAndEnabled
-// false
-// navMeshAgent.isPathStale
-// false
-// navMeshAgent.isStopped
-// false
-
 
     private float rdNum(float min, float max)
     {

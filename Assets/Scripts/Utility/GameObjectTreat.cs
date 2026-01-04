@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
+using System.Text;
+using System.Linq;
+using UnityEditor;
+// using System.Math;
 
 namespace CommonsUtility
 {
@@ -111,6 +116,14 @@ namespace CommonsUtility
             {
                 return Color.black;
             }
+            if (renderer.material == null)
+            {
+                return Color.black;
+            }
+            if (renderer.material.color == null)
+            {
+                return Color.black;
+            }
             return renderer.material.color;
         }
 
@@ -127,6 +140,45 @@ namespace CommonsUtility
             ColorChange(targetObject, setColor);
         }
 
+        // Scriptのファイル名リストを一覧で出力
+        internal static void DebugScriptList()
+        {
+            #if UNITY_EDITOR
+            StringBuilder output = new StringBuilder();
+            string[] guids = AssetDatabase.FindAssets("t:Script", new[] { "Assets/Scripts" });
+            var sortedScripts = guids
+                .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
+                .OrderBy(path => Path.GetDirectoryName(path))
+                .ThenBy(path => Path.GetFileName(path))
+                .ToList();
+
+            string previousFolder = "";
+            foreach (string path  in sortedScripts)
+            {
+                string fileName = Path.GetFileName(path);
+                string folderPath = Path.GetDirectoryName(path);
+                string folderName = Path.GetFileName(folderPath);
+                // "Assets/Scripts"からの相対的な深さを計算
+                // int depth = Math.Max(0, folderPath.Split('/').Length - 3); // "Assets/Scripts"で3
+                int depth = Mathf.Max(0, folderPath.Split('/').Length - 3); // "Assets/Scripts"で3
+                string indent = new string(' ', depth * 2);
+
+                // 新しいフォルダに入ったときは空行を追加
+                if (folderName != previousFolder)
+                {
+                    if (previousFolder != "")
+                        output.AppendLine();
+                    previousFolder = folderName;
+                }
+
+                // output.AppendLine($"{indent}{folderName}: {fileName} {path}");                
+                output.AppendLine($"{indent}{folderName}: {fileName}");                
+                // out_buf += ($"{indent}{folderName}: {fileName}") + "\n";
+            }
+            // Debug.Log(out_buf);
+            Debug.Log(output.ToString());
+            #endif
+        }
 
     }
 }

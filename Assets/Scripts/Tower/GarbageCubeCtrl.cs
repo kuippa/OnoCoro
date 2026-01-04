@@ -41,6 +41,19 @@ public class GarbageCubeCtrl : MonoBehaviour
         return localScale;
     }
 
+    private static Transform GetParentTransform(string parentName)
+    {
+        GameObject parent = GameObject.Find(parentName);
+        Transform parentTransform = null;
+        if (parent == null)
+        {
+            parent = new GameObject(parentName);
+        }
+        parentTransform = parent.transform;
+        return parentTransform;
+    }
+
+
     internal static GameObject SpawnGarbageCube(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
     {
 		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/GarbageCube");
@@ -95,7 +108,7 @@ public class GarbageCubeCtrl : MonoBehaviour
             // Debug.Log("Add Collider");
             unit.AddComponent<BoxCollider>();
         }
-        Transform parentTransform = GameObjectTreat.GetParentTransform(_GARBAGE_CUBE_PARENT_NAME);
+        Transform parentTransform = GetParentTransform(_GARBAGE_CUBE_PARENT_NAME);
         unit.transform.SetParent(parentTransform);
 
         return unit;

@@ -4,18 +4,30 @@ using UnityEngine;
 
 public class GameEnum
 {
-
-    // TODO: Utilityに移動
-    internal enum EnemyType
+    internal enum TagType
     {
         Garbage,
-        // Litter,
+        PowerCube,
+        Litter,
         EnemyLitters,
+        TowerSweeper,
+        TowerDock,
         Player,
         Ground,
-        Big,
-        Boss,
+        Naraku,
+        Untagged,
     }
+
+    internal enum ModelsType
+    {
+        GarbageCube,
+        GarbageCubeBox,
+        GarbageCubeBig,
+        Litter,
+        Sweeper,
+        PowerCube,
+    }
+
 
     internal enum LayerType
     {
@@ -31,28 +43,5 @@ public class GameEnum
     {
         SpawnMarker,
     }
-
-
-
-
-    // internal static EnemyType GetEnemyType(string enemyType)
-    // {
-    //     switch (enemyType)
-    //     {
-    //         // case "Litter":
-    //             // return EnemyType.Litter;
-    //         case "Garbage":
-    //             return EnemyType.Garbage;
-    //         case "EnemyLitters":
-    //             return EnemyType.EnemyLitters;
-    //         case "Big":
-    //             return EnemyType.Big;
-    //         case "Boss":
-    //             return EnemyType.Boss;
-    //         default:
-    //             return EnemyType.Garbage;
-    //     }
-    // }
-
 
 }

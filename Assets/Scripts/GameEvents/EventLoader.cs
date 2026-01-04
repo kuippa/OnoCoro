@@ -18,8 +18,11 @@ public class EventLoader : MonoBehaviour
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
     // // イベント名,{イベントデータ配列}
 
-    internal Dictionary<float, Dictionary<string, string>> _timer_events = new Dictionary<float, Dictionary<string, string>>();
+    // internal Dictionary<float, Dictionary<string, string>> _timer_events = new Dictionary<float, Dictionary<string, string>>();
     // ex. {イベント発生時刻,{event: earthquake,value: 6}}
+
+    internal Dictionary<float, List<Dictionary<string, string>>> _timer_events = new Dictionary<float, List<Dictionary<string, string>>>();
+
 
     internal Dictionary<string, string> _board_data = new Dictionary<string, string>();
 
@@ -84,18 +87,18 @@ public class EventLoader : MonoBehaviour
         }
     }
 
-    internal void ActionEvent(string event_name,string event_value)
+    internal void ActionEvent(string event_name, string event_value)
     {
         Debug.Log("ActionEvent " + event_name + " : " + event_value);
 
         // TODO:
-
         // event_name の値によって処理をswitch分岐
         switch (event_name)
         {
             case "spawn_unit":
                 SpawnUnit(event_value);
                 break;
+                //
             case "notice":
                 ShowNotice(event_value);
                 break;
@@ -104,6 +107,12 @@ public class EventLoader : MonoBehaviour
                 break;
             case "building_break":
                 CallBuildingBreak(event_value);
+                break;
+            case "telop":
+                CallTelopShow(event_value);
+                break;
+            case "subtelop":
+                CallTelopShow(event_value, true);
                 break;
             case "volcano":
                 break;
@@ -202,6 +211,14 @@ public class EventLoader : MonoBehaviour
         }
     }
 
+    private void CallTelopShow(string event_value, bool isSubTelop = false)
+    {
+        TelopCtrl telopCtrl = GameObject.Find("UITelop").GetComponent<TelopCtrl>();
+        if (telopCtrl != null)
+        {
+            telopCtrl.GetComponent<TelopCtrl>().ShowTelop(event_value, isSubTelop);
+        }
+    }
 
 
 

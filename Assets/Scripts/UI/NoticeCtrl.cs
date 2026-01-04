@@ -7,20 +7,17 @@ using UnityEngine.EventSystems;
 
 public class NoticeCtrl : MonoBehaviour
 {
-    GameObject _UINotice = null;
-    GameObject _notice_window = null;
+    private GameObject _UINotice = null;
+    private GameObject _notice_window = null;
+    private GameObject _txtNotice = null;
 
     internal void ShowNotice(string notice)
     {
-        GameObject txtNotice = _notice_window.transform.Find("txtNotice").gameObject;
-        // Debug.Log(txtNotice.name);
-        if (txtNotice != null)
+        if (_txtNotice != null)
         {
-            txtNotice.GetComponent<Text>().text = notice;
+            _txtNotice.GetComponent<Text>().text = notice;
             ToggleNoticeWindow(true);
         }
-        // _UINotice.SetActive(true);
-
     }
 
     // private void OnClickPanel()
@@ -29,19 +26,26 @@ public class NoticeCtrl : MonoBehaviour
     //     _UINotice.SetActive(false);
     // }
 
-
     void Awake()
     {
+        //    Debug.Log($"NoticeCtrl Awake called on {gameObject.name} (InstanceID: {gameObject.GetInstanceID()})");
         _UINotice = this.gameObject;
+        // Debug.Log("NoticeCtrl Awake" + this.gameObject.name);
+        // if (_UINotice.transform.Find("noticeWindow") == null)
+        // {
+        //     Debug.Log("NoticeCtrl noticeWindow is null");
+        //     return;
+        // }
+
         _notice_window = _UINotice.transform.Find("noticeWindow").gameObject;
+        _txtNotice = _notice_window.transform.Find("txtNotice").gameObject;
+
         // _UINotice.SetActive(false);
         ToggleNoticeWindow(false);
 
         // GameObject noticeWindow = _UINotice.transform.Find("noticeWindow").gameObject;
         // noticeWindow.GetComponent<Button>().onClick.AddListener(OnClickPanel);
-
         // ShowNotice("NoticeCtrl Awake");
-
     }
 
     public bool IsNoticeWindowActive()

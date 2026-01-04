@@ -77,6 +77,13 @@ public class XMLparser : MonoBehaviour
     {
         string ret = "";
         _buildingUsageDict.TryGetValue(key, out ret);
+
+        if (string.IsNullOrEmpty(ret))
+        {
+            ret = "Unknown:" + key;
+        }
+
+
         return ret;
     }
 

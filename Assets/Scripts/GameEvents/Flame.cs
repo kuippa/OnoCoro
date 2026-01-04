@@ -43,7 +43,7 @@ public class Flame : MonoBehaviour
                 {
                     // rb.velocity = Vector3.zero;
                     // rb.angularVelocity = Vector3.zero;
-                    Debug.Log("GarbageToFire" + i + " "+ rb.velocity + rb.angularVelocity);
+                    Debug.Log("GarbageToFire" + i + " "+ rb.linearVelocity + rb.angularVelocity);
 
                     // if (rb.velocity == Vector3.zero)
                     // if (rb.angularVelocity == Vector3.zero)

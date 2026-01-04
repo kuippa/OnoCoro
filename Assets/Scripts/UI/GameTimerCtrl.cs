@@ -21,7 +21,8 @@ public class GameTimerCtrl : MonoBehaviour
     // イベント発生時間リスト
     private List<float> _eventTimeList = new List<float>(); 
     // 時間形式のイベントリスト
-    internal Dictionary<float, Dictionary<string, string>> _timer_events = new Dictionary<float, Dictionary<string, string>>();
+    // internal Dictionary<float, Dictionary<string, string>> _timer_events = new Dictionary<float, Dictionary<string, string>>();
+    internal Dictionary<float, List<Dictionary<string, string>>> _timer_events = new Dictionary<float, List<Dictionary<string, string>>>();
 
 
     [SerializeField] TextMeshProUGUI _text = null;
@@ -125,18 +126,28 @@ public class GameTimerCtrl : MonoBehaviour
     private bool ActionEvent(float time)
     {
         bool ret = false;
-        Dictionary<string, string> event_data;
+        List<Dictionary<string, string>> event_data_list;
+        // Dictionary<string, string> event_data;
         // その時刻に発生するイベントを実行する
         if (_eventLoader != null)
         {
-            if (_eventLoader._timer_events.TryGetValue(time, out event_data))
+            // if (_eventLoader._timer_events.TryGetValue(time, out event_data))
+            if (_eventLoader._timer_events.TryGetValue(time, out event_data_list))
             {
-                // Debug.Log("ActionEventイベント発生:" + time + event_data);
-                string event_name = "";
-                string event_value = "";
-                event_data.TryGetValue("event", out event_name);
-                event_data.TryGetValue("value", out event_value);
-                _eventLoader.ActionEvent(event_name, event_value);
+                foreach (var event_data in event_data_list)
+                {
+                    // Debug.Log("ActionEventイベント発生:" + time + event_data);
+                    string event_name = "";
+                    string event_value = "";
+                    event_data.TryGetValue("event", out event_name);
+                    event_data.TryGetValue("value", out event_value);
+                    _eventLoader.ActionEvent(event_name, event_value);
+                }
+                // string event_name = "";
+                // string event_value = "";
+                // event_data.TryGetValue("event", out event_name);
+                // event_data.TryGetValue("value", out event_value);
+                // _eventLoader.ActionEvent(event_name, event_value);
                 return true;
             }
         }

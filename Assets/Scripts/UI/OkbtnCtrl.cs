@@ -27,7 +27,7 @@ public class OkbtnCtrl : MonoBehaviour
 
     public void onOkClick()
     {
-        Debug.Log("onOkClick");
+        // Debug.Log("onOkClick");
         GameObjectTreat.DestroyAll(_closeWindow);
     }
 
