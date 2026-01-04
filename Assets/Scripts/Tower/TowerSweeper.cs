@@ -458,7 +458,7 @@ public class TowerSweeper : MonoBehaviour
         GameObjectTreat.DestroyAll(this.gameObject);
     }
 
-    void FixedUpdate()
+    void Update()
     {
         _time += Time.deltaTime;
         if (_time > _LOOP_TIME && !_isDelete)

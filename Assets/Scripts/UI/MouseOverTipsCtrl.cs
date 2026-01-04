@@ -68,7 +68,7 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
         GameObject tooltips = Resources.Load<GameObject>("Prefabs/UI/UIToolTips");
         GameObject unit = Instantiate(tooltips);
 
-        GameObject UIInfo = GameObject.Find("UIInfo");
+        GameObject UIInfo = GameObject.Find(GlobalConst.UI_INFO_OBJ_NAME);
         if (UIInfo != null)
         {
             unit.transform.SetParent(UIInfo.transform);

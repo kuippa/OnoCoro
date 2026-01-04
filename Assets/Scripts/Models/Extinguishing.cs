@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using CommonsUtility;
 
-public class Sweeper : MonoBehaviour, IItemStructProvider, IUnitStructProvider
+public class Extinguishing : MonoBehaviour, IItemStructProvider, IUnitStructProvider
 {
     public ItemStruct ItemStruct => _item_struct;
     internal ItemStruct _item_struct = new ItemStruct();
@@ -17,11 +17,11 @@ public class Sweeper : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         _item_struct = new ItemStruct(
-            "Sweeper"
-            , "GarbageID"
-            , "Tips Sweeper"
-            , "Sweeper Info"
-            , 200  // CreateCost
+            "Extinguishing"
+            , "ID"
+            , "Tips Extinguishing"
+            , "Extinguishing Info"
+            , 150  // CreateCost
             , GlobalConst.SHORT_SCORE2_SCALE
             , 0.6f
             , 1

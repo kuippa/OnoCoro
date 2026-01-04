@@ -31,6 +31,10 @@ namespace CommonsUtility
             {   
                 if (gos.Length > 0)
                 {
+                    // TODO: 重複チェック
+                    // 途中で削除された場合、インデックスが重複するので、重複チェック
+                    // あるいはラストインデックスの取得が必要
+
                     return gos.Length;
                 }
             }

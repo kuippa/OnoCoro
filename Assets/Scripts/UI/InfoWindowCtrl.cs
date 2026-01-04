@@ -51,9 +51,33 @@ public class InfoWindowCtrl : MonoBehaviour
     {
         GameObject UICircularIndicator = Instantiate(Resources.Load("Prefabs/UI/UICircularIndicator")) as GameObject;
         CircularIndicator indicator = UICircularIndicator.GetComponent<CircularIndicator>();
-        GameObject indicator_canvas = target.transform.Find("Indicator").gameObject; 
+        Transform indicatorTransform = target.transform.Find("Indicator"); 
+        GameObject indicator_canvas = null;
+        if (indicatorTransform != null)
+        {
+            indicator_canvas = target.transform.Find("Indicator").gameObject; 
+        }
+        else
+        {
+            GameObject indicator_object = new GameObject("Indicator");
+            indicator_object.transform.SetParent(target.transform);
+            Canvas canvas = indicator_object.AddComponent<Canvas>();
+            indicator_canvas = canvas.gameObject;
+            indicator_canvas.transform.position = target.transform.position + new Vector3(0, 1.5f, 0);
+            // 裏表ひっくり返す
+            indicator_canvas.transform.rotation = Quaternion.Euler(0, 180, 0);
+        }
+
                 
-        target.GetComponent<TowerSweeper>().StartDeleteUnitProcess();
+        if (target.tag == GameEnum.TagType.TowerSweeper.ToString())
+        {
+            target.GetComponent<TowerSweeper>().StartDeleteUnitProcess();
+        }
+        else if (target.tag == GameEnum.TagType.Extinguishing.ToString())
+        {
+            target.GetComponent<ExtinguishingCtrl>().StartDeleteUnitProcess();
+        }
+        // TODO: 対象ごとに秒数調整
 
         indicator.StartIndicator(5f, () => {
                     DeleteUnitProcess(target);
@@ -62,7 +86,12 @@ public class InfoWindowCtrl : MonoBehaviour
 
     private void DeleteUnitProcess(GameObject target)
     {
-        if (target != null)
+        if (target == null)
+        {
+            return;
+        }
+
+        if (target.tag == GameEnum.TagType.TowerSweeper.ToString())
         {
             TowerSweeper towerSweeper = target.GetComponent<TowerSweeper>();
             if (towerSweeper != null)
@@ -70,6 +99,15 @@ public class InfoWindowCtrl : MonoBehaviour
                 towerSweeper.DeleteUnitProcess();
             }
         }
+        else if (target.tag == GameEnum.TagType.Extinguishing.ToString())
+        {
+            ExtinguishingCtrl extinguishing = target.GetComponent<ExtinguishingCtrl>();
+            if (extinguishing != null)
+            {
+                extinguishing.DeleteUnitProcess();
+            }
+        }
+
     }
 
     private void OnClickDelete()
@@ -77,7 +115,13 @@ public class InfoWindowCtrl : MonoBehaviour
 
         // Debug.Log("OnClickDelete" + _unitStruct?.Name + " " + _unitStruct?.UnitID);
         GameObject target = GameObject.Find(_unitStruct?.UnitID);
-        if (target != null && target.tag == GameEnum.TagType.TowerSweeper.ToString())
+        if (target == null)
+        {
+            return;
+        }
+
+        if (target.tag == GameEnum.TagType.TowerSweeper.ToString()
+            || target.tag == GameEnum.TagType.Extinguishing.ToString())
         {
             CallCircularIndicator(target);
             ToggleInfoWindow(false);
@@ -114,6 +158,11 @@ public class InfoWindowCtrl : MonoBehaviour
 
     internal bool SetInfo(UnitStruct? unitStruct, int get_score = 0)
     {
+        if (unitStruct == null || unitStruct?.Name == "")
+        {
+            return false;
+        }
+
         TextMeshProUGUI txtName = this.transform.Find("InfoWindow/title/tmpUnitName").GetComponent<TextMeshProUGUI>();
         txtName.text = unitStruct?.Name ?? "-";
         TextMeshProUGUI txtID = this.transform.Find("InfoWindow/info/tmpUnitID").GetComponent<TextMeshProUGUI>();
@@ -179,8 +228,10 @@ public class InfoWindowCtrl : MonoBehaviour
         UnitStruct? unitStruct = null;
         string tag = collider.tag;
         // Debug.Log("collider.tag " + tag);
+        // TODO : タグを持っているオブジェクトがGetUnitStructを持っている前提になっている。
+        // 子どもオブジェクトにtagをもたせたらIndexObjectByTagの命名部分も破綻するし、rootしかもたないGetUnitStructも破綻する
 
-        if (tag == GameEnum.TagType.Garbage.ToString())
+        if (tag == GameEnum.TagType.Garbage.ToString() || tag == GameEnum.TagType.Ash.ToString())
         {
             unitStruct = collider.GetComponent<GarbageCube>().GetUnitStruct();
         }
@@ -193,9 +244,17 @@ public class InfoWindowCtrl : MonoBehaviour
         {
             unitStruct = collider.GetComponent<Sweeper>().GetUnitStruct();
         }
+        else if (tag == GameEnum.TagType.FireCube.ToString())
+        {
+            unitStruct = collider.GetComponent<FireCube>().GetUnitStruct();
+        }
+        else if (tag == GameEnum.TagType.Extinguishing.ToString())
+        {
+            unitStruct = collider.GetComponent<Extinguishing>().GetUnitStruct();
+        }
         else
         {
-            Debug.Log("default " + tag);
+            Debug.Log("GetUnitStruct default " + tag);
         }
         _unitStruct = unitStruct;
         return unitStruct;

@@ -48,16 +48,23 @@ public class NarakuCtrl : MonoBehaviour
             // Debug.Log("OnTriggerEnter Naraku:Ground;  " + other.gameObject.name);
             // 敵がナラクに入った
         }
-        else if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString())
+        else if (other.gameObject.tag == GameEnum.TagType.FireCube.ToString()
+            || other.gameObject.tag == GameEnum.TagType.Ash.ToString())
+        {
+            GameObjectTreat.DestroyAll(other.gameObject);            
+        }
+        else if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString()
+            || other.gameObject.tag == GameEnum.TagType.Water.ToString())
         {
             // Debug.Log("OnTriggerEnter Naraku:RainDrop;  " + other.gameObject.name);
-            // 雨がナラクに入った
+            // 雨/水がナラクに入った
             // Debug.Log("OnTriggerEnter RainDrop " + other.gameObject.name);
             GameObjectTreat.DestroyAll(other.gameObject);
         }
         else
         {
-            Debug.Log("OnTriggerEnter other.gameObject.tag " + other.gameObject.tag );
+            // その他のオブジェクトがナラクに入った ex. GarbageCube
+            // Debug.Log("OnTriggerEnter other.gameObject.tag " + other.gameObject.tag );
             // 衝突判定を連続にしてもかなりの確率でコリジョン抜けをする
 
             // 加速度をゼロにする

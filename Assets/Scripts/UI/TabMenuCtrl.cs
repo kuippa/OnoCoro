@@ -48,7 +48,7 @@ public class TabMenuCtrl : MonoBehaviour
     {
         if (_infoWindowCtrl == null)
         {
-            GameObject uiInfo = GameObject.Find("UIInfo");
+            GameObject uiInfo = GameObject.Find(GlobalConst.UI_INFO_OBJ_NAME);
             if (uiInfo == null)
             {
                 return;

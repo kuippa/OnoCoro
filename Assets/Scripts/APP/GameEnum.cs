@@ -21,6 +21,8 @@ public class GameEnum
         StopPlate,
         FireCube,
         Ash,
+        Water,
+        Extinguishing,
     }
 
     internal enum ModelsType
@@ -33,6 +35,7 @@ public class GameEnum
         PowerCube,
         StopPlate,
         FireCube,
+        Extinguishing,
     }
 
 

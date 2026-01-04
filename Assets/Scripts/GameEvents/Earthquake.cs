@@ -40,7 +40,7 @@ public class Earthquake : MonoBehaviour
         }
         else
         {
-            Debug.Log("QualeP end");
+            // Debug.Log("QualeP end");
             _dem.transform.position = _org_stage_vector;
             _degree = 0.0f;
             _time_duration = 0.0f;

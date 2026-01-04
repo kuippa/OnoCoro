@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using CommonsUtility;
+// using System.Diagnostics;
 
 
 public class PlateauInfoManager : MonoBehaviour
@@ -205,6 +206,12 @@ public class PlateauInfoManager : MonoBehaviour
 
     internal void SetBuildingToDoom(GameObject building)
     {
+        if (_buildingInteractor.IsBuildingDoomed(building))
+        {
+            Debug.Log("Building is already doomed");
+            return;
+        }
+
         Dictionary<string, string> buildingInfo = _dataExtractor.TryGetBuildingInfo(building);
         float rebuildBonus = _dataExtractor.CalcRebuildBonus(buildingInfo) * -1;
         float rebuildCost = _dataExtractor.CalcRebuildCost(buildingInfo);

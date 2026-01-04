@@ -20,32 +20,41 @@ public class PlateauUIManager : MonoBehaviour
         GameObject txtInfo = pnlInfo.transform.Find("txtInfo").gameObject;
         Text txtInfoText = txtInfo.GetComponent<Text>();
         txtInfoText.text = infoText;
-
         GameObject pnlRebuild = pnlInfo.transform.Find("pnlRebuild").gameObject;
-        pnlRebuild.SetActive(isDoomedBuilding);
-        if (isDoomedBuilding)
-        {
-            GameObject txtRebuild = pnlRebuild.transform.Find("txtRebuild").gameObject;
-            Text txtRebuildText = txtRebuild.GetComponent<Text>();
-            txtRebuildText.text = " - " + rebuildCost.ToString() + GlobalConst.SHORT_SCORE1_SCALE;
-        }
-
         GameObject pnlBreak = pnlInfo.transform.Find("pnlBreak").gameObject;
-        pnlBreak.SetActive(!isDoomedBuilding);
-        // if (!isDoomedBuilding)
-        // {
-        //     GameObject txtBreak = pnlRebuild.transform.Find("txtBreak").gameObject;
-        //     Text txtBreakText = txtBreak.GetComponent<Text>();
-        //     // txtBreakText.text = " - " + rebuildCost.ToString() + GlobalConst.SHORT_SCORE1_SCALE;
-        // }
-
         GameObject pnlDelete = pnlInfo.transform.Find("pnlDelete").gameObject;
-        pnlDelete.SetActive(false);
-        if (GameConfig._APP_GAME_MODE == GlobalConst.GAME_MODE_DEBUG)
-        {
-                pnlDelete.SetActive(true);
-        }
 
+        bool isDemLod = IsDemLod(buildingInfo);
+        if (!isDemLod)
+        {
+            pnlRebuild.SetActive(isDoomedBuilding);
+            if (isDoomedBuilding)
+            {
+                GameObject txtRebuild = pnlRebuild.transform.Find("txtRebuild").gameObject;
+                Text txtRebuildText = txtRebuild.GetComponent<Text>();
+                txtRebuildText.text = " - " + rebuildCost.ToString() + GlobalConst.SHORT_SCORE1_SCALE;
+            }
+
+            pnlBreak.SetActive(!isDoomedBuilding);
+            // if (!isDoomedBuilding)
+            // {
+            //     GameObject txtBreak = pnlRebuild.transform.Find("txtBreak").gameObject;
+            //     Text txtBreakText = txtBreak.GetComponent<Text>();
+            //     // txtBreakText.text = " - " + rebuildCost.ToString() + GlobalConst.SHORT_SCORE1_SCALE;
+            // }
+
+            pnlDelete.SetActive(false);
+            if (GameConfig._APP_GAME_MODE == GlobalConst.GAME_MODE_DEBUG)
+            {
+                    pnlDelete.SetActive(true);
+            }
+        }
+        else
+        {
+            pnlRebuild.SetActive(false);
+            pnlBreak.SetActive(false);
+            pnlDelete.SetActive(false);
+        }
         infoBox.SetActive(true);
     }
 
@@ -90,6 +99,18 @@ public class PlateauUIManager : MonoBehaviour
         _infoBox = infoBox;
         return infoBox;
     }
+
+    private bool IsDemLod(Dictionary<string, string> buildingInfo)
+    {
+        // "key": "dem:lod",
+        // dem:lodモードの場合はtrueを返す
+        if (buildingInfo.ContainsKey("dem:lod"))
+        {
+            return true;
+        }
+        return false;
+    }
+
 
     private string FormatBuildingInfo(Dictionary<string, string> buildingInfo, float rebuildCost)
     {

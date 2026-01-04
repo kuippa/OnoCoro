@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using CommonsUtility;
 
 public class BuildingBreak : MonoBehaviour
 {
@@ -16,7 +16,7 @@ public class BuildingBreak : MonoBehaviour
             return;
         }
         GameObject _plateauInfo = null;
-        _plateauInfo = GameObject.Find("Plateau");
+        _plateauInfo = GameObject.Find(GlobalConst.PLATEAU_OBJ_NAME);
         PlateauInfoManager plateauInfo = _plateauInfo.GetComponent<PlateauInfoManager>();
         if (_plateauInfo == null || plateauInfo == null)
         {
@@ -74,10 +74,11 @@ public class BuildingBreak : MonoBehaviour
         {
             if (obj.transform.parent != null)
             {
-                if (obj.transform.parent.name.Contains("LOD2") && obj.name.Contains("bldg_"))
+                // if (obj.transform.parent.name.Contains("LOD2") && obj.name.Contains("bldg_"))
+                if (obj.name.Contains("_LOD2_") && obj.name.Contains("bldg_"))
                 {
                     _buildingGameObject.Add(obj);
-                    // Debug.Log(obj.name);
+                    Debug.Log("Awake: " + obj.transform.parent.name + ": " + obj.name);
                 }
             }
         }

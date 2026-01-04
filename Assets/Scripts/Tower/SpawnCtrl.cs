@@ -78,7 +78,7 @@ public class SpawnCtrl : MonoBehaviour
         }
         else if (unitName == GameEnum.ModelsType.PowerCube.ToString())
         {
-            ret = SpawnPowerCube();
+            ret = SpawnPowerCube(0, spawnPoint);
         }
         else if (unitName == GameEnum.ModelsType.StopPlate.ToString())
         {
@@ -88,6 +88,10 @@ public class SpawnCtrl : MonoBehaviour
         {
             ret = SpawnFireCube(spawnPoint);
         }
+        else if (unitName == GameEnum.ModelsType.Extinguishing.ToString())
+        {
+            ret = SpawnExtinguishing(spawnPoint);
+        }
         else
         {
             Debug.Log("default" + unitName);
@@ -95,20 +99,23 @@ public class SpawnCtrl : MonoBehaviour
         return ret;
     }
 
+    private bool SpawnExtinguishing(Vector3 spawnPoint = default(Vector3))
+    {
+        float dropbuffer = 1.5f;        
+        bool result = false;
+        spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        GameObject Extinguishing = Instantiate(Resources.Load("Prefabs/WorkUnit/Extinguishing")) as GameObject;
+        ExtinguishingCtrl obj = Extinguishing.GetComponent<ExtinguishingCtrl>();
+        obj.CreateExtinguishingUnit(spawnPoint);
+        result = true;
+        return result;
+    }
+
     private bool SpawnFireCube(Vector3 spawnPoint = default(Vector3))
     {
         float dropbuffer = 1.5f;        
         bool result = false;
-        if (spawnPoint == default(Vector3))
-        {
-            spawnPoint = GetSpawnPoint(dropbuffer);
-        }
-        else
-        {
-            spawnPoint.z += dropbuffer;
-        }
-        Vector3 setPoint = spawnPoint;
-        // GameObject garbageObj = FireCubeCtrl.SpawnFireCube(spawnPoint, FireCubeCtrl._SIZE_BIG, false);
+        spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
         GameObject garbageObj = FireCubeCtrl.SpawnFireCube(spawnPoint, FireCubeCtrl._SIZE_NORMAL, false);
         if (garbageObj != null)
         {
@@ -153,15 +160,7 @@ public class SpawnCtrl : MonoBehaviour
     private bool SpawnGarbageCube(float dropbuffer = 1.5f, Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
     {
         bool ret = false;
-        if (spawnPoint == default(Vector3))
-        {
-            spawnPoint = GetSpawnPoint(dropbuffer);
-        }
-        else
-        {
-            spawnPoint.z += dropbuffer;
-        }
-        Vector3 setPoint = spawnPoint;
+        spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
         GameObject garbageObj = GarbageCubeCtrl.SpawnGarbageCube(spawnPoint, sizeFlag, isSwayingPoint);
         if (garbageObj != null)
         {
@@ -186,12 +185,12 @@ public class SpawnCtrl : MonoBehaviour
         return ret;
     }
 
-    private bool SpawnPowerCube(float dropbuffer = 0.25f)
+    private bool SpawnPowerCube(float dropbuffer = 0.25f, Vector3 setPoint = default(Vector3))
     {
         bool ret = false;
 		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/PowerCube");
         prefab.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
-        Vector3 setPoint = GetSpawnPoint(dropbuffer);
+        setPoint = GetSpawnPoint(dropbuffer, setPoint);
         Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
 
@@ -217,15 +216,16 @@ public class SpawnCtrl : MonoBehaviour
         return ret;
     }
 
-    private Vector3 GetSpawnPoint(float dropbuffer = 0.05f)
+    private Vector3 GetSpawnPoint(float dropbuffer = 0.05f, Vector3 setPoint = default(Vector3))
     {
         GameObject spawnMarker = GameObject.FindWithTag(GameEnum.UIType.SpawnMarker.ToString());
         if (spawnMarker == null)
         {
-            return new Vector3(0, 0, 0);
+            setPoint.y += dropbuffer;
+            return setPoint;
         }
         SpawnMarkerPointerCtrl markerPointerCtrl = spawnMarker.GetComponent<SpawnMarkerPointerCtrl>();
-        Vector3 setPoint = markerPointerCtrl.GetMarkerPosition();
+        setPoint = markerPointerCtrl.GetMarkerPosition();
         setPoint.y += dropbuffer;
         return setPoint;
     }

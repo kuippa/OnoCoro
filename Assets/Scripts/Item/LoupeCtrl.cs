@@ -11,7 +11,7 @@ public class LoupeCtrl : MonoBehaviour
     public static LoupeCtrl instance = null;
     internal static bool _loupeMode = false;
 
-    // private static ItemStruct _item = new ItemStruct();
+    private static ItemStruct _item = new ItemStruct();
     // private static ItemHolderCtrl _itemHolderCtrl = null;
 
 
@@ -23,7 +23,8 @@ public class LoupeCtrl : MonoBehaviour
     internal static bool IsLoupe(string item_name)
     {
         
-        if (item_name == "Loupe")
+        // if (item_name == "Loupe")
+        if (item_name == _item.Name)
         {
             SetLoupeMode(true);
             return true;
@@ -39,7 +40,7 @@ public class LoupeCtrl : MonoBehaviour
     internal static void ActLoupe()
     {
         _loupeMode = false;
-        GameObject plateauInfo  = GameObject.Find("Plateau");
+        GameObject plateauInfo  = GameObject.Find(GlobalConst.PLATEAU_OBJ_NAME);
         if (plateauInfo == null)
         {
             return;
@@ -56,7 +57,7 @@ public class LoupeCtrl : MonoBehaviour
         }
         else
         {
-            GameObject uiInfo = GameObject.Find("UIInfo");
+            GameObject uiInfo = GameObject.Find(GlobalConst.UI_INFO_OBJ_NAME);
             if (uiInfo != null)
             {
                 uiInfo.GetComponent<InfoWindowCtrl>().GetTargetUnit();
@@ -68,7 +69,7 @@ public class LoupeCtrl : MonoBehaviour
 
     void OnDestory()
     {
-        Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (instance == this)
         {
             instance = null;
@@ -77,7 +78,7 @@ public class LoupeCtrl : MonoBehaviour
 
     void Awake()
     {
-        Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (instance == null)
         {
             instance = this;
@@ -87,6 +88,7 @@ public class LoupeCtrl : MonoBehaviour
         itemLoupe = this.gameObject.AddComponent<Loupe>()._item_struct;
         ItemListCtrl itemListCtrl = this.gameObject.GetComponentInChildren<ItemListCtrl>();
         itemListCtrl.SetItemStruct(itemLoupe);
+        _item = itemLoupe;
     }
 
 }

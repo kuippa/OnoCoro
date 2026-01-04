@@ -48,6 +48,11 @@ namespace CommonsUtility
         internal const float GARBAGE_BASE_SLICE_SIZE = 0.4f;    // 一回のスライスで切り取るサイズ
         internal const float GARBAGE_MINIMUM_SIZE = 0.2f;     // 最小サイズ    
 
+        // ゲームオブジェクト名
+        internal const string PLATEAU_OBJ_NAME = "Plateau";
+        internal const string UI_INFO_OBJ_NAME = "UIInfo";
+
+
 
 
         // シーンのパスと説明のリスト

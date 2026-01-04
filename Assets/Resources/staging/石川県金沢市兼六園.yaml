@@ -11,30 +11,49 @@ stages:
     BIT: 2000
     CLK: 2000
 itemlists:
-  - item: GarbageCube
-  - item: GarbageCubeBox
-  - item: GarbageCubeBig
-  - item: FireCube
-  - item: PowerCube
-  - item: Sweeper
-  - item: Litter
-  - item: StopPlate
+  - item: GarbageCube # ゴミ
+  - item: GarbageCubeBox  # 箱ゴミ
+  - item: GarbageCubeBig  # 大きいゴミ
+  - item: FireCube  # 火事
+  - item: PowerCube # パワーキューブ
+  - item: Sweeper # お掃除ロボット
+  - item: Litter  # ごみ
+  - item: StopPlate # 止水板
+  - item: Extinguishing # 消火器
+  
   # - item: Bugbug  # これは定義にないアイテムなのでエラーになる
 goals:
   # 複数条件の場合はAND条件
   - building: repair_all
   # - score: 1000 # 1000点以上
 boards:
+  - code: ReadMeText0
+    text: "立て看板のある場所にむかってください。近づくと読めます。WASDキーで移動できます。クリックまたは離れると文章を非表示にできます。"
   - code: ReadMeText1
-    text: "掲示板のある場所にむかってください。WASDキーで移動できます。"
+    text: "SHIFTキーを押しながら移動すると、はやく移動できます。マウスホイールで視点の位置を調整できます。"
   - code: ReadMeText2
-    text: "SHIFTキーを押しながら移動すると、はやく移動できます。"
+    text: "SPACEキーを押すとジャンプできます。この光っているパワーキューブはふれると取ることができます。ユニット作成に必要なCLKが増えます。"
   - code: ReadMeText3
-    text: "この光っているパワーキューブはふれると取ることができます。ユニット作成に必要なCLKが増えます。SPACEキーを押すとジャンプできます。"
+    text: "散らばっているゴミはプレイヤーは片付けることができません。TABキーを押してお掃除ロボットを作成し配置してください。CLKが消費されます。"
   - code: ReadMeText4
-    text: "この散らばっているゴミはプレイヤーは片付けることができません。TABキーを押してお掃除ロボットを作成し配置してください。"
+    text: "お掃除ロボットを虫眼鏡や右クリックで詳細情報を呼び出すことができます。ロボがゴミを回収するとBITが手に入ります。"
   - code: ReadMeText5
-    text: "お掃除ロボットを右クリックで詳細情報を呼び出すことができます。"
+    text: "マップの縁から外に出ると落ちます。近くの陸地にうち上がります。"
+  - code: ReadMeText6
+    text: "火の近くにゴミがあると火勢がつよくなり、やがて延焼します。ゴミを近くにおいてみましょう。"
+  - code: ReadMeText7
+    text: "灰になってしまうと回収してもポイントが得られません。燃え尽きるまえに消化器を設置しましょう。"
+  - code: ReadMeText8
+    text: "ステージの天候は変わることがあります。ステージによっては水害対策が必要になるかもしれません。"
+  - code: ReadMeText9
+    text: "このステージには建物はこの１つだけです。ステージのゴール設定は建物を修復することとなっています。ゴール設定はステージ毎に異なります。"
+  - code: ReadMeText10
+    text: "壊れてしまった建物を修復するには虫眼鏡で建物情報を見て、修復ボタンを押して直しましょう。"
+  - code: ReadMeText11
+    text: "建物は壊れるときに等価のBITを含んだゴミを放出します。治った建物はCLKを生産するようになります。"
+
+
+
 events:
   # - time: 0
   #   event: notice
@@ -44,9 +63,27 @@ events:
     event: building_break
     value: all
 
-  - time: 0.1
+  - time: 3
     event: spawn_unit
-    value: GarbageCubeBox, -185, 40, -58
+    value: GarbageCubeBox, -210, 38, -60
+
+  - time: 5
+    event: spawn_unit
+    value: FireCube, -184, 40, -52
+
+  # - time: 0.2
+  #   event: spawn_unit
+  #   # value: GarbageCubeBox, -210, 38, -60
+  #   value: GarbageCubeBig, -245, 40, -55
+
+  # - time: 1.2
+  #   event: spawn_unit
+  #   # value: GarbageCubeBox, -210, 38, -60
+  #   value: PowerCube, -205, 40, -60
+
+  # - time: 0.2
+  #   event: spawn_unit
+  #   value: FireCube, -155, 45, -35
 
   - time: 1
     event: telop
