@@ -1,6 +1,0 @@
-.test {
-    height: 61px;
-    font-size: 36px;
-    -unity-text-align: upper-center;
-    color: rgb(178, 33, 33);
-}

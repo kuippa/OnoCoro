@@ -1,0 +1,73 @@
+---
+# 三鷹大沢
+# 
+stagename: 三鷹大沢
+stagenotice: "水害チュートリアル"
+stageid: test1
+ver: 1.0.0 # 2024/2/1 0:00:00
+stages:
+  - name: 三鷹大沢
+    note: "チュートリアル"
+    BIT: 5000
+    CLK: 5000
+itemlists:
+  - item: GarbageCube
+  - item: GarbageCubeBox
+  - item: PowerCube
+  - item: Sweeper
+  - item: Litter
+  # - item: Bugbug  # これは定義にないアイテムなのでエラーになる
+goals:
+  - building: repair_all
+boards:
+  # - code: ReadMeText1
+  #   text: "掲示板のある場所にむかってください。WASDキーで移動できます。"
+events:
+  - time: 0
+    event: weather  # 天候イベント
+    value: rain, 0.65, 0.75, 200  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+    # value: sunny, 0.00, 0.25, 500  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+    # value: snow, 0.22, 0.75, 6  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+
+  - time: 0
+    event: solar  # 太陽イベント
+    # value: 0.20  # 太陽高度 0-1 朝焼け
+    value: 0.45  # 太陽高度 0-1
+    # value: 0.95  # 太陽高度 0-1 夕方
+
+  - time: 0
+    event: wind # 風イベント
+    value: 5, 45  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+
+  # - time: 0
+  #   event: watersurface # 基礎水面上昇イベント
+  #   value: 16.5  # 水面の高さ（メートル ）
+
+
+
+
+  # - time: 0
+  #   event: building_break
+  #   value: all
+  # - time: 0.5
+  #   event: spawn_unit
+  #   value: GarbageCubeBox, -185, 40, -58
+
+
+  # - time: 1
+  #   event: earthquake
+  #   value: 1.8
+
+  # - time: 3
+  #   event: notice
+  #   value: "地震が発生しました。"
+
+  # # - time: 3.5
+  # #   event: building_break
+  # #   value: all
+  # - time: 3.5
+  #   event: building_break
+  #   value: 12
+
+
+

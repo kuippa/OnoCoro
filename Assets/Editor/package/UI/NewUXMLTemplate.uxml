@@ -1,4 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/UI/Test.uss?fileID=7433441132597879392&amp;guid=b2e39baa4803dd648b5ecdaa45e09260&amp;type=3#Test" />
-    <ui:TextField picking-mode="Ignore" label="Text Field" value="filler text" class="test" />
-</ui:UXML>

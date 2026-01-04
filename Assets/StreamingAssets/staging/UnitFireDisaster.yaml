@@ -1,0 +1,73 @@
+---
+# UnitFireDisaster
+# 
+stagename: UnitFireDisaster
+stagenotice: "火災延焼"
+stageid: UnitFireDisaster
+ver: 1.0.0 # 2025/1/4 
+stages:
+  - name: UnitFireDisaster
+    note: "火災延焼"
+    BIT: 5000
+    CLK: -100
+itemlists:
+  - item: FireCube  # 火事
+  - item: Sweeper
+  - item: GarbageCube
+  - item: GarbageCubeBox
+  - item: PowerCube
+  - item: StopPlate # 止水板
+  - item: WaterTurret # 消火
+
+
+goals:
+  # - building: repair_all
+
+events:
+  - time: 0
+    event: weather
+    # value: rain, 0.65, 0.75, 200  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+    value: sunny, 0.00, 0.25, 500  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+    # value: snow, 0.22, 0.75, 6  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+
+  # - time: 0
+  #   event: solar
+  #   # value: 0.20  # 太陽高度 0-1 朝焼け
+  #   value: 0.65  # 太陽高度 0-1
+  #   # value: 0.95  # 太陽高度 0-1 夕方
+
+  - time: 0
+    event: wind
+    # value: 5, 45  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    # value: 5, 180  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    # value: 10, 270  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    # value: 3, 370  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    # value: 8, 345  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    # value: 5, 315  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    value: 5, 225  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+
+  - time: 5
+    event: spawn_unit
+    value: PowerCube, 4, 2, 4
+
+
+  - time: 3
+    event: spawn_unit
+    value: Sweeper, 6, 0, 6
+
+
+  # - time: 0.5
+  #   event: spawn_unit
+  #   # value: FireCube, -40, 2, -40
+  #   value: FireCube, random_position
+  # - time: 1.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+  # - time: 2.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+  # - time: 3.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+
+

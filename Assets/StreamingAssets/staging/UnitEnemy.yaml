@@ -1,0 +1,109 @@
+---
+# UnitFireDisaster
+# 
+stagename: UnitEnemy
+stagenotice: "敵テストステージ"
+stageid: UnitEnemy
+ver: 1.0.0 # 2025/1/4 
+stages:
+  - name: UnitEnemy
+    note: "敵テストステージ"
+    BIT: 6000
+    CLK: 6100
+itemlists:
+  # - item: FireCube  # 火事
+  # - item: Litter  # フココロえもん ごみを巻き散らかす   アイテムではない敵ユニイットなので呼び出せない
+  - item: DustBox  # ごみ箱
+  - item: SentryGuard  # 監視員
+  - item: Sweeper
+  - item: GarbageCube
+  - item: GarbageCubeBox
+  - item: PowerCube
+  - item: StopPlate # 止水板
+  # - item: WaterTurret # 消火
+
+pathmakers:
+  # 同名のオブジェクトがステージに配置済の場合は位置のみ更新される
+  - name: path_marker_start2  # nameに start|goal の文字列を含むものは色が変わる
+    pos: 5, 0, 5
+  - name: path_marker_03
+    pos: 8, 0, 8
+  - name: path_marker_04
+    pos: 11, 0, 2
+  - name: path_marker_goal2
+    pos: 15, 0, 5
+
+  # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
+  #   pos: 9, 0, 15
+
+goals:
+  # - building: repair_all
+  # - garbage: 10, 20  # ゴミの数がｘを超えずｙ秒経過したらステージクリア
+  - notfailtime: 100  # ゲームオーバーせずにｙ秒経過したらステージクリア
+
+gameovers:
+  - garbage: 10  # ゴミの数がｘを超えたらゲームオーバー
+
+events:
+  - time: 0
+    event: weather
+    # value: rain, 0.65, 0.75, 200  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+    value: sunny, 0.00, 0.25, 500  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+    # value: snow, 0.22, 0.75, 6  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+
+  - time: 0
+    event: wind
+    value: 5, 225  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+
+  # - time: 5
+  #   event: spawn_unit
+  #   value: Litter, 4, 2, 4
+
+  - time: 0   # 定義されていないので光らせられないが、エラーにはならない
+    event: bloom_path
+    value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+  # path1 の 攻撃軍
+
+  - time: 3
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+  - time: 5
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+  - time: 7
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+  - time: 28 # 特定のパスマーカー経路だけを消す
+    event: off_bloom_path
+    value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+
+  # path2 の 攻撃軍
+
+  - time: 17
+    event: bloom_path
+    value: path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  - time: 20
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  - time: 25
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  - time: 36  # 全てのパスマーカーを消す
+    event: off_bloom_path
+    value: all
+
+  # - time: 10
+  #   event: off_bloom_path
+  #   value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+  # - time: 10  # 特定のパスマーカー経路だけを消す
+  #   event: off_bloom_path
+  #   value: path_marker_01, path_marker_02

@@ -1,4 +1,4 @@
-// Made with Amplify Shader Editor v1.9.6.3
+// Made with Amplify Shader Editor v1.9.7.1
 // Available at the Unity Asset Store - http://u3d.as/y3X 
 Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 {
@@ -112,6 +112,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			float3 RefractionColor;
 			float RefractionDistance;
 			float DiffusionProfile;
+			float TransmissionMask;
 			float Thickness;
 			float SubsurfaceMask;
 			float Anisotropy;
@@ -334,32 +335,27 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			}
 
 
-			
-			ColorMask [_LightLayersMaskBuffer4] 4
-			ColorMask [_LightLayersMaskBuffer5] 5
-		
-
 			HLSLPROGRAM
             #pragma shader_feature_local _ _DOUBLESIDED_ON
             #pragma shader_feature_local_fragment _ _DISABLE_DECALS
             #define _SPECULAR_OCCLUSION_FROM_AO 1
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
-            #define ASE_SRP_VERSION 120111
+            #define ASE_VERSION 19701
+            #define ASE_SRP_VERSION 150006
 
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
-			#pragma multi_compile_fragment _ LIGHT_LAYERS
+			#pragma multi_compile_fragment _ RENDERING_LAYERS
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+            #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ DECAL_SURFACE_GRADIENT
@@ -406,10 +402,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+		    #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+			#undef  _REFRACTION_PLANE
+			#undef  _REFRACTION_SPHERE
+			#define _REFRACTION_THIN
+		    #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -567,6 +573,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				surfaceData.thickness =					surfaceDescription.Thickness;
 				#endif
 
+				#ifdef _MATERIAL_FEATURE_TRANSMISSION
+				surfaceData.transmissionMask =			surfaceDescription.TransmissionMask;
+				#endif
+
 				#if defined( _MATERIAL_FEATURE_SUBSURFACE_SCATTERING ) || defined( _MATERIAL_FEATURE_TRANSMISSION )
 				surfaceData.diffusionProfileHash =		asuint(surfaceDescription.DiffusionProfile);
 				#endif
@@ -649,6 +659,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				float3 normalTS = float3(0.0f, 0.0f, 1.0f);
 				normalTS = surfaceDescription.Normal;
+	
+	            
+				#if ( ASE_SRP_VERSION >= 100000 ) && ( ASE_SRP_VERSION <=150006 )
 				GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
 				#if HAVE_DECALS
@@ -658,6 +671,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
 				}
 				#endif
+				#endif
+               
+
+	            
 
 				surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
                 surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz );
@@ -974,6 +991,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				surfaceDescription.SubsurfaceMask = 1;
 				#endif
 
+				#ifdef _MATERIAL_FEATURE_TRANSMISSION
+				surfaceDescription.TransmissionMask = 1;
+				#endif
+
 				#if defined( _MATERIAL_FEATURE_SUBSURFACE_SCATTERING ) || defined( _MATERIAL_FEATURE_TRANSMISSION )
 				surfaceDescription.DiffusionProfile = 0;
 				#endif
@@ -1028,7 +1049,8 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define _SPECULAR_OCCLUSION_FROM_AO 1
 			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
-			#define ASE_SRP_VERSION 120111
+			#define ASE_VERSION 19701
+			#define ASE_SRP_VERSION 150006
 
 			#pragma shader_feature _ EDITOR_VISUALIZATION
 			#pragma multi_compile _ DOTS_INSTANCING_ON
@@ -1036,7 +1058,6 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
 			#pragma vertex Vert
 			#pragma fragment Frag
@@ -1082,10 +1103,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+            #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+            #undef  _REFRACTION_PLANE
+            #undef  _REFRACTION_SPHERE
+            #define _REFRACTION_THIN
+            #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -1252,6 +1283,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				surfaceData.thickness = 				surfaceDescription.Thickness;
 				#endif
 
+				#ifdef _MATERIAL_FEATURE_TRANSMISSION
+				surfaceData.transmissionMask =			surfaceDescription.TransmissionMask;
+				#endif
+
 				#if defined( _MATERIAL_FEATURE_SUBSURFACE_SCATTERING ) || defined( _MATERIAL_FEATURE_TRANSMISSION )
 				surfaceData.diffusionProfileHash =		asuint(surfaceDescription.DiffusionProfile);
 				#endif
@@ -1334,6 +1369,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				float3 normalTS = float3(0.0f, 0.0f, 1.0f);
 				normalTS = surfaceDescription.Normal;
+
+	            
+                #if ASE_SRP_VERSION <=150006
 				GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
 				#if HAVE_DECALS
@@ -1343,6 +1381,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
 				}
 				#endif
+                #endif
+               
+
+	            
 
 				surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
                 surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz );
@@ -1641,6 +1683,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				surfaceDescription.SubsurfaceMask = 1;
 				#endif
 
+				#ifdef _MATERIAL_FEATURE_TRANSMISSION
+				surfaceDescription.TransmissionMask = 1;
+				#endif
+
 				#if defined( _MATERIAL_FEATURE_SUBSURFACE_SCATTERING ) || defined( _MATERIAL_FEATURE_TRANSMISSION )
 				surfaceDescription.DiffusionProfile = 0;
 				#endif
@@ -1695,14 +1741,14 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define _SPECULAR_OCCLUSION_FROM_AO 1
 			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
-			#define ASE_SRP_VERSION 120111
+			#define ASE_VERSION 19701
+			#define ASE_SRP_VERSION 150006
 
 			#pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
 			#pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
 
@@ -1749,10 +1795,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+		    #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+			#undef  _REFRACTION_PLANE
+			#undef  _REFRACTION_SPHERE
+			#define _REFRACTION_THIN
+		    #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -1949,6 +2005,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				#endif
 
 				float3 normalTS = float3(0.0f, 0.0f, 1.0f);
+
+	            
+                #if ASE_SRP_VERSION <=150006
 				GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
 				#if HAVE_DECALS
@@ -1958,6 +2017,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
 				}
 				#endif
+                #endif
+               
+
+	            
 
 				surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
                 surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz );
@@ -2181,7 +2244,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 								#endif
 							#endif
 
-							#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+							#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
 							, out float4 outDecalBuffer : SV_TARGET_DECAL
 							#endif
 						#endif
@@ -2246,21 +2309,23 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				#ifdef WRITE_MSAA_DEPTH
 					depthColor = packedInput.vmesh.positionCS.z;
-					#ifdef _ALPHATOMASK_ON
 					depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-					#endif
 				#endif
 
 				#if defined(WRITE_NORMAL_BUFFER)
 				EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer);
 				#endif
 
-                #if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
-				DecalPrepassData decalPrepassData;
-				decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
-				decalPrepassData.decalLayerMask = GetMeshRenderingDecalLayer();
-				EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
-                #endif
+                #if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
+				    DecalPrepassData decalPrepassData;
+                    #ifdef _DISABLE_DECALS
+				    ZERO_INITIALIZE(DecalPrepassData, decalPrepassData);
+                    #else
+				    decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
+                    #endif
+				    decalPrepassData.renderingLayerMask = GetMeshRenderingLayerMask();
+				    EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
+				#endif
 			}
 			ENDHLSL
 		}
@@ -2280,7 +2345,8 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define _SPECULAR_OCCLUSION_FROM_AO 1
 			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
-			#define ASE_SRP_VERSION 120111
+			#define ASE_VERSION 19701
+			#define ASE_SRP_VERSION 150006
 
 			#pragma editor_sync_compilation
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -2288,7 +2354,6 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
 			#pragma vertex Vert
 			#pragma fragment Frag
@@ -2333,10 +2398,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+		    #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+			#undef  _REFRACTION_PLANE
+			#undef  _REFRACTION_SPHERE
+			#define _REFRACTION_THIN
+		    #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -2537,6 +2612,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				#endif
 
 				float3 normalTS = float3(0.0f, 0.0f, 1.0f);
+
+	            
+                #if ASE_SRP_VERSION <=150006
 				GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
 				#if HAVE_DECALS
@@ -2546,6 +2624,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
 				}
 				#endif
+                #endif
+               
+
+	            
 
 				surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
                 surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz );
@@ -2838,18 +2920,18 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define _SPECULAR_OCCLUSION_FROM_AO 1
 			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
-			#define ASE_SRP_VERSION 120111
+			#define ASE_VERSION 19701
+			#define ASE_SRP_VERSION 150006
 
 			#pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile _ WRITE_DECAL_BUFFER
+            #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER
 
 			#pragma vertex Vert
 			#pragma fragment Frag
@@ -2893,10 +2975,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+		    #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+			#undef  _REFRACTION_PLANE
+			#undef  _REFRACTION_SPHERE
+			#define _REFRACTION_THIN
+		    #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -3100,6 +3192,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				float3 normalTS = float3(0.0f, 0.0f, 1.0f);
 				normalTS = surfaceDescription.Normal;
+
+	            
+                #if ASE_SRP_VERSION <=150006
 				GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
 				#if HAVE_DECALS
@@ -3109,6 +3204,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
 				}
 				#endif
+                #endif
+               
+
+	            
 
 				surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
                 surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz );
@@ -3191,8 +3290,8 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
                 PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 			}
 
-			#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
-				#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
+			#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 			#endif
 
 			PackedVaryingsMeshToPS VertexFunction(AttributesMesh inputMesh )
@@ -3342,7 +3441,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 								#endif
 							#endif
 
-							#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+							#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
 							, out float4 outDecalBuffer : SV_TARGET_DECAL
 							#endif
 						#endif
@@ -3412,23 +3511,25 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				#ifdef SCENESELECTIONPASS
     				outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 				#elif defined(SCENEPICKINGPASS)
-    				outColor = _SelectionID;
+    				outColor = unity_SelectionID;
 				#else
     				#ifdef WRITE_MSAA_DEPTH
     				depthColor = packedInput.positionCS.z;
-    				#ifdef _ALPHATOMASK_ON
     				depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-    				#endif
     				#endif
 
     				#if defined(WRITE_NORMAL_BUFFER)
     				EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer);
     				#endif
 
-    				#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+    				#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
     				DecalPrepassData decalPrepassData;
+                    #ifdef _DISABLE_DECALS
+				    ZERO_INITIALIZE(DecalPrepassData, decalPrepassData);
+                    #else
     				decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
-    				decalPrepassData.decalLayerMask = GetMeshRenderingDecalLayer();
+                    #endif
+    				decalPrepassData.renderingLayerMask = GetMeshRenderingLayerMask();
     				EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
     				#endif
 
@@ -3465,18 +3566,22 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define _SPECULAR_OCCLUSION_FROM_AO 1
 			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
-			#define ASE_SRP_VERSION 120111
+			#define ASE_VERSION 19701
+			#define ASE_SRP_VERSION 150006
 
 			#pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile _ WRITE_DECAL_BUFFER
+            #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER WRITE_RENDERING_LAYER
+
+			#ifdef WRITE_DECAL_BUFFER_AND_RENDERING_LAYER
+			#define WRITE_DECAL_BUFFER
+			#endif
 
 			#pragma vertex Vert
 			#pragma fragment Frag
@@ -3520,10 +3625,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+		    #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+			#undef  _REFRACTION_PLANE
+			#undef  _REFRACTION_SPHERE
+			#define _REFRACTION_THIN
+		    #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -3644,7 +3759,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 			struct PackedVaryingsMeshToPS
 			{
-				float4 vmeshPositionCS : SV_Position;
+				SV_POSITION_QUALIFIERS float4 vmeshPositionCS : SV_Position;
 				float3 vmeshInterp00 : TEXCOORD0;
 				float3 vpassInterpolators0 : TEXCOORD1; //interpolators0
 				float3 vpassInterpolators1 : TEXCOORD2; //interpolators1
@@ -3729,6 +3844,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				float3 normalTS = float3(0.0f, 0.0f, 1.0f);
 				normalTS = surfaceDescription.Normal;
+
+	            
+                #if ASE_SRP_VERSION <=150006
 				GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
 				#if HAVE_DECALS
@@ -3738,6 +3856,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
 				}
 				#endif
+                #endif
+               
+
+	            
 
 				surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
                 surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz );
@@ -3915,7 +4037,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				return outputPackedVaryingsMeshToPS;
 			}
 
-			#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+			#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 			#endif
 
@@ -4096,12 +4218,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				#ifdef WRITE_MSAA_DEPTH
 					depthColor = packedInput.vmeshPositionCS.z;
-					#ifdef _ALPHATOMASK_ON
 					depthColor.a = SharpenAlpha(builtinData.opacity, builtinData.alphaClipTreshold);
-					#endif
 				#endif
 
-				#ifdef WRITE_NORMAL_BUFFER
+				#if defined(WRITE_NORMAL_BUFFER)
 					EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer);
 				#endif
 
@@ -4111,12 +4231,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ZERO_INITIALIZE(DecalPrepassData, decalPrepassData);
 					#else
 					decalPrepassData.geomNormalWS = surfaceData.geomNormalWS;
-					decalPrepassData.decalLayerMask = GetMeshRenderingDecalLayer();
 					#endif
+					decalPrepassData.renderingLayerMask = GetMeshRenderingLayerMask();
 					EncodeIntoDecalPrepassBuffer(decalPrepassData, outDecalBuffer);
-					#if ASE_SRP_VERSION >= 120107
-					outDecalBuffer.w = (GetMeshRenderingLightLayer() & 0x000000FF) / 255.0;
-					#endif
 				#endif
 
 				#ifdef _DEPTHOFFSET_ON
@@ -4135,8 +4252,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			Tags { "LightMode"="Forward" }
 
 			Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
-
-			
+			Blend 1 SrcAlpha OneMinusSrcAlpha
 
 			Cull [_CullModeForward]
 			ZTest [_ZTestDepthEqualForOpaque]
@@ -4151,12 +4267,8 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			}
 
 
-			
-
-			
             ColorMask [_ColorMaskTransparentVelOne] 1
             ColorMask [_ColorMaskTransparentVelTwo] 2
-		
 
 			HLSLPROGRAM
 			#pragma shader_feature_local _ _DOUBLESIDED_ON
@@ -4164,18 +4276,19 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define _SPECULAR_OCCLUSION_FROM_AO 1
 			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
-			#define ASE_SRP_VERSION 120111
+			#define ASE_VERSION 19701
+			#define ASE_SRP_VERSION 150006
 
 			#pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
-			#pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
-            #pragma multi_compile_fragment PROBE_VOLUMES_OFF PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
+			#pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+            #pragma multi_compile_fragment AREA_SHADOW_MEDIUM AREA_SHADOW_HIGH
+            #pragma multi_compile_fragment _ PROBE_VOLUMES_L1 PROBE_VOLUMES_L2
             #pragma multi_compile_fragment SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -4234,10 +4347,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+		    #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+			#undef  _REFRACTION_PLANE
+			#undef  _REFRACTION_SPHERE
+			#define _REFRACTION_THIN
+		    #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -4406,6 +4529,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				surfaceData.thickness = 				surfaceDescription.Thickness;
 				#endif
 
+				#ifdef _MATERIAL_FEATURE_TRANSMISSION
+				surfaceData.transmissionMask =			surfaceDescription.TransmissionMask;
+				#endif
+
 				#if defined( _MATERIAL_FEATURE_SUBSURFACE_SCATTERING ) || defined( _MATERIAL_FEATURE_TRANSMISSION )
 				surfaceData.diffusionProfileHash =		asuint(surfaceDescription.DiffusionProfile);
 				#endif
@@ -4488,6 +4615,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				float3 normalTS = float3(0.0f, 0.0f, 1.0f);
 				normalTS = surfaceDescription.Normal;
+
+	            
+                #if ASE_SRP_VERSION <=150006
 				GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
 
 				#if HAVE_DECALS
@@ -4497,6 +4627,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 					ApplyDecalToSurfaceData(decalSurfaceData, fragInputs.tangentToWorld[2], surfaceData);
 				}
 				#endif
+                #endif
+               
+
+	            
 
 				surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
                 surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz );
@@ -4778,6 +4912,8 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			}
 			#endif
 
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplayMaterial.hlsl"
+
             #ifdef UNITY_VIRTUAL_TEXTURING
                 #ifdef OUTPUT_SPLIT_LIGHTING
                    #define DIFFUSE_LIGHTING_TARGET SV_Target2
@@ -4785,9 +4921,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
                 #elif defined(_WRITE_TRANSPARENT_MOTION_VECTOR)
                    #define MOTION_VECTOR_TARGET SV_Target2
             	#endif
-
-			
-
+            #if defined(SHADER_API_PSSL)
+            	#pragma PSSL_target_output_format(target 1 FMT_32_ABGR)
+            #endif
             #else
                 #ifdef OUTPUT_SPLIT_LIGHTING
                 #define DIFFUSE_LIGHTING_TARGET SV_Target1
@@ -4814,13 +4950,9 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 		    
 						)
 			{
-				
-                #ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
-				   outMotionVec = float4(2.0, 0.0, 0.0, 0.0);
-                #endif
-			
-
-			    
+				#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
+					outMotionVec = float4(2.0, 0.0, 0.0, 1.0);
+				#endif
 
 				UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX( packedInput );
 				UNITY_SETUP_INSTANCE_ID( packedInput );
@@ -4846,7 +4978,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				#endif
 				half isFrontFace = input.isFrontFace;
 
-				input.positionSS.xy = _OffScreenRendering > 0 ? (uint2)round(input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
+				AdjustFragInputsToOffScreenRendering(input, _OffScreenRendering > 0, _OffScreenDownsampleFactor);
 				uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize ();
 
 				PositionInputs posInput = GetPositionInput( input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, tileIndex );
@@ -4898,6 +5030,10 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				surfaceDescription.SubsurfaceMask = 1;
 				#endif
 
+				#ifdef _MATERIAL_FEATURE_TRANSMISSION
+				surfaceDescription.TransmissionMask = 1;
+				#endif
+
 				#if defined( _MATERIAL_FEATURE_SUBSURFACE_SCATTERING ) || defined( _MATERIAL_FEATURE_TRANSMISSION )
 				surfaceDescription.DiffusionProfile = 0;
 				#endif
@@ -4940,45 +5076,11 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
 				#ifdef DEBUG_DISPLAY
 				#ifdef OUTPUT_SPLIT_LIGHTING
-				    
-					outDiffuseLighting = 0;
-				   
-			        
+					outDiffuseLighting = float4(0, 0, 0, 1);
 					ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
 				#endif
 
-				
-			    bool viewMaterial = false;
-				int bufferSize = _DebugViewMaterialArray[0].x;
-				if (bufferSize != 0)
-				{
-					bool needLinearToSRGB = false;
-					float3 result = float3(1.0, 0.0, 1.0);
-
-					for (int index = 1; index <= bufferSize; index++)
-					{
-						int indexMaterialProperty = _DebugViewMaterialArray[index].x;
-
-						if (indexMaterialProperty != 0)
-						{
-							viewMaterial = true;
-
-							GetPropertiesDataDebug(indexMaterialProperty, result, needLinearToSRGB);
-							GetVaryingsDataDebug(indexMaterialProperty, input, result, needLinearToSRGB);
-							GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
-							GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
-							GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-						}
-					}
-
-					if (!needLinearToSRGB && _DebugAOVOutput == 0)
-						result = SRGBToLinear(max(0, result));
-
-					outColor = float4(result, 1.0);
-				}
-			
-
-				
+			    bool viewMaterial = GetMaterialDebugColor(outColor, input, builtinData, posInput, surfaceData, bsdfData);
 
 				if (!viewMaterial)
 				{
@@ -5020,10 +5122,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 						else
 						{
 							outColor = float4(diffuseLighting + specularLighting, 1.0);
-							
-							outDiffuseLighting = 0;
-						
-							
+							outDiffuseLighting = float4(0, 0, 0, 1);
 						}
 						ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
                 #else
@@ -5031,9 +5130,6 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 						outColor = EvaluateAtmosphericScattering(posInput, V, outColor);
                 #endif
 
-				
-
-				
 				#ifdef _WRITE_TRANSPARENT_MOTION_VECTOR
 						float4 VPASSpositionCS = float4(packedInput.vpassPositionCS.xy, 0.0, packedInput.vpassPositionCS.z);
 						float4 VPASSpreviousPositionCS = float4(packedInput.vpassPreviousPositionCS.xy, 0.0, packedInput.vpassPreviousPositionCS.z);
@@ -5048,8 +5144,6 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 							outMotionVec.zw = 1.0;
 						}
 				#endif
-			
-
 				}
 
 				#ifdef DEBUG_DISPLAY
@@ -5060,13 +5154,13 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 				outputDepth = posInput.deviceDepth;
 				#endif
 
-                
-				#ifdef UNITY_VIRTUAL_TEXTURING
-					outVTFeedback = builtinData.vtPackedFeedback;
-				#endif
-               
-
-				
+                #ifdef UNITY_VIRTUAL_TEXTURING
+				    float vtAlphaValue = builtinData.opacity;
+                    #if defined(HAS_REFRACTION) && HAS_REFRACTION
+					vtAlphaValue = 1.0f - bsdfData.transmittanceMask;
+                #endif
+				outVTFeedback = PackVTFeedbackWithAlpha(builtinData.vtPackedFeedback, input.positionSS.xy, vtAlphaValue);
+                #endif
 
 			}
 			ENDHLSL
@@ -5087,7 +5181,8 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define _SPECULAR_OCCLUSION_FROM_AO 1
 			#pragma multi_compile_instancing
 			#pragma instancing_options renderinglayer
-			#define ASE_SRP_VERSION 120111
+			#define ASE_VERSION 19701
+			#define ASE_SRP_VERSION 150006
 
 			#pragma editor_sync_compilation
             #pragma multi_compile _ DOTS_INSTANCING_ON
@@ -5095,7 +5190,6 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
 			#pragma vertex Vert
 			#pragma fragment Frag
@@ -5144,10 +5238,20 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 			#define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+            #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+            #undef  _REFRACTION_PLANE
+            #undef  _REFRACTION_SPHERE
+            #define _REFRACTION_THIN
+            #endif
+
             #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
             #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
                 #define WRITE_NORMAL_BUFFER
             #endif
+            #endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
             #endif
 
             #ifndef DEBUG_DISPLAY
@@ -5241,6 +5345,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+			#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl"
 			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
@@ -5544,7 +5649,7 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 								#endif
 							#endif
 
-							#if defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)
+							#if (defined(WRITE_DECAL_BUFFER) && !defined(_DISABLE_DECALS)) || defined(WRITE_RENDERING_LAYER)
 							, out float4 outDecalBuffer : SV_TARGET_DECAL
 							#endif
 						#endif
@@ -5618,7 +5723,6 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
             #pragma shader_feature _ _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local _ _TRANSPARENT_WRITES_MOTION_VEC
             #pragma shader_feature_local_fragment _ _ENABLE_FOG_ON_TRANSPARENT
-			#pragma shader_feature_local _BLENDMODE_OFF _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
 
 			#define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
 
@@ -5646,11 +5750,21 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 		    #define OUTPUT_SPLIT_LIGHTING
 		    #endif
 
+            #if (SHADERPASS == SHADERPASS_PATH_TRACING) && !defined(_DOUBLESIDED_ON) && (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE))
+            #undef  _REFRACTION_PLANE
+            #undef  _REFRACTION_SPHERE
+            #define _REFRACTION_THIN
+            #endif
+
 			#if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
 			#if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
 				#define WRITE_NORMAL_BUFFER
 			#endif
 			#endif
+
+            #if SHADERPASS == SHADERPASS_MOTION_VECTORS && defined(WRITE_DECAL_BUFFER_AND_RENDERING_LAYER)
+                #define WRITE_DECAL_BUFFER
+            #endif
 
 			#ifndef DEBUG_DISPLAY
 				#if !defined(_SURFACE_TYPE_TRANSPARENT)
@@ -5864,23 +5978,23 @@ Shader "/Vefects/SH_Vefects_Extra_Grid_01"
 	Fallback Off
 }
 /*ASEBEGIN
-Version=19603
+Version=19701
 Node;AmplifyShaderEditor.SamplerNode;10;-768,0;Inherit;True;Property;_Texture;Texture;0;0;Create;True;0;0;0;False;0;False;-1;7e86780f8818d774781e18cdb159f2f7;7e86780f8818d774781e18cdb159f2f7;True;0;False;white;Auto;False;Object;-1;Auto;Texture2D;8;0;SAMPLER2D;;False;1;FLOAT2;0,0;False;2;FLOAT;0;False;3;FLOAT2;0,0;False;4;FLOAT2;0,0;False;5;FLOAT;1;False;6;FLOAT;0;False;7;SAMPLERSTATE;;False;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;11;-384,0;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;FLOAT3;0,0,0;False;1;COLOR;0
 Node;AmplifyShaderEditor.ColorNode;22;-384,128;Inherit;False;Property;_Color;Color;1;0;Create;True;0;0;0;False;0;False;0.33,0.33,0.33,0;0,0,0,0;True;True;0;6;COLOR;0;FLOAT;1;FLOAT;2;FLOAT;3;FLOAT;4;FLOAT3;5
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;24;0,0;Float;False;True;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;12;/Vefects/SH_Vefects_Extra_Grid_01;53b46d85872c5b24c8f4f0a1c3fe4c87;True;GBuffer;0;0;GBuffer;33;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;True;True;True;True;True;0;True;_LightLayersMaskBuffer4;False;False;False;False;False;False;False;True;True;0;True;_StencilRefGBuffer;255;False;;255;True;_StencilWriteMaskGBuffer;7;False;;3;False;;0;False;;0;False;;7;False;;3;False;;0;False;;0;False;;False;False;True;0;True;_ZTestGBuffer;False;True;1;LightMode=GBuffer;False;False;0;;0;0;Standard;38;Surface Type;0;0;  Rendering Pass;1;0;  Refraction Model;0;0;    Blending Mode;0;0;    Blend Preserves Specular;1;0;  Back Then Front Rendering;0;0;  Transparent Depth Prepass;0;0;  Transparent Depth Postpass;0;0;  ZWrite;0;0;  Z Test;4;0;Double-Sided;0;0;Alpha Clipping;0;0;  Use Shadow Threshold;0;0;Material Type,InvertActionOnDeselection;0;0;  Energy Conserving Specular;1;0;  Transmission,InvertActionOnDeselection;0;0;Receive Decals;1;0;Receive SSR;1;0;Receive SSR Transparent;0;0;Motion Vectors;1;0;  Add Precomputed Velocity;0;0;Specular AA;0;0;Specular Occlusion Mode;1;0;Override Baked GI;0;0;Depth Offset;0;0;  Conserative;1;0;GPU Instancing;1;0;LOD CrossFade;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position;1;0;0;11;True;True;True;True;True;True;False;False;False;True;True;False;;False;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;24;0,0;Float;False;True;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;12;/Vefects/SH_Vefects_Extra_Grid_01;53b46d85872c5b24c8f4f0a1c3fe4c87;True;GBuffer;0;0;GBuffer;34;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;False;False;False;False;False;False;False;False;True;True;0;True;_StencilRefGBuffer;255;False;;255;True;_StencilWriteMaskGBuffer;7;False;;3;False;;0;False;;0;False;;7;False;;3;False;;0;False;;0;False;;False;False;True;0;True;_ZTestGBuffer;False;True;1;LightMode=GBuffer;False;False;0;;0;0;Standard;38;Surface Type;0;0;  Rendering Pass;1;0;  Refraction Model;0;0;    Blending Mode;0;0;    Blend Preserves Specular;1;0;  Back Then Front Rendering;0;0;  Transparent Depth Prepass;0;0;  Transparent Depth Postpass;0;0;  ZWrite;0;0;  Z Test;4;0;Double-Sided;0;0;Alpha Clipping;0;0;  Use Shadow Threshold;0;0;Material Type,InvertActionOnDeselection;0;0;  Energy Conserving Specular;1;0;  Transmission,InvertActionOnDeselection;0;0;Receive Decals;1;0;Receive SSR;1;0;Receive SSR Transparent;0;0;Motion Vectors;1;0;  Add Precomputed Velocity;0;0;Specular AA;0;0;Specular Occlusion Mode;1;0;Override Baked GI;0;0;Depth Offset;0;0;  Conserative;1;0;GPU Instancing;1;0;LOD CrossFade;0;0;Tessellation;0;0;  Phong;0;0;  Strength;0.5,False,;0;  Type;0;0;  Tess;16,False,;0;  Min;10,False,;0;  Max;25,False,;0;  Edge Length;16,False,;0;  Max Displacement;25,False,;0;Vertex Position;1;0;0;11;True;True;True;True;True;True;False;False;False;True;True;False;;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;25;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;META;0;1;META;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;2;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=Meta;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;26;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;ShadowCaster;0;2;ShadowCaster;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;True;False;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;True;3;False;;False;True;1;LightMode=ShadowCaster;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;27;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;SceneSelectionPass;0;3;SceneSelectionPass;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;2;False;;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;1;LightMode=SceneSelectionPass;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;28;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;DepthOnly;0;4;DepthOnly;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;False;False;False;False;False;False;False;False;True;True;0;True;_StencilRefDepth;255;False;;255;True;_StencilWriteMaskDepth;7;False;;3;False;;0;False;;0;False;;7;False;;3;False;;0;False;;0;False;;False;True;1;False;;False;False;True;1;LightMode=DepthOnly;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;29;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;MotionVectors;0;5;MotionVectors;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;False;False;False;False;False;False;False;False;True;True;0;True;_StencilRefMV;255;False;;255;True;_StencilWriteMaskMV;7;False;;3;False;;0;False;;0;False;;7;False;;3;False;;0;False;;0;False;;False;True;1;False;;False;False;True;1;LightMode=MotionVectors;False;False;0;;0;0;Standard;0;False;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;30;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;TransparentBackface;0;6;TransparentBackface;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;True;1;0;True;_SrcBlend;0;True;_DstBlend;1;0;True;_AlphaSrcBlend;0;True;_AlphaDstBlend;False;False;False;False;False;False;False;False;False;False;False;False;True;1;False;;False;False;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelOne;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelTwo;False;False;False;False;False;True;0;True;_ZWrite;True;0;True;_ZTestTransparent;False;True;1;LightMode=TransparentBackface;False;False;0;;0;0;Standard;0;False;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;30;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;TransparentBackface;0;6;TransparentBackface;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;True;2;5;False;;10;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;False;False;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelOne;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelTwo;False;False;False;False;False;True;0;True;_ZWrite;True;0;True;_ZTestTransparent;False;True;1;LightMode=TransparentBackface;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;31;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;TransparentDepthPrepass;0;7;TransparentDepthPrepass;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;False;False;False;False;False;False;False;False;True;True;0;True;_StencilRefDepth;255;False;;255;True;_StencilWriteMaskDepth;7;False;;3;False;;0;False;;0;False;;7;False;;3;False;;0;False;;0;False;;False;True;1;False;;False;False;True;1;LightMode=TransparentDepthPrepass;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;32;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;TransparentDepthPostpass;0;8;TransparentDepthPostpass;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;True;1;1;False;;0;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;True;False;False;False;False;0;False;;False;False;False;False;False;False;False;False;False;True;1;False;;False;False;True;1;LightMode=TransparentDepthPostpass;False;False;0;;0;0;Standard;0;False;0
-Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;33;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;Forward;0;9;Forward;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;True;1;0;True;_SrcBlend;0;True;_DstBlend;1;0;True;_AlphaSrcBlend;0;True;_AlphaDstBlend;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullModeForward;False;False;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelOne;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelTwo;False;False;False;True;True;0;True;_StencilRef;255;False;;255;True;_StencilWriteMask;7;False;;3;False;;0;False;;0;False;;7;False;;3;False;;0;False;;0;False;;False;True;0;True;_ZWrite;True;0;True;_ZTestDepthEqualForOpaque;False;True;1;LightMode=Forward;False;False;0;;0;0;Standard;0;False;0
+Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;33;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;Forward;0;9;Forward;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;True;2;5;False;;10;False;;0;1;False;;0;False;;False;False;False;False;False;False;False;False;False;True;0;True;_CullModeForward;False;False;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelOne;False;True;True;True;True;True;0;True;_ColorMaskTransparentVelTwo;False;False;False;True;True;0;True;_StencilRef;255;False;;255;True;_StencilWriteMask;7;False;;3;False;;0;False;;0;False;;7;False;;3;False;;0;False;;0;False;;False;True;0;True;_ZWrite;True;0;True;_ZTestDepthEqualForOpaque;False;True;1;LightMode=Forward;False;False;0;;0;0;Standard;0;False;0
 Node;AmplifyShaderEditor.TemplateMultiPassMasterNode;34;0,0;Float;False;False;-1;2;Rendering.HighDefinition.LightingShaderGraphGUI;0;1;New Amplify Shader;53b46d85872c5b24c8f4f0a1c3fe4c87;True;ScenePickingPass;0;10;ScenePickingPass;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;3;RenderPipeline=HDRenderPipeline;RenderType=Opaque=RenderType;Queue=Geometry=Queue=0;True;5;True;7;d3d11;metal;vulkan;xboxone;xboxseries;playstation;switch;0;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;0;True;_CullMode;False;False;False;False;False;False;False;False;False;False;False;True;2;False;;True;3;False;;False;True;1;LightMode=Picking;False;False;0;;0;0;Standard;0;False;0
 WireConnection;11;0;10;0
 WireConnection;11;1;22;5
 WireConnection;24;0;11;0
 ASEEND*/
-//CHKSM=CCC661A6EE21F0325E9A23FA65A40AC7E2A7A878
+//CHKSM=4172CAA7A7B43723E7E1E5635AA00EDBE4D54581

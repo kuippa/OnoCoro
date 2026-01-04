@@ -1,0 +1,94 @@
+---
+# 武蔵野堺南木密
+# 
+stagename: 武蔵野堺南木密
+stagenotice: "木密地域"
+stageid: test2
+ver: 1.0.0 # 2024/2/1 0:00:00
+stages:
+  - name: 武蔵野堺南木密
+    note: "武蔵野堺南木密"
+    BIT: 5000
+    CLK: 5000
+itemlists:
+  - item: GarbageCube
+  - item: GarbageCubeBox
+  - item: PowerCube
+  - item: Sweeper
+  - item: Litter
+  - item: Extinguishing # 消火器
+  - item: FireCube  # 火事
+goals:
+  - building: repair_all
+events:
+  - time: 0
+    event: wind
+    # value: 5, 225  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    # 風向……北北西（12月から2月の東京の気象観測地点における最も頻度が多い風向）
+    # 風速……6m/s（12月から2月の東京の気象観測地点における平均風速の約2倍に設定）
+    # 湿度……50%（12月から2月の東京の気象観測地点における平均湿度を参考に設定）
+    value: 12, 340  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+
+  # - time: 1.5
+  #   event: spawn_unit
+  #   value: GarbageCubeBox, 65, 60, -122
+
+  # - time: 1.5
+  #   event: spawn_unit
+  #   value: GarbageCubeBox, 70, 60, -122
+
+  # - time: 2.5
+  #   event: spawn_unit
+  #   value: FireCube, 66, 70, -122
+
+  # - time: 1
+  #   event: earthquake
+  #   value: 1.6
+
+  # - time: 2
+  #   event: notice
+  #   value: "地震が発生しました。"
+
+  - time: 3
+    event: building_break
+    # value: 3
+    value: 5
+
+  # - time: 2.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+
+  - time: 3.5
+    event: spawn_unit
+    value: FireCube, random_doom_building
+
+  - time: 4.5
+    event: spawn_unit
+    value: FireCube, random_doom_building
+
+  # - time: 4.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+
+  # - time: 5.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+
+  # - time: 6.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+
+  # - time: 7.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+
+  # - time: 7.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+  # - time: 7.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+  # - time: 7.5
+  #   event: spawn_unit
+  #   value: FireCube, random_position
+
