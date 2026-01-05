@@ -19,7 +19,7 @@ public class ItemCreateCtrl : MonoBehaviour
     List<ItemStruct> _itemList = new List<ItemStruct>();
 
     [SerializeField]
-    // インスペクター上からイベント割当のオブジェクトを設定しないとAwakeのステージ情報割当に間に合わないため
+    // インスペクター上からイベント割当のオブジェクトを設定済み
     public Button _btnClose;
     public Button _btnOK;
     public Button _btnCreate;
@@ -46,8 +46,8 @@ public class ItemCreateCtrl : MonoBehaviour
     {
         bool ret = false;
         ItemStruct itemStruct = _itemList[_page];
-        int createCost =  (int)itemStruct.CreateCost * -1;
-        if (ScoreCtrl.IsScorePositiveInt(createCost, itemStruct.CostType))
+        int createCost =  (int)itemStruct.CreateCost;
+        if (ScoreCtrl.IsScorePositiveInt(itemStruct.CreateCost, itemStruct.CostType))
         {
             ScoreCtrl.UpdateAndDisplayScore((int)createCost, itemStruct.CostType);
             return true;
@@ -57,59 +57,34 @@ public class ItemCreateCtrl : MonoBehaviour
 
     internal void OnClickClose()
     {
-        SwitchActive(false);
+        this.gameObject.SetActive(false);
     }
 
     private void InitWindow()
     {
-        // ステージ情報割当のため、ボタンのシリアライズは割当済であること
-        _btnClose = this.transform.Find("CreateWindow/titlebar/btnClose").GetComponent<Button>();
         if (_btnClose != null)
         {
             _btnClose.onClick.AddListener(OnClickClose);
         }
-        else
-        {
-            Debug.Log("btnClose is null");
-        }
-        _btnOK = this.transform.Find("CreateWindow/footer/btnOK").GetComponent<Button>();
+
         if (_btnOK != null)
         {
             _btnOK.onClick.AddListener(OnClickClose);
         }
-        else
-        {
-            Debug.Log("btnOK is null");
-        }
-        _btnCreate = this.transform.Find("CreateWindow/mainarea/pnlMain/btnCreate").GetComponent<Button>();
+
         if (_btnCreate != null)
         {
             _btnCreate.onClick.AddListener(OnClickCreate);
         }
-        else
-        {
-            Debug.Log("btnCreate is null");
-        }
-        _gauge = this.transform.Find("CreateWindow/mainarea/pnlMain/timeGauge/timeGaugeFill").GetComponent<Image>();
         if (_gauge != null)
         {
             Image timeGaugeFill = _gauge;
             ResetGauge();
         }
-        else
-        {
-            Debug.Log("timeGaugeFill is null");
-        }
-        _btnLeft = this.transform.Find("CreateWindow/mainarea/pnlLeft/btnLeft").GetComponent<Button>();
-        _btnRight = this.transform.Find("CreateWindow/mainarea/pnlRight/btnRight").GetComponent<Button>();
         if (_btnLeft != null && _btnRight != null)
         {
             _btnLeft.onClick.AddListener(() => OnClickPage(-1));
             _btnRight.onClick.AddListener(() => OnClickPage(+1));
-        }
-        else
-        {
-            Debug.Log("btnLeft or btnRight is null");
         }
         SetItems();
     }
@@ -126,6 +101,8 @@ public class ItemCreateCtrl : MonoBehaviour
 
     private void InitializeItemList()
     {
+        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+        // TODO: StafingYamlCtrl より後に読み込まれることが担保されてないはず。あとで調整する/今はオブジェクト読み込み順
         List<ItemStruct> itemList = new List<ItemStruct>();
         List<string> itemNames = new List<string>();
         itemNames = StagingYamlCtrl.GetItemList();
@@ -140,8 +117,45 @@ public class ItemCreateCtrl : MonoBehaviour
                 itemList = SetItemLists(type, itemList);
             }
         }
+
+        // # TODO: ステージ yaml からの指定読み込みに変更する
+        // itemList.Add(this.gameObject.AddComponent<GarbageCube>()._item_struct);
+        // itemList.Add(this.gameObject.AddComponent<GarbageCubeBox>()._item_struct);
+        // itemList.Add(this.gameObject.AddComponent<Sweeper>()._item_struct);
+        // itemList.Add(this.gameObject.AddComponent<Litter>()._item_struct);
+
+        // ルーペは、アイテム作成ウィンドウに表示しない
+        // itemList.Add(this.gameObject.AddComponent<Loupe>()._item_struct);
         _itemList = itemList;
     }
+
+    // private List<ItemStruct> SetItemLists(System.Type type, List<ItemStruct> itemList)
+    // {
+    //     // TODO: 可変クラスに対応したい// ここアホくさい
+    //     switch (type.Name)
+    //     {
+    //         case "GarbageCube":
+    //             itemList.Add((this.gameObject.AddComponent(type) as GarbageCube)._item_struct);
+    //             break;
+    //         case "GarbageCubeBox":
+    //             itemList.Add((this.gameObject.AddComponent(type) as GarbageCubeBox)._item_struct);
+    //             break;
+    //         case "PowerCube":
+    //             itemList.Add((this.gameObject.AddComponent(type) as PowerCube)._item_struct);
+    //             break;
+    //         case "Litter":
+    //             itemList.Add((this.gameObject.AddComponent(type) as Litter)._item_struct);
+    //             break;
+    //         case "Sweeper":
+    //             itemList.Add((this.gameObject.AddComponent(type) as Sweeper)._item_struct);
+    //             break;
+    //         default:
+    //             Debug.Log("default SetItemLists " + type.Name);
+    //             break;
+    //     }
+
+    //     return itemList;
+    // }
 
     private List<ItemStruct> SetItemLists(System.Type type, List<ItemStruct> itemList)
     {
@@ -156,6 +170,8 @@ public class ItemCreateCtrl : MonoBehaviour
         }
         return itemList;
     }
+
+
 
     private void SetItems()
     {
@@ -174,13 +190,11 @@ public class ItemCreateCtrl : MonoBehaviour
     {
         if (isActive && GetItemList().Count == 0)
         {
-            GetComponent<Canvas>().enabled = false;
-            // this.gameObject.SetActive(false);
+            this.gameObject.SetActive(false);
             // InitWindow();
             return;
         }
-        GetComponent<Canvas>().enabled = isActive;
-        // this.gameObject.SetActive(isActive);
+        this.gameObject.SetActive(isActive);
     }
 
     private void SetItem(ItemStruct itemStruct)
@@ -199,7 +213,7 @@ public class ItemCreateCtrl : MonoBehaviour
         GameObject txtDescription = imgIcon.transform.Find("txtAlt").gameObject;
         txtDescription.GetComponent<Text>().text = itemStruct.Info;
 
-        if (ScoreCtrl.IsScorePositiveInt(itemStruct.CreateCost * -1, itemStruct.CostType))
+        if (ScoreCtrl.IsScorePositiveInt(itemStruct.CreateCost, itemStruct.CostType))
         {
             _btnCreate.interactable = true;
         }
@@ -272,6 +286,8 @@ public class ItemCreateCtrl : MonoBehaviour
         {
             CreateComplete();
         }
+        
+
     }
 
     private void CreateComplete()
@@ -287,7 +303,19 @@ public class ItemCreateCtrl : MonoBehaviour
 
         // 親オブジェクトから子供UIItemを取得する
         GameObject parent_obj = this.gameObject.transform.parent.gameObject;
+        // UIItem を取得する
+        // GameObject ui_item = parent_obj.transform.Find("UIItem").gameObject;
+        // // ItemBox を取得する
+        // GameObject item_box = ui_item.transform.Find("ItemBox").gameObject;
+        // // BG を取得する
+        // GameObject bg = item_box.transform.Find("BG").gameObject;
+        // // ItemList を取得する
+        // GameObject item_list = bg.transform.Find("ItemList").gameObject;
+        // // ItemListCtrl を取得する
+        // ItemListCtrl itemListCtrl = item_list.GetComponent<ItemListCtrl>();
+
         ItemListCtrl itemListCtrl = parent_obj.GetComponentInChildren<ItemListCtrl>();
+        // Debug.Log("_itemList[_page]" + _page + " " + _itemList[_page].Name + " " + _itemList[_page].CreateCost + " " + _itemList[_page].CostType + " " + _itemList[_page].CostTime + " " + _itemList[_page].Stack);
         itemListCtrl.SetItemStruct(_itemList[_page]);
     }
 
@@ -311,12 +339,6 @@ public class ItemCreateCtrl : MonoBehaviour
         #endif
     }
 
-    // Awakeでイベントリスナーを貼り付けると子供のオブジェクトが見つからないことが場合によってあるようだ
-    // 遅延実行にするとイベントのロードの割当に間に合わない
-    // private void OnEnable()
-    // {
-    //     InitWindow();
-    // }
 
     // Update is called once per frame
     void Update()

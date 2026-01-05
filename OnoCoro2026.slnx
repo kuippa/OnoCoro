@@ -76,7 +76,6 @@
   <Project Path="Unity.2D.Sprite.Editor.csproj" />
   <Project Path="Unity.XR.CoreUtils.Editor.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Unity.Recorder.csproj" />
   <Project Path="Unity.Multiplayer.Center.Common.csproj" />
   <Project Path="Unity.XR.Management.Editor.csproj" />
@@ -127,4 +126,5 @@
   <Project Path="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.csproj" />
   <Project Path="Unity.RenderPipelines.Core.ShaderLibrary.csproj" />
   <Project Path="Autodesk.Fbx.BuildTestAssets.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

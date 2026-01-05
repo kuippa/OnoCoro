@@ -198,7 +198,7 @@ public class PlateauInfo : MonoBehaviour
             
             if (ScoreCtrl.IsScorePositiveInt(rebuildCost, GlobalConst.SHORT_SCORE1_SCALE))
             {
-                ScoreCtrl.CalcScore((int)rebuildCost, GlobalConst.SHORT_SCORE1_SCALE);
+                ScoreCtrl.UpdateAndDisplayScore((int)rebuildCost, GlobalConst.SHORT_SCORE1_SCALE);
                 return true;
             }
         }
