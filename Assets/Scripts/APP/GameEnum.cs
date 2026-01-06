@@ -23,6 +23,11 @@ public class GameEnum
         Ash,
         Water,
         Extinguishing,
+        WaterTurret,
+        DustBox,
+        SentryGuard,
+        Holder,
+        PathBloom,
     }
 
     internal enum ModelsType
@@ -36,12 +41,15 @@ public class GameEnum
         StopPlate,
         FireCube,
         Extinguishing,
+        WaterTurret,
+        DustBox,
+        SentryGuard,
     }
-
 
     internal enum LayerType
     {
         Ground,
+        AreaIgnoreRaycast,
     }
 
     internal enum UnitType

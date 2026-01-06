@@ -634,6 +634,269 @@ git config --local --list
 
 ---
 
+## コーディング規約
+
+このプロジェクトでは、コードの一貫性と保守性を確保するため、以下のコーディング規約を遵守してください。
+
+### 1. 名前空間の衝突回避
+
+**Debug クラスの明示的なエイリアス**
+
+System.Diagnostics.Debug と UnityEngine.Debug の衝突を避けるため、必ず using エイリアスを使用してください。
+
+```csharp
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
+
+// これにより Debug.Log() は UnityEngine.Debug を参照
+Debug.Log("Unity のデバッグログ");
+
+// System.Diagnostics.Process は完全修飾名で使用
+Process.Start("notepad.exe");
+```
+
+### 2. マジックナンバー・マジックストリングの禁止
+
+**コード内に直接値を書かないこと**
+
+数値や文字列リテラルは、必ず名前付き定数として定義してください。
+
+❌ **悪い例:**
+```csharp
+if (count > 10)
+{
+    Debug.Log("Too many items");
+}
+GameObject obj = GameObject.Find("PlayerCanvas");
+float speed = 9.8f;
+```
+
+✅ **良い例:**
+```csharp
+private const int MAX_ITEM_COUNT = 10;
+private const string MSG_TOO_MANY_ITEMS = "Too many items";
+private const string OBJ_PLAYER_CANVAS = "PlayerCanvas";
+private const float GRAVITY_ACCELERATION = 9.8f;
+
+if (count > MAX_ITEM_COUNT)
+{
+    Debug.Log(MSG_TOO_MANY_ITEMS);
+}
+GameObject obj = GameObject.Find(OBJ_PLAYER_CANVAS);
+float speed = GRAVITY_ACCELERATION;
+```
+
+**定数の命名規則:**
+- プライベート定数: `_CONSTANT_NAME_FORMAT` (アンダースコア + 大文字 + スネークケース)
+- パブリック定数: `CONSTANT_NAME_FORMAT` (大文字 + スネークケース)
+- 意味を明確に示す名前を使用
+
+**定数のグループ化:**
+```csharp
+// File Constants
+private const string _STAGE_LIST_FILE_NAME = "stagelist.csv";
+private const string _YAML_FILE_EXTENSION = ".yaml";
+
+// GameObject Names
+private const string _OBJ_LOADING = "nowloading";
+private const string _OBJ_BTN_START = "btnStart";
+
+// Numeric Constants
+private const float _SCENE_LOAD_DELAY = 0.1f;
+private const int _MAX_RETRY_COUNT = 3;
+```
+
+### 3. 制御文の中括弧 {} を必須とする
+
+**すべての if, else, for, while, foreach に {} を使用すること**
+
+単一行の文でも、必ず中括弧で囲んでください。
+
+❌ **悪い例:**
+```csharp
+if (condition)
+    DoSomething();
+
+if (x > 0)
+    x = 0;
+else
+    x = -1;
+
+for (int i = 0; i < 10; i++)
+    Debug.Log(i);
+```
+
+✅ **良い例:**
+```csharp
+if (condition)
+{
+    DoSomething();
+}
+
+if (x > 0)
+{
+    x = 0;
+}
+else
+{
+    x = -1;
+}
+
+for (int i = 0; i < 10; i++)
+{
+    Debug.Log(i);
+}
+```
+
+### 4. 三項演算子とnull条件演算子の使用制限
+
+**三項演算子 `? :` は使用禁止**
+
+条件式は if-else で明示的に記述してください。
+
+❌ **悪い例:**
+```csharp
+int result = (x > 0) ? 10 : -10;
+string message = isValid ? "Valid" : "Invalid";
+```
+
+✅ **良い例:**
+```csharp
+int result;
+if (x > 0)
+{
+    result = 10;
+}
+else
+{
+    result = -10;
+}
+
+string message;
+if (isValid)
+{
+    message = "Valid";
+}
+else
+{
+    message = "Invalid";
+}
+```
+
+**null条件演算子 `?.` も使用禁止**
+
+null チェックは明示的に行ってください。
+
+❌ **悪い例:**
+```csharp
+component?.DoSomething();
+int? count = list?.Count;
+```
+
+✅ **良い例:**
+```csharp
+if (component != null)
+{
+    component.DoSomething();
+}
+
+int count = 0;
+if (list != null)
+{
+    count = list.Count;
+}
+```
+
+### 5. 関数の行数制限
+
+**1つの関数は40行以内に収めること**
+
+40行を超える関数は、機能ごとに分割してください。
+
+❌ **悪い例:**
+```csharp
+void Awake()
+{
+    // 100行以上の初期化コード
+    // GameObject の検索、設定、イベント登録などが混在
+}
+```
+
+✅ **良い例:**
+```csharp
+void Awake()
+{
+    List<string> missingObjects = new List<string>();
+    
+    InitializeLoadingCanvas(missingObjects);
+    InitializePanels(missingObjects);
+    RegisterButtonListeners(missingObjects);
+    InitializeStageContents(missingObjects);
+    InitializeVersionInfo(missingObjects);
+    
+    CheckMissingObjects(missingObjects);
+}
+
+private void InitializeLoadingCanvas(List<string> missingObjects)
+{
+    // 具体的な初期化処理（10-20行程度）
+}
+
+private void InitializePanels(List<string> missingObjects)
+{
+    // 具体的な初期化処理（10-20行程度）
+}
+```
+
+**関数分割の指針:**
+- 1つの関数は1つの責任を持つ（単一責任の原則）
+- 関数名で処理内容が明確にわかるようにする
+- 引数と戻り値で依存関係を明確にする
+
+### 6. コメント規約
+
+**コメントは最小限に、コードで意図を表現すること**
+
+```csharp
+// ❌ 悪い例: コメントで説明が必要
+// ユーザーの年齢が18歳以上かチェック
+if (user.age >= 18)
+{
+    // ...
+}
+
+// ✅ 良い例: 定数名で意図が明確
+private const int ADULT_AGE_THRESHOLD = 18;
+
+if (user.age >= ADULT_AGE_THRESHOLD)
+{
+    // ...
+}
+```
+
+### 7. インデントとフォーマット
+
+- インデント: スペース4つ
+- 波括弧のスタイル: 改行してから開く（K&R スタイル）
+- 1行の最大文字数: 120文字を推奨
+
+### 8. エラーハンドリング
+
+**例外は適切にキャッチし、ログを出力すること**
+
+```csharp
+try
+{
+    File.WriteAllText(filePath, content);
+}
+catch (Exception ex)
+{
+    Debug.LogError($"ファイルの書き込みに失敗しました: {filePath}\nエラー: {ex.Message}");
+}
+```
+
+---
+
 ## ライセンス
 
 MIT License © 2026 kuippa

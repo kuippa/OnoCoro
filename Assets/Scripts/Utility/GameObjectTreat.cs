@@ -156,6 +156,100 @@ namespace CommonsUtility
             return parentTransform;
         }
 
+        internal static GameObject GetGameManagerObject()
+        {
+            GameObject gameObject = GameObject.Find("GameManager");
+            if (gameObject == null)
+            {
+                gameObject = new GameObject("GameManager");
+            }
+            return gameObject;
+        }
+
+        internal static GameObject GetEventSystem(GameObject gameObject = null)
+        {
+            if (gameObject != null)
+            {
+                return gameObject;
+            }
+            GameObject eventSystem = GameObject.Find("EventSystem");
+            if (eventSystem == null)
+            {
+                eventSystem = new GameObject("EventSystem");
+            }
+            return eventSystem;
+        }
+
+        internal static string GetGameObjectPath(GameObject obj)
+        {
+            string path = obj.name;
+            Transform parent = obj.transform.parent;
+            while (parent != null)
+            {
+                path = parent.name + "/" + path;
+                parent = parent.parent;
+            }
+            return path;
+        }
+
+        internal static string GetAppVersion()
+        {
+            return Application.version;
+        }
+
+        internal static string GetAppBuildDate()
+        {
+            return Utility.GetAppVersion();
+        }
+
+        internal static T GetOrAddComponent<T>(GameObject gameObject) where T : Component
+        {
+            T component = gameObject.GetComponent<T>();
+            if (component == null)
+            {
+                component = gameObject.AddComponent<T>();
+            }
+            return component;
+        }
+
+        internal static Transform GetHolderParentTransform(ref GameObject parent, string parentName)
+        {
+            string tag_name = GameEnum.TagType.Holder.ToString();
+            return GetParentTransform(ref parent, parentName, tag_name);
+        }
+
+        internal static Transform GetParentTransform(ref GameObject parent, string parentName, string tag_name = "")
+        {
+            if (parent != null)
+            {
+                return parent.transform;
+            }
+            parent = GameObject.Find(parentName);
+            if (parent == null)
+            {
+                parent = new GameObject(parentName);
+            }
+            if (tag_name != "")
+            {
+                parent.tag = tag_name;
+            }
+            return parent.transform;
+        }
+
+        internal static GameObject GetOrNewGameObject(GameObject gameObject, string objName)
+        {
+            if (gameObject != null)
+            {
+                return gameObject;
+            }
+            gameObject = GameObject.Find(objName);
+            if (gameObject == null)
+            {
+                gameObject = new GameObject(objName);
+            }
+            return gameObject;
+        }
+
 
         // Scriptのファイル名リストを一覧で出力
         internal static void DebugScriptList()

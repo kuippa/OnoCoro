@@ -4,15 +4,97 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using CommonsUtility;
 using System;
+using System.Diagnostics;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
+using System.IO;
+using Debug = UnityEngine.Debug;
 
 public class TitleStartCtrl : MonoBehaviour
 {
-    private int _STAGE_SELECTOR_HEIGHT = 100;
+    // UI Layout Constants
+    private int _STAGE_SELECTOR_HEIGHT = 120;
+    private int _STAGE_EDITOR_HEIGHT = 60;
     private int _STAGE_SELECTOR_MARGIN = 2;
-    GameObject _pnlStageSelector;
+    
+    // File Constants
+    private const string _YAML_FILE_EXTENSION = ".yaml";
+    private const string _STAGE_LIST_FILE_NAME = "public_doc/stagelist.csv";
+    private const string _ABOUT_GAME_FILE_NAME = "aboutthisgame.txt";
+    
+    // URL Constants
+    private const string _BUG_REPORT_URL = "https://forms.gle/CdvySsxeXMDAigTQ9";
+    
+    // GameObject Names
+    private const string _OBJ_LOADING = "nowloading";
+    private const string _OBJ_BTN_GAME_CLOSE = "btnGameClose";
+    private const string _OBJ_BTN_ABOUT_GAME = "btnAboutGame";
+    private const string _OBJ_BTN_STAGE_EDITOR = "btnStageEditor";
+    private const string _OBJ_BTN_STAGE = "btnStage";
+    private const string _OBJ_BTN_YAML_EDIT = "btnYamlEdit";
+    private const string _OBJ_BTN_BUG_REPORT = "btnBugReport";
+    private const string _OBJ_PNL_STAGE_SELECTOR = "pnlStageSelector";
+    private const string _OBJ_PNL_STAGE_EDITOR = "pnlStageEditor";
+    private const string _OBJ_PNL_ABOUT_THIS_GAME = "pnlAboutThisGame";
+    private const string _OBJ_PNL_YAML_EDITOR = "pnlYAMLEditor";
+    private const string _OBJ_TXT_VERSION_INFO = "txtVersionInfo";
+    private const string _OBJ_TMP_GAME_INFO = "tmpGameInfo";
+    private const string _OBJ_TMP_INPUT_FIELD = "tmpInputField";
+    private const string _OBJ_TXT_YAML_PATH = "txtYamlPath";
+    
+    // GameObject Path Constants
+    private const string _PATH_STAGE_SELECTOR_CONTENT = "pnlStageSelector/Scroll View/Viewport/Content";
+    private const string _PATH_STAGE_SELECTOR_SCROLLBAR = "pnlStageSelector/Scroll View/Scrollbar Vertical";
+    private const string _PATH_STAGE_EDITOR_CONTENT = "pnlStageEditor/Scroll View/Viewport/Content";
+    private const string _PATH_STAGE_EDITOR_SCROLLBAR = "pnlStageEditor/Scroll View/Scrollbar Vertical";
+    
+    // Prefab Child Element Names
+    private const string _CHILD_TXT_STAGE_DISPLAY_NAME = "txtStageDisplayName";
+    private const string _CHILD_IMG_STAGE_ICON = "imgStageIcon";
+    private const string _CHILD_TXT_STAGE_INFO = "txtStageInfo";
+    private const string _CHILD_TXT_STAGE_PATH = "txtStagePath";
+    
+    // Instance Names
+    private const string _INSTANCE_UI_STAGE_SELECTOR = "UIStageSelector";
+    private const string _INSTANCE_UI_STAGE_FILE_LIST = "UIStageFileList";
+    
+    // Editor Commands
+    private const string _EDITOR_WINDOWS = "notepad.exe";
+    private const string _EDITOR_MAC = "open";
+    private const string _EDITOR_MAC_ARGS = "-a TextEdit ";
+    private const string _EDITOR_LINUX = "xdg-open";
+    
+    // UI Messages
+    private const string _MSG_STAGE_PATH_NULL = "StagePath is null";
+    private const string _MSG_YAML_NULL = "yaml is null";
+    private const string _MSG_TMP_INPUT_NOT_FOUND = "tmpInputField is not found";
+    private const string _MSG_SCENE_PATH_NOT_FOUND = "Scene path not found: ";
+    private const string _MSG_INVALID_LINE_FORMAT = "Invalid line format: ";
+    private const string _MSG_ABOUT_GAME_NOT_FOUND = "aboutthisgame.txt is not found";
+    private const string _MSG_ABOUT_GAME_ERROR = "ゲーム情報ファイルが見つかりませんでした。";
+    private const string _MSG_ABOUT_GAME_LOADED = "aboutthisgame loaded";
+    private const string _MSG_FILE_OPEN_ERROR = "ファイルを開けませんでした: ";
+    private const string _MSG_FILE_NOT_EXIST = "ファイルが存在しません: ";
+    private const string _MSG_UNSUPPORTED_PLATFORM = "Unsupported platform";
+    private const string _MSG_BUG_REPORT_LOG = "OnClickBugReport ";
+    
+    // Numeric Constants
+    private const float _CANVAS_PLANE_DISTANCE = 100f;
+    private const float _SCENE_LOAD_DELAY = 0.1f;
+    private const float _SCROLLBAR_TOP_VALUE = 1f;
+    
+    // Text Format Constants
+    private const string _VERSION_PREFIX = "version:";
+    
+    // Private Fields
+    private GameObject _pnlStageSelector;
+    private GameObject _pnlStageEditor;
+    private GameObject _pnlAboutThisGame;
+    private GameObject _pnlYAMLEditor;
+    private GameObject _loading;
+    private GameObject _StageScrollbar;
+    private GameObject _EditorScrollbar;
 
     // GameTutorial
 
@@ -25,121 +107,447 @@ public class TitleStartCtrl : MonoBehaviour
 
     private void ClearContetArea(GameObject content)
     {
-        // Debug.Log(content.transform.childCount);
-        for (int i = 0; i < content.transform.childCount; i++)
+        int childCount = content.transform.childCount;
+        for (int i = 0; i < childCount; i++)
         {
-            GameObject child = content.transform.GetChild(i).gameObject;
-            GameObjectTreat.DestroyAll(child);
+            GameObjectTreat.DestroyAll(content.transform.GetChild(i).gameObject);
         }
     }
 
     private void SetStageContents(GameObject content)
     {
         ClearContetArea(content);
-        // GlobalConst._scene_path をループ
-        foreach (KeyValuePair<string, string[]> kvp in GlobalConst._scene_path)
+        GetSceneNames();
+        Dictionary<string, string[]> sceneDict = GetSceneDict();
+        foreach (KeyValuePair<string, string[]> item in sceneDict)
         {
-            // Debug.Log("SetStageContents " + kvp.Key + " " + kvp.Value[0] + " " + kvp.Value[1] + " " + kvp.Value[2] + " ");
-            string scenepath = kvp.Key;
-            string[] stageinfo = kvp.Value;
-            SetStageContent(content, scenepath);
+            string key = item.Key;
+            string[] value = item.Value;
+            SetStageContent(content, key, value);
         }
-
-        RectTransform rectcontent = content.GetComponent<RectTransform>();
-        int childCount = rectcontent.childCount;
-        rectcontent.sizeDelta = new Vector2(0, _STAGE_SELECTOR_HEIGHT * childCount + _STAGE_SELECTOR_MARGIN * (childCount - 1));
+        int count = sceneDict.Count;
+        content.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, _STAGE_SELECTOR_HEIGHT * count + _STAGE_SELECTOR_MARGIN * (count - 1));
     }
 
-    private void SetStageContent(GameObject content, string scenepath)
+    private void SetStageContent(GameObject content, string scenepath, string[] stageinfo)
     {
-        string[] vals;
-        GlobalConst._scene_path.TryGetValue(scenepath , out vals);
-        // Debug.Log("SetStageContent " + scenepath + vals[0] + vals[1] + vals[2]);
-
-        GameObject prefab = Resources.Load<GameObject>("Prefabs/UI/pnlStage");
-        GameObject instance = Instantiate(prefab, content.transform);
-        TextMeshProUGUI txtStageDisplayName = instance.transform.Find("txtStageDisplayName").GetComponent<TextMeshProUGUI>();
-        // txtStageDisplayName.text = GlobalConst._scene_path[scenepath][0];
-        txtStageDisplayName.text = vals[0];
-
-        // imgStageIcon
-        Image imgStageIcon = instance.transform.Find("imgStageIcon").GetComponent<Image>();
-        // imgStageIcon.sprite = Resources.Load<Sprite>("Sprites/StageIcon/StageIcon1");
-        imgStageIcon.sprite = Resources.Load<Sprite>(vals[1]);
-
-        // txtStageInfo
-        TextMeshProUGUI txtStageInfo = instance.transform.Find("txtStageInfo").GetComponent<TextMeshProUGUI>();
-        // txtStageInfo.text = "StageInfo1";
-        txtStageInfo.text = vals[2];
-
-        // txtStagePath
-        Text txtStagePath = instance.transform.Find("txtStagePath").GetComponent<Text>();
-        // txtStagePath.text = "path1";
-        txtStagePath.text = scenepath;
-
-        // Debug.Log("SetStageContent " + txtStageDisplayName.text + " " + imgStageIcon.sprite.name + " " + txtStageInfo.text + " " + txtStagePath.text);
-
-
-        Button btn = instance.GetComponent<Button>();
-        btn.onClick.AddListener(() =>
+        GameObject gameObject = UnityEngine.Object.Instantiate(PrefabManager.UIStageSelectorPrefab, content.transform);
+        gameObject.name = _INSTANCE_UI_STAGE_SELECTOR;
+        gameObject.transform.Find(_CHILD_TXT_STAGE_DISPLAY_NAME).GetComponent<TextMeshProUGUI>().text = stageinfo[0];
+        gameObject.transform.Find(_CHILD_IMG_STAGE_ICON).GetComponent<Image>().sprite = Resources.Load<Sprite>(stageinfo[1]);
+        gameObject.transform.Find(_CHILD_TXT_STAGE_INFO).GetComponent<TextMeshProUGUI>().text = stageinfo[2];
+        gameObject.transform.Find(_CHILD_TXT_STAGE_PATH).GetComponent<Text>().text = scenepath;
+        Button btn = gameObject.GetComponent<Button>();
+        btn.onClick.AddListener(delegate
         {
             OnClickSelectStage(btn);
         });
-
     }
 
+    private void SetStageEditorContents(GameObject content)
+    {
+        ClearContetArea(content);
+        Dictionary<string, string[]> sceneDict = GetSceneDict();
+        foreach (KeyValuePair<string, string[]> item in sceneDict)
+        {
+            string key = item.Key;
+            string[] value = item.Value;
+            SetStageEditorContent(content, key, value);
+        }
+        int count = sceneDict.Count;
+        content.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, _STAGE_EDITOR_HEIGHT * count + _STAGE_SELECTOR_MARGIN * (count - 1));
+    }
 
+    private void SetStageEditorContent(GameObject content, string scenepath, string[] stageinfo)
+    {
+        GameObject gameObject = UnityEngine.Object.Instantiate(PrefabManager.UIStageFileListPrefab, content.transform);
+        gameObject.name = _INSTANCE_UI_STAGE_FILE_LIST;
+        gameObject.transform.Find(_CHILD_TXT_STAGE_DISPLAY_NAME).GetComponent<TextMeshProUGUI>().text = stageinfo[0];
+        gameObject.transform.Find(_CHILD_TXT_STAGE_PATH).GetComponent<Text>().text = scenepath;
+        Button btn = gameObject.GetComponent<Button>();
+        btn.onClick.AddListener(delegate
+        {
+            OnClickSelectEditStage(btn);
+        });
+    }
+
+    private void OnClickSelectEditStage(Button btnStageSelect)
+    {
+        Text component = btnStageSelect.transform.Find(_CHILD_TXT_STAGE_PATH).gameObject.GetComponent<Text>();
+        if (component == null || component.text == "")
+        {
+            Debug.Log(_MSG_STAGE_PATH_NULL);
+            return;
+        }
+        string fileName = Path.GetFileName(component.text + _YAML_FILE_EXTENSION);
+        string text = LoadStreamingAsset.AllTextStream(fileName);
+        if (text == null)
+        {
+            Debug.Log(_MSG_YAML_NULL);
+            return;
+        }
+        _pnlYAMLEditor.SetActive(value: true);
+        GameObject gameObject = GameObject.Find(_OBJ_TMP_INPUT_FIELD);
+        if (gameObject == null)
+        {
+            Debug.LogWarning(_MSG_TMP_INPUT_NOT_FOUND);
+            return;
+        }
+        gameObject.GetComponent<TMP_InputField>().text = text;
+        GameObject.Find(_OBJ_TXT_YAML_PATH).GetComponent<Text>().text = LoadStreamingAsset.StageFilePath(fileName);
+    }
 
     private void OnClickSelectStage(Button btnStageSelect)
     {
-        // Debug.Log("OnClickSelectStage " + btnStageSelect.name);
-        // txtStagePath を取得
-        Transform txtStagePath = btnStageSelect.transform.Find("txtStagePath");
-        // if (txtStagePath == null)
-        // {
-        //     Debug.Log("txtStagePath is null");
-        //     return;
-        // }
-        Text StagePath = txtStagePath.gameObject.GetComponent<Text>();
-        if (StagePath == null || StagePath.text == "")
+        btnStageSelect.interactable = false;
+        Text component = btnStageSelect.transform.Find(_CHILD_TXT_STAGE_PATH).gameObject.GetComponent<Text>();
+        if (component == null || component.text == "")
         {
-            Debug.Log("StagePath is null");
+            Debug.Log(_MSG_STAGE_PATH_NULL);
             return;
         }
-        // Debug.Log("StagePath.text " + StagePath.text);
-        SceneManager.LoadScene(StagePath.text);
+        string text = component.text;
+        if (IsScenePathValid(text))
+        {
+            _loading.SetActive(value: true);
+            StartCoroutine(LoadScene(text, _SCENE_LOAD_DELAY));
+        }
+        else
+        {
+            Debug.LogWarning(_MSG_SCENE_PATH_NOT_FOUND + text);
+        }
+    }
+
+    private IEnumerator LoadScene(string scenename, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene(scenename, LoadSceneMode.Single);
+    }
+
+    private string RemoveQuotesSafely(string input)
+    {
+        if (input.StartsWith("\"") && input.EndsWith("\""))
+        {
+            return input.Substring(1, input.Length - 2);
+        }
+        return input;
+    }
+
+    private Dictionary<string, string[]> GetSceneInfoDict()
+    {
+        Dictionary<string, string[]> dictionary = new Dictionary<string, string[]>();
+        string[] array = LoadStreamingAsset.CsvLines(_STAGE_LIST_FILE_NAME);
+        for (int i = 0; i < array.Length; i++)
+        {
+            string[] array2 = LoadStreamingAsset.CsvCols(array[i]);
+            if (array2.Length != 4)
+            {
+                Debug.LogWarning(_MSG_INVALID_LINE_FORMAT + array[i]);
+                continue;
+            }
+            dictionary.Add(array2[0], new string[3]
+            {
+                array2[1],
+                array2[2],
+                array2[3]
+            });
+        }
+        return dictionary;
+    }
+
+    private string[] GetSceneNames()
+    {
+        int sceneCountInBuildSettings = SceneManager.sceneCountInBuildSettings;
+        string[] array = new string[sceneCountInBuildSettings];
+        for (int i = 0; i < sceneCountInBuildSettings; i++)
+        {
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(i));
+            array[i] = fileNameWithoutExtension;
+        }
+        return array;
+    }
+
+    private Dictionary<string, string[]> GetSceneDict()
+    {
+        string[] sceneNames = GetSceneNames();
+        string text = SceneManager.GetActiveScene().name;
+        Dictionary<string, string[]> sceneInfoDict = GetSceneInfoDict();
+        Dictionary<string, string[]> dictionary = new Dictionary<string, string[]>();
+        string[] array = new string[3] { "StageName", "StageIcon", "StageInfo" };
+        foreach (string text2 in sceneNames)
+        {
+            if (sceneInfoDict.ContainsKey(text2))
+            {
+                dictionary.Add(text2, sceneInfoDict[text2]);
+            }
+            else if (!(text2 == text) && !dictionary.ContainsKey(text2))
+            {
+                string[] array2 = (string[])array.Clone();
+                array2[0] = text2;
+                dictionary.Add(text2, array2);
+            }
+        }
+        return dictionary;
+    }
+
+    private bool IsScenePathValid(string scenename)
+    {
+        string[] sceneNames = GetSceneNames();
+        for (int i = 0; i < sceneNames.Length; i++)
+        {
+            if (scenename == sceneNames[i])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void OnClickAboutGame()
+    {
+        _pnlAboutThisGame.SetActive(value: true);
+        TextMeshProUGUI component = GameObject.Find(_OBJ_TMP_GAME_INFO).GetComponent<TextMeshProUGUI>();
+        string text = LoadStreamingAsset.AllTextStream(_ABOUT_GAME_FILE_NAME);
+        if (text == null)
+        {
+            Debug.LogWarning(_MSG_ABOUT_GAME_NOT_FOUND);
+            component.text = _MSG_ABOUT_GAME_ERROR;
+            return;
+        }
+        Debug.Log(_MSG_ABOUT_GAME_LOADED);
+        component.text = text;
+    }
+
+    private bool OpenYamlByNotePad()
+    {
+        string text = GameObject.Find(_OBJ_TXT_YAML_PATH).GetComponent<Text>().text;
+        if (File.Exists(text))
+        {
+            OpenFileInEditor(text);
+            return true;
+        }
+        return false;
+    }
+
+    private void OpenFileInDefaultProgram(string filepath)
+    {
+        if (File.Exists(filepath))
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(filepath)
+                {
+                    UseShellExecute = true
+                });
+                return;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(_MSG_FILE_OPEN_ERROR + filepath + "\nエラー: " + ex.Message);
+                return;
+            }
+        }
+        Debug.LogWarning(_MSG_FILE_NOT_EXIST + filepath);
+    }
+
+    private void OpenFileInEditor(string filepath)
+    {
+        if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor)
+        {
+            Process.Start(_EDITOR_WINDOWS, filepath);
+        }
+        else if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXEditor)
+        {
+            Process.Start(_EDITOR_MAC, _EDITOR_MAC_ARGS + filepath);
+        }
+        else if (Application.platform == RuntimePlatform.LinuxPlayer)
+        {
+            Process.Start(_EDITOR_LINUX, filepath);
+        }
+        else
+        {
+            Debug.LogError(_MSG_UNSUPPORTED_PLATFORM);
+        }
+    }
+
+    private void OnClickBugReport()
+    {
+        Debug.Log(_MSG_BUG_REPORT_LOG + _BUG_REPORT_URL);
+        Application.OpenURL(_BUG_REPORT_URL);
+    }
+
+    private void OnClickYamlEdit()
+    {
+        OpenYamlByNotePad();
+        _pnlStageEditor.SetActive(value: false);
+        _pnlYAMLEditor.SetActive(value: false);
+    }
+
+    private void OnClickStageEditor()
+    {
+        SetScrollbarTopPosition(_EditorScrollbar);
+        _pnlStageSelector.SetActive(value: false);
+        _pnlStageEditor.SetActive(!_pnlStageEditor.activeSelf);
+    }
+
+    private void SetScrollbarTopPosition(GameObject scrollbar)
+    {
+        if (!(scrollbar == null))
+        {
+            scrollbar.GetComponent<Scrollbar>().value = _SCROLLBAR_TOP_VALUE;
+        }
     }
 
     private void OnClickStageSelect()
     {
-        // 押されたボタンの名前を取得
-        // Debug.Log("OnClickStageSelect " + _pnlStageSelector.activeSelf);
+        SetScrollbarTopPosition(_StageScrollbar);
+        _pnlStageEditor.SetActive(value: false);
         _pnlStageSelector.SetActive(!_pnlStageSelector.activeSelf);
-        // _pnlStageSelector.SetActive(true);
     }
-
 
     void Awake()
     {
-        Button btnClose = GameObject.Find("btnGameClose").GetComponent<Button>();
-        btnClose.onClick.AddListener(() =>
+        List<string> missingObjects = new List<string>();
+        
+        InitializeLoadingCanvas(missingObjects);
+        InitializePanels(missingObjects);
+        RegisterButtonListeners(missingObjects);
+        InitializeStageContents(missingObjects);
+        InitializeVersionInfo(missingObjects);
+        CheckRuntimeObjects(missingObjects);
+        
+        CheckMissingObjects(missingObjects);
+    }
+
+    private void InitializeLoadingCanvas(List<string> missingObjects)
+    {
+        _loading = GameObject.Find(_OBJ_LOADING);
+        if (_loading == null)
         {
-            OnClickGameClose();
-        });
-
-        Button btnStage = GameObject.Find("btnStage").GetComponent<Button>();
-        btnStage.onClick.AddListener(() =>
+            missingObjects.Add(_OBJ_LOADING);
+            return;
+        }
+        _loading.SetActive(value: false);
+        if (_loading.GetComponent<Canvas>() != null)
         {
-            OnClickStageSelect();
-        });
+            _loading.GetComponent<Canvas>().planeDistance = _CANVAS_PLANE_DISTANCE;
+        }
+    }
 
+    private void InitializePanels(List<string> missingObjects)
+    {
+        _pnlStageSelector = FindAndSetupPanel(_OBJ_PNL_STAGE_SELECTOR, missingObjects);
+        _pnlStageEditor = FindAndSetupPanel(_OBJ_PNL_STAGE_EDITOR, missingObjects);
+        _pnlAboutThisGame = FindAndSetupPanel(_OBJ_PNL_ABOUT_THIS_GAME, missingObjects);
+        _pnlYAMLEditor = FindAndSetupPanel(_OBJ_PNL_YAML_EDITOR, missingObjects);
+    }
 
-        // pnlStageSelectorの子要素からContentを探す
-        GameObject content = GameObject.Find("pnlStageSelector/Scroll View/Viewport/Content");
-        SetStageContents(content);
+    private GameObject FindAndSetupPanel(string panelName, List<string> missingObjects)
+    {
+        GameObject panel = GameObject.Find(panelName);
+        if (panel == null)
+        {
+            missingObjects.Add(panelName);
+        }
+        else
+        {
+            panel.SetActive(value: false);
+        }
+        return panel;
+    }
 
-        _pnlStageSelector = GameObject.Find("pnlStageSelector");
-        _pnlStageSelector.SetActive(false);
+    private void RegisterButtonListeners(List<string> missingObjects)
+    {
+        RegisterButton(_OBJ_BTN_GAME_CLOSE, OnClickGameClose, missingObjects);
+        RegisterButton(_OBJ_BTN_ABOUT_GAME, OnClickAboutGame, missingObjects);
+        RegisterButton(_OBJ_BTN_STAGE_EDITOR, OnClickStageEditor, missingObjects);
+        RegisterButton(_OBJ_BTN_STAGE, OnClickStageSelect, missingObjects);
+        RegisterButton(_OBJ_BTN_YAML_EDIT, OnClickYamlEdit, missingObjects);
+        RegisterButton(_OBJ_BTN_BUG_REPORT, OnClickBugReport, missingObjects);
+    }
+
+    private void RegisterButton(string buttonName, UnityEngine.Events.UnityAction action, List<string> missingObjects)
+    {
+        GameObject buttonObj = GameObject.Find(buttonName);
+        if (buttonObj == null)
+        {
+            missingObjects.Add(buttonName);
+            return;
+        }
+        
+        Button buttonComponent = buttonObj.GetComponent<Button>();
+        if (buttonComponent != null)
+        {
+            buttonComponent.onClick.AddListener(action);
+        }
+    }
+
+    private void InitializeStageContents(List<string> missingObjects)
+    {
+        GameObject stageContents = FindAndInitialize(_PATH_STAGE_SELECTOR_CONTENT, SetStageContents, missingObjects);
+        _StageScrollbar = FindAndInitialize(_PATH_STAGE_SELECTOR_SCROLLBAR, SetScrollbarTopPosition, missingObjects);
+        GameObject stageEditorContents = FindAndInitialize(_PATH_STAGE_EDITOR_CONTENT, SetStageEditorContents, missingObjects);
+        _EditorScrollbar = FindAndInitialize(_PATH_STAGE_EDITOR_SCROLLBAR, SetScrollbarTopPosition, missingObjects);
+    }
+
+    private GameObject FindAndInitialize(string objectPath, System.Action<GameObject> initializeAction, List<string> missingObjects)
+    {
+        GameObject obj = GameObject.Find(objectPath);
+        if (obj == null)
+        {
+            missingObjects.Add(objectPath);
+        }
+        else
+        {
+            initializeAction(obj);
+        }
+        return obj;
+    }
+
+    private void InitializeVersionInfo(List<string> missingObjects)
+    {
+        GameObject txtVersionInfo = GameObject.Find(_OBJ_TXT_VERSION_INFO);
+        if (txtVersionInfo == null)
+        {
+            missingObjects.Add(_OBJ_TXT_VERSION_INFO);
+        }
+        else
+        {
+            TextMeshProUGUI textComponent = txtVersionInfo.GetComponent<TextMeshProUGUI>();
+            if (textComponent != null)
+            {
+                textComponent.SetText(_VERSION_PREFIX + GameObjectTreat.GetAppBuildDate());
+            }
+        }
+    }
+
+    private void CheckRuntimeObjects(List<string> missingObjects)
+    {
+        if (GameObject.Find(_OBJ_TMP_INPUT_FIELD) == null)
+        {
+            missingObjects.Add(_OBJ_TMP_INPUT_FIELD + " (pnlYAMLEditor内)");
+        }
+        if (GameObject.Find(_OBJ_TXT_YAML_PATH) == null)
+        {
+            missingObjects.Add(_OBJ_TXT_YAML_PATH + " (pnlYAMLEditor内)");
+        }
+        if (GameObject.Find(_OBJ_TMP_GAME_INFO) == null)
+        {
+            missingObjects.Add(_OBJ_TMP_GAME_INFO + " (pnlAboutThisGame内)");
+        }
+    }
+
+    private void CheckMissingObjects(List<string> missingObjects)
+    {
+        if (missingObjects.Count > 0)
+        {
+            Debug.LogError("=== 以下のGameObjectがシーンに存在しません ===");
+            foreach (string objName in missingObjects)
+            {
+                Debug.LogError("  - " + objName);
+            }
+            Debug.LogError("=== 合計 " + missingObjects.Count + " 個のオブジェクトが不足しています ===");
+        }
     }
 
 
