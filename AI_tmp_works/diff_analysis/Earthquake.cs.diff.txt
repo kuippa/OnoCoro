@@ -1,0 +1,315 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\Earthquake.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\GameEvents\Earthquake.cs
+================================================================================
+
+--- Earthquake.cs+++ Earthquake.cs@@ -1,116 +1,174 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// Earthquake
+ using System;
++using System.Collections;
++using System.Collections.Generic;
+ using UnityEngine;
++
+ 
+ public class Earthquake : MonoBehaviour
+ {
+-	private GameObject _dem;
++    private GameObject _dem = null;
++    private float _time = 0.0f;
++    private float _time_duration = 0.0f;
++    private Vector3 _org_stage_vector;
++    private float _degree = 0.0f;
++    private bool _is_earthquake = false;
++    private float _total_duration = 3.5f;
++    private float _interval = 0.02f;
++    private float _magnitude = 1.0f;
+ 
+-	private float _time;
++    private const float _DURATION = 4.5f;
++    private const float _INTERVAL = 0.02f;
+ 
+-	private float _time_duration;
++    internal void EventEarthQuake(float magnitude, float duration = _DURATION ,float interval = _INTERVAL)
++    {
++        _is_earthquake = true;
++        _interval = interval;
++        _total_duration = duration;
++        _magnitude = magnitude;
++        _degree = 0.0f;
++        // Debug.Log("EventEarthQuake " + _degree);
++    }
+ 
+-	private Vector3 _org_stage_vector;
++    // P波
++    private void QualeP()
++    {
++        float val = CalcSin();
++        if (_total_duration > _time_duration)
++        {
++            _dem.transform.position = new Vector3(_org_stage_vector.x, _org_stage_vector.y + val, _org_stage_vector.z);
++            _degree += 30.0f;
++        }
++        else
++        {
++            // Debug.Log("QualeP end");
++            _dem.transform.position = _org_stage_vector;
++            _degree = 0.0f;
++            _time_duration = 0.0f;
++            _is_earthquake = false;
++        }
++    }
+ 
+-	private float _degree;
+ 
+-	private bool _is_earthquake;
++    // S波
++    // 水平方向振動は摩擦係数が乗らないので見た目上機能しない
++    // private void QuakeS()
++    // {
++    //     float val = CalcSin();
++    //     if (_total_duration > _time_duration)
++    //     {
++    //         _dem.transform.position = new Vector3(_org_stage_vector.x + val, _org_stage_vector.y, _org_stage_vector.z + val);
++    //         _degree += 30.0f;
++    //     }
++    //     else
++    //     {
++    //         Debug.Log("QualeP end");
++    //         _dem.transform.position = _org_stage_vector;
++    //         _degree = 0.0f;
++    //         _time_duration = 0.0f;
++    //         _is_earthquake = false;
++    //     }
++    // }
+ 
+-	private float _total_duration = 3.5f;
+ 
+-	private float _interval = 0.02f;
++    private float CalcSin()
++    {
++        float ret = 0.0f;
++        float val = 0.0f;
++        val = (float)(_degree * Math.PI / 180.0f);
++        ret = (float)Math.Sin(val);
++        ret = CalcAmpDecay() * ret;
++        // Debug.Log("CalcSin " + _degree + " val:" + val + " sin:" + Math.Sin(val) + " ret:" + ret);
++        return ret;
++    }
+ 
+-	private float _magnitude = 1f;
++    private float CalcAmpDecay()
++    {
++        float ret = 0.0f;
++        float sign = 1f;
++        if (_time_duration > _total_duration/2)
++        {
++            sign = -1f;
++            // return ret;
++        }
++        if (_time_duration != 0)
++        {
++            ret = sign * _magnitude * (float)Math.Pow(_time_duration/_total_duration, 2);
++        }
++        return ret;
++    }
+ 
+-	private const float _DURATION = 4.5f;
+ 
+-	private const float _INTERVAL = 0.02f;
++    void Awake()
++    {
++        // TODO:Naraku の demのところを別クラス化
+ 
+-	internal void EventEarthQuake(float magnitude, float duration = 4.5f, float interval = 0.02f)
+-	{
+-		_is_earthquake = true;
+-		_interval = interval;
+-		_total_duration = duration;
+-		_magnitude = magnitude;
+-		_degree = 0f;
+-	}
++        GameObject ground = GameObject.FindGameObjectWithTag("Ground");
++        if (ground != null)
++        {
++            _dem = ground.gameObject;
++        }
++        else
++        {
++            Debug.Log("Earthquake Awake ground is null");
++            return;
++        }
++        _org_stage_vector = _dem.transform.position;
+ 
+-	private void QualeP()
+-	{
+-		float num = CalcSin();
+-		if (_total_duration > _time_duration)
+-		{
+-			_dem.transform.position = new Vector3(_org_stage_vector.x, _org_stage_vector.y + num, _org_stage_vector.z);
+-			_degree += 30f;
+-			return;
+-		}
+-		_dem.transform.position = _org_stage_vector;
+-		_degree = 0f;
+-		_time_duration = 0f;
+-		_is_earthquake = false;
+-	}
++        // Debug.Log(
++        //   " 0:" + Math.Sin(0 * Math.PI / 180.0f) 
++        // + " 45:" + Math.Sin(45 * Math.PI / 180.0f)
++        // + " 90:" + Math.Sin(90 * Math.PI / 180.0f)
++        // + " 135:" + Math.Sin(135 * Math.PI / 180.0f)
++        // + " 180:" + Math.Sin(180 * Math.PI / 180.0f)
++        // + " 225:" + Math.Sin(225 * Math.PI / 180.0f)
++        // + " 270:" + Math.Sin(270 * Math.PI / 180.0f)
++        // + " 315:" + Math.Sin(315 * Math.PI / 180.0f)
++        // + " 360:" + Math.Sin(360 * Math.PI / 180.0f)
++        // + " 405:" + Math.Sin(405 * Math.PI / 180.0f)
++        // );
++    }
+ 
+-	private float CalcSin()
+-	{
+-		float num = 0f;
+-		num = (float)Math.Sin((float)((double)_degree * Math.PI / 180.0));
+-		return CalcAmpDecay() * num;
+-	}
++    internal void OnTriggerEnter(Collider other)
++    {
+ 
+-	private float CalcAmpDecay()
+-	{
+-		float result = 0f;
+-		float num = 1f;
+-		if (_time_duration > _total_duration / 2f)
+-		{
+-			num = -1f;
+-		}
+-		if (_time_duration != 0f)
+-		{
+-			result = num * _magnitude * (float)Math.Pow(_time_duration / _total_duration, 2.0);
+-		}
+-		return result;
+-	}
++        if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
++        {
++            Debug.Log("OnTriggerEnter " + other.name + " object:" + other.gameObject.name);
+ 
+-	private void Awake()
+-	{
+-		GameObject gameObject = GameObject.FindGameObjectWithTag("Ground");
+-		if (gameObject != null)
+-		{
+-			_dem = gameObject.gameObject;
+-			_org_stage_vector = _dem.transform.position;
+-		}
+-		else
+-		{
+-			Debug.Log("Earthquake Awake ground is null");
+-		}
+-	}
++            // TODO:
++            // マグニチュード2.5以上で、キャラなどが床抜けする
+ 
+-	internal void OnTriggerEnter(Collider other)
+-	{
+-		if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
+-		{
+-			Debug.Log("OnTriggerEnter " + other.name + " object:" + other.gameObject.name);
+-			EventEarthQuake(1.8f);
+-		}
+-	}
++            // EventEarthQuake(0.6f);
++            EventEarthQuake(1.8f);
++            // EventEarthQuake(2.8f);
+ 
+-	private void Start()
+-	{
+-	}
+ 
+-	private void Update()
+-	{
+-		if (_is_earthquake)
+-		{
+-			_time += Time.deltaTime;
+-			_time_duration += Time.deltaTime;
+-			if (_time > _interval)
+-			{
+-				_time = 0f;
+-				QualeP();
+-			}
+-		}
+-	}
++
++            return;
++        }
++
++    }
++
++
++    // Start is called before the first frame update
++    void Start()
++    {
++        
++    }
++
++    // Update is called once per frame
++    void Update()
++    {
++        if (_is_earthquake)
++        {
++            _time += Time.deltaTime;
++            _time_duration += Time.deltaTime;
++            if (_time > _interval)
++            {
++                _time = 0.0f;
++                QualeP();
++                // QuakeS();
++            }
++        }
++    }
+ }
+
+
+================================================================================
+Significant Changes: 187
+-	private GameObject _dem;
+
++    private GameObject _dem = null;
+
++    private float _time = 0.0f;
+
++    private float _time_duration = 0.0f;
+
++    private Vector3 _org_stage_vector;
+
++    private float _degree = 0.0f;
+
++    private bool _is_earthquake = false;
+
++    private float _total_duration = 3.5f;
+
++    private float _interval = 0.02f;
+
++    private float _magnitude = 1.0f;
+
+-	private float _time;
+
++    private const float _DURATION = 4.5f;
+
++    private const float _INTERVAL = 0.02f;
+
+-	private float _time_duration;
+
++    internal void EventEarthQuake(float magnitude, float duration = _DURATION ,float interval = _INTERVAL)
+
++    {
+
++        _is_earthquake = true;
+
++        _interval = interval;
+
++        _total_duration = duration;
+
++        _magnitude = magnitude;
+

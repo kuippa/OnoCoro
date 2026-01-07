@@ -1,0 +1,223 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\SweepCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Tower\SweepCtrl.cs
+================================================================================
+
+--- SweepCtrl.cs+++ SweepCtrl.cs@@ -1,85 +1,103 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// SweepCtrl
++using System.Collections;
++using System.Collections.Generic;
++using UnityEngine;
+ using CommonsUtility;
+-using UnityEngine;
++using UnityEngine.InputSystem.XInput;
+ 
+ public class SweepCtrl : MonoBehaviour
+ {
+-	private float _lastTriggerStayTime;
++    private float _lastTriggerStayTime;
++    private const float _TRIGGER_STAY_INTERVAL = 0.02f;     // この感覚が長すぎるとゴミを消せずに残る
+ 
+-	private const float _TRIGGER_STAY_INTERVAL = 0.02f;
++    private void ChangeCubeSize(Collider other)
++    {
++        Vector3 scale = other.transform.localScale;
++        other.transform.localScale = ChangeScaleLimiter(scale);
++    }
+ 
+-	private void ChangeCubeSize(Collider other)
+-	{
+-		Vector3 localScale = other.transform.localScale;
+-		other.transform.localScale = ChangeScaleLimiter(localScale);
+-	}
++    private Vector3 ChangeScaleLimiter(Vector3 scale)
++    {
++        scale.x = CalcScale(scale.x);
++        scale.y = CalcScale(scale.y);
++        scale.z = CalcScale(scale.z);
++        return scale;
++    }
+ 
+-	private Vector3 ChangeScaleLimiter(Vector3 scale)
+-	{
+-		scale.x = CalcScale(scale.x);
+-		scale.y = CalcScale(scale.y);
+-		scale.z = CalcScale(scale.z);
+-		return scale;
+-	}
++    private float CalcScale(float scale)
++    {
++        if (scale <= GlobalConst.GARBAGE_MINIMUM_SIZE)
++        {
++        }
++        else
++        {
++            scale -= GlobalConst.GARBAGE_BASE_SLICE_SIZE;
++            if (scale < GlobalConst.GARBAGE_MINIMUM_SIZE)
++            {
++                scale = GlobalConst.GARBAGE_MINIMUM_SIZE;
++            }
++        }
++        return scale;
++    }
+ 
+-	private float CalcScale(float scale)
+-	{
+-		if (!(scale <= 0.2f))
+-		{
+-			scale -= 0.4f;
+-			if (scale < 0.2f)
+-			{
+-				scale = 0.2f;
+-			}
+-		}
+-		return scale;
+-	}
++    private GarbageCube GetGarbageCube(Collider other)
++    {
++        GarbageCube garbageCube = other.gameObject.GetComponent<GarbageCube>();
++        if (garbageCube == null)
++        {
++            garbageCube = other.gameObject.AddComponent<GarbageCube>();
++        }
++        return garbageCube;
++    }
+ 
+-	private GarbageCube GetGarbageCube(Collider other)
+-	{
+-		GarbageCube garbageCube = other.gameObject.GetComponent<GarbageCube>();
+-		if (garbageCube == null)
+-		{
+-			garbageCube = other.gameObject.AddComponent<GarbageCube>();
+-		}
+-		return garbageCube;
+-	}
++    private void CalcScore(Collider other)
++    {
++        GarbageCube garbageCube = GetGarbageCube(other);
++        UnitStruct unitStruct =  garbageCube.GetUnitStruct();
++        int score = ScoreCtrl.GetSliceGarbageScore(other);
++        ScoreCtrl.UpdateAndDisplayScore(score, unitStruct.ScoreType);
++    }
+ 
+-	private void CalcScore(Collider other)
+-	{
+-		UnitStruct unitStruct = GetGarbageCube(other).GetUnitStruct();
+-		ScoreCtrl.UpdateAndDisplayScore(ScoreCtrl.GetSliceGarbageScore(other), unitStruct.ScoreType);
+-	}
++    internal void SweepGarbage(Collider other)
++    {
++        // 射程に入ったターゲットを消去する
++        if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
++        {
++            float scoreMag = ScoreCtrl.CalcGarbageMagnification(other.transform.localScale);
++            CalcScore(other);
++            if (scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3)
++            {
++                // 対象オブジェクトを消す
++                GameObjectTreat.DestroyAll(other.gameObject);
++            }
++            else
++            {
++                ChangeCubeSize(other);
++            }
++        }
++    }
+ 
+-	internal void SweepGarbage(Collider other)
+-	{
+-		if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
+-		{
+-			float num = ScoreCtrl.CalcGarbageMagnification(other.transform.localScale);
+-			CalcScore(other);
+-			if (num <= 0.6f)
+-			{
+-				GameObjectTreat.DestroyAll(other.gameObject);
+-			}
+-			else
+-			{
+-				ChangeCubeSize(other);
+-			}
+-		}
+-	}
++    void OnTriggerStay(Collider other)
++    {
++        // OnTriggerStay は毎フレーム呼ばれるので間隔をあける
++        float currentTime = Time.time;
++        if (currentTime - _lastTriggerStayTime < _TRIGGER_STAY_INTERVAL)
++        {
++            return;
++        }
++        _lastTriggerStayTime = currentTime;
++        SweepGarbage(other);
++    }
+ 
+-	private void OnTriggerStay(Collider other)
+-	{
+-		float time = Time.time;
+-		if (!(time - _lastTriggerStayTime < 0.02f))
+-		{
+-			_lastTriggerStayTime = time;
+-			SweepGarbage(other);
+-		}
+-	}
++    void Awake()
++    {
++        #if UNITY_EDITOR
++            Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++        #endif
++    }
+ 
+-	private void Awake()
+-	{
+-	}
++    // Update is called once per frame
++    void Update()
++    {
++        
++    }
+ }
+
+
+================================================================================
+Significant Changes: 148
+-	private float _lastTriggerStayTime;
+
++    private float _lastTriggerStayTime;
+
++    private const float _TRIGGER_STAY_INTERVAL = 0.02f;     // この感覚が長すぎるとゴミを消せずに残る
+
+-	private const float _TRIGGER_STAY_INTERVAL = 0.02f;
+
++    private void ChangeCubeSize(Collider other)
+
++    {
+
++        Vector3 scale = other.transform.localScale;
+
++        other.transform.localScale = ChangeScaleLimiter(scale);
+
++    }
+
+-	private void ChangeCubeSize(Collider other)
+
+-	{
+
+-		Vector3 localScale = other.transform.localScale;
+
+-		other.transform.localScale = ChangeScaleLimiter(localScale);
+
+-	}
+
++    private Vector3 ChangeScaleLimiter(Vector3 scale)
+
++    {
+
++        scale.x = CalcScale(scale.x);
+
++        scale.y = CalcScale(scale.y);
+
++        scale.z = CalcScale(scale.z);
+
++        return scale;
+

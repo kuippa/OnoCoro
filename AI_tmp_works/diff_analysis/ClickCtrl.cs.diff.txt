@@ -1,0 +1,403 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\ClickCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\UI\ClickCtrl.cs
+================================================================================
+
+--- ClickCtrl.cs+++ ClickCtrl.cs@@ -1,191 +1,181 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// ClickCtrl
+-using System.Collections;
+-using System.Collections.Generic;
+ using UnityEngine;
++using UnityEngine.UI;
++using UnityEngine.InputSystem;
+ using UnityEngine.EventSystems;
+-using UnityEngine.InputSystem;
++using CommonsUtility;
++using UnityEditor;
++using Unity.VisualScripting;
++using System.Collections;   // IEnumerator を使うために追加
+ 
+ public class ClickCtrl : MonoBehaviour
+ {
+-	private const float _click_limit_distance = 20f;
++    const float _click_limit_distance = GlobalConst.UI_RAYCAST_MAX_DISTANCE;
+ 
+-	private bool _isProcessingClick;
++    private bool _isProcessingClick = false;
++    private static ClickCtrl _instance;
++    public static ClickCtrl Instance
++    {
++        get
++        {
++            if (_instance == null)
++            {
++                _instance = FindFirstObjectByType<ClickCtrl>();
++                if (_instance == null)
++                {
++                    GameObject go = new GameObject("ClickCtrl");
++                    _instance = go.AddComponent<ClickCtrl>();
++                }
++            }
++            return _instance;
++        }
++    }
+ 
+-	private static ClickCtrl _instance;
++    void Awake()
++    {
++        if (_instance != null && _instance != this)
++        {
++            Destroy(this.gameObject);
++        }
++        else
++        {
++            _instance = this;
++            DontDestroyOnLoad(this.gameObject);
++        }
++    }
+ 
+-	public static ClickCtrl Instance
+-	{
+-		get
+-		{
+-			if (_instance == null)
+-			{
+-				_instance = Object.FindFirstObjectByType<ClickCtrl>();
+-				if (_instance == null)
+-				{
+-					_instance = new GameObject("ClickCtrl").AddComponent<ClickCtrl>();
+-				}
+-			}
+-			return _instance;
+-		}
+-	}
++    public static void OnRightClick(InputValue value)
++    {
++        if (!Instance._isProcessingClick)
++        {
++            Instance._isProcessingClick = true;
++            Instance.StartCoroutine(Instance.ProcessRightClickNextFrame());
++        }
++    }
+ 
+-	private void Awake()
+-	{
+-		if (_instance != null && _instance != this)
+-		{
+-			Object.Destroy(base.gameObject);
+-			return;
+-		}
+-		_instance = this;
+-		Object.DontDestroyOnLoad(base.gameObject);
+-	}
++    private IEnumerator ProcessRightClickNextFrame()
++    {
++        // await Task.Yield(); // 次のフレームまで待機 C#の標準的な非同期プログラミングモデル
++        yield return null; // 次のフレームまで待機
+ 
+-	public static void OnRightClick(InputValue value)
+-	{
+-		if (!Instance._isProcessingClick)
+-		{
+-			Instance._isProcessingClick = true;
+-			Instance.StartCoroutine(Instance.ProcessRightClickNextFrame());
+-		}
+-	}
++        if (!CheckAndCloseNoticeWindow()){
++            Instance._isProcessingClick = false;
++            yield break; // コルーチンを終了            
++        }
++        LoupeCtrl.ActLoupe();
++        Instance._isProcessingClick = false;
++    }
+ 
+-	private IEnumerator ProcessRightClickNextFrame()
+-	{
+-		yield return null;
+-		if (!CheckAndCloseNoticeWindow())
+-		{
+-			Instance._isProcessingClick = false;
+-			yield break;
+-		}
+-		if (IsPointerOverUIObject())
+-		{
+-			Instance._isProcessingClick = false;
+-			yield break;
+-		}
+-		LoupeCtrl.ActLoupe();
+-		Instance._isProcessingClick = false;
+-	}
++    // マウス押下時ではなく、リリース時に発火する
++    public static void OnLeftClick(InputValue value)
++    {
++        if (!Instance._isProcessingClick)
++        {
++            Instance._isProcessingClick = true;
++            Instance.StartCoroutine(Instance.ProcessLeftClickNextFrame());
++        }
++    }
+ 
+-	public static void OnLeftClick(InputValue value)
+-	{
+-		if (!Instance._isProcessingClick)
+-		{
+-			Instance._isProcessingClick = true;
+-			Instance.StartCoroutine(Instance.ProcessLeftClickNextFrame());
+-		}
+-	}
++    private IEnumerator ProcessLeftClickNextFrame()
++    {
++        // await Task.Yield(); // 次のフレームまで待機 C#の標準的な非同期プログラミングモデル
++        yield return null; // 次のフレームまで待機
+ 
+-	private bool IsPointerOverUIObject()
+-	{
+-		PointerEventData eventData = new PointerEventData(EventSystem.current)
+-		{
+-			position = Mouse.current.position.ReadValue()
+-		};
+-		List<RaycastResult> list = new List<RaycastResult>();
+-		EventSystem.current.RaycastAll(eventData, list);
+-		if (list.Count > 0)
+-		{
+-			Debug.Log("raycastResults.Count:" + list.Count + list[0].gameObject.name);
+-		}
+-		return list.Count > 0;
+-	}
++        if (!CheckAndCloseNoticeWindow()){
++            Instance._isProcessingClick = false;
++            yield break; // コルーチンを終了            
++        }
+ 
+-	private IEnumerator ProcessLeftClickNextFrame()
+-	{
+-		yield return null;
+-		if (!CheckAndCloseNoticeWindow())
+-		{
+-			Instance._isProcessingClick = false;
+-			yield break;
+-		}
+-		if (IsPointerOverUIObject())
+-		{
+-			Debug.Log("UI上でのクリック");
+-			Instance._isProcessingClick = false;
+-			yield break;
+-		}
+-		if (LoupeCtrl.IsLoupe(ItemAction.GetSelectedItemName()))
+-		{
+-			Debug.Log("ルーペモード中のクリック");
+-			LoupeCtrl.ActLoupe();
+-		}
+-		else if (SpawnMarkerPointerCtrl.IsMarkerActive())
+-		{
+-			Debug.Log("マーカーアクティブ中のクリック");
+-			ItemAction.ActItemUse();
+-		}
+-		else
+-		{
+-			Debug.Log("マーカー非アクティブ中のクリック");
+-		}
+-		Instance._isProcessingClick = false;
+-	}
++        if (LoupeCtrl.IsLoupe())
++        {
++            LoupeCtrl.ActLoupe();
++            Instance._isProcessingClick = false;
++            yield break; // コルーチンを終了            
++        }
++        else if (SpawnMarkerPointerCtrl.IsMarkerActive())
++        {
++            ItemAction.ActItemUse();
++            Instance._isProcessingClick = false;
++            yield break; // コルーチンを終了            
++        }
++        ItemAction.GetSelectedItem();
++        Instance._isProcessingClick = false;
++    }
+ 
+-	private static bool CheckAndCloseNoticeWindow()
+-	{
+-		GameObject gameObject = GameObject.Find("UINotice");
+-		if (gameObject != null)
+-		{
+-			NoticeCtrl component = gameObject.GetComponent<NoticeCtrl>();
+-			if (component.IsNoticeWindowActive())
+-			{
+-				component.ToggleNoticeWindow(isOn: false);
+-				return false;
+-			}
+-		}
+-		return true;
+-	}
++    private static bool CheckAndCloseNoticeWindow()
++    {
++        GameObject uiNotice = GameObject.Find("UINotice");
++        if (uiNotice != null)
++        {
++            NoticeCtrl noticeCtrl = uiNotice.GetComponent<NoticeCtrl>();
++            bool isActive = noticeCtrl.IsNoticeWindowActive();
++            if (isActive)
++            {
++                noticeCtrl.ToggleNoticeWindow(false);
++                return false;
++            }
++        }
++        return true;
++    }
+ 
+-	private static void CreateBonFire(Ray PointRay, RaycastHit hit)
+-	{
+-		Debug.DrawRay(PointRay.origin, PointRay.direction * 10f, Color.red, 5f);
+-		GameObject original = Resources.Load<GameObject>("Prefabs/Bonfire");
+-		Vector3 position = hit.collider.gameObject.transform.position;
+-		MeshFilter component = hit.collider.gameObject.GetComponent<MeshFilter>();
+-		if (component != null)
+-		{
+-			position += Vector3.up * component.mesh.bounds.size.y;
+-		}
+-		else
+-		{
+-			position += Vector3.up;
+-		}
+-		GameObject gameObject = Object.Instantiate(rotation: hit.collider.gameObject.transform.localRotation, original: original, position: position);
+-		Transform parent = hit.collider.gameObject.transform.parent;
+-		if (parent != null)
+-		{
+-			gameObject.transform.SetParent(parent.transform);
+-		}
+-	}
++    private static void CreateBonFire(Ray PointRay, RaycastHit hit)
++    {
++        Debug.DrawRay(PointRay.origin, PointRay.direction * 10, Color.red, 5f);
++        GameObject prefab = Resources.Load<GameObject>("Prefabs/Bonfire");
++        Vector3 setPoint = hit.collider.gameObject.transform.position;
++        MeshFilter meshFilter = hit.collider.gameObject.GetComponent<MeshFilter>();
++        if (meshFilter != null)
++        {
++            // メッシュの高さを取得してその上部に生成する
++            setPoint += Vector3.up * meshFilter.mesh.bounds.size.y;
++        }
++        else
++        {
++            setPoint += Vector3.up;
++        }
++        Quaternion setRotate = hit.collider.gameObject.transform.localRotation;
++        GameObject instance = Instantiate(prefab, setPoint, setRotate);
++        Transform parent = hit.collider.gameObject.transform.parent;
++        if (parent != null)
++        {
++            instance.transform.SetParent(parent.transform);
++        }
++    }
+ 
+-	private static void DebugMeshInfo(RaycastHit hit, Vector3 setPoint)
+-	{
+-		Vector3 vector = setPoint;
+-		Debug.Log("localPosition:" + vector.ToString());
+-		Debug.Log("position:" + hit.collider.gameObject.transform.position.ToString());
+-		MeshFilter component = hit.collider.gameObject.GetComponent<MeshFilter>();
+-		Debug.Log("MeshFilter.bounds.size.y:" + component.mesh.bounds.size.y);
+-		Transform transform = GameObject.Find("PlayerArmature").transform;
+-		Debug.Log("amarture :" + transform.localPosition.ToString());
+-		Debug.Log("MeshFilter size:" + component.mesh.bounds.size.ToString());
+-		Renderer component2 = hit.collider.gameObject.GetComponent<Renderer>();
+-		Debug.Log("Renderer size:" + component2.bounds.size.ToString());
+-		Debug.Log("MeshFilter extents:" + component.mesh.bounds.extents.ToString());
+-		Debug.Log("MeshFilter center:" + component.mesh.bounds.center.ToString());
+-		Debug.Log("Renderer center:" + component2.bounds.center.ToString());
+-		Debug.Log("MeshFilter max:" + component.mesh.bounds.max.ToString());
+-		Debug.Log("MeshFilter min:" + component.mesh.bounds.min.ToString());
+-		Debug.Log("Renderer max:" + component2.bounds.max.ToString());
+-		Debug.Log("Renderer min:" + component2.bounds.min.ToString());
+-		Vector3 localPosition = hit.collider.gameObject.transform.localPosition;
+-		Debug.Log("localPosition - center:" + (localPosition - component.mesh.bounds.center).ToString());
+-		Debug.Log("localPosition + center:" + (localPosition + component.mesh.bounds.center).ToString());
+-		Debug.Log("localPosition - size:" + (localPosition - component.mesh.bounds.size).ToString());
+-		Debug.Log("localPosition + size:" + (localPosition + component.mesh.bounds.size).ToString());
+-		Debug.Log("Contains:" + component.mesh.bounds.Contains(setPoint));
+-		Debug.Log("ClosestPoint:" + component.mesh.bounds.ClosestPoint(setPoint).ToString());
+-		Debug.Log("Submeshes: " + component.mesh.subMeshCount);
+-		Debug.Log("isReadable: " + component.mesh.isReadable);
+-	}
++    private static void DebugMeshInfo(RaycastHit hit, Vector3 setPoint)
++    {
++        Debug.Log("localPosition:" + setPoint);
++        Debug.Log("position:" + hit.collider.gameObject.transform.position);
++        MeshFilter meshFilter = hit.collider.gameObject.GetComponent<MeshFilter>();
++        Debug.Log("MeshFilter.bounds.size.y:" + meshFilter.mesh.bounds.size.y);
++
++        var amarture = GameObject.Find("PlayerArmature").transform;
++        Debug.Log("amarture :" + amarture.localPosition);
++        Debug.Log("MeshFilter size:" + meshFilter.mesh.bounds.size);
++
++        // m_Mesh
++        Renderer renderer = hit.collider.gameObject.GetComponent<Renderer>();
++        Debug.Log("Renderer size:" + renderer.bounds.size);
++        Debug.Log("MeshFilter extents:" + meshFilter.mesh.bounds.extents);
++        Debug.Log("MeshFilter center:" + meshFilter.mesh.bounds.center);
++        Debug.Log("Renderer center:" + renderer.bounds.center);
++        Debug.Log("MeshFilter max:" + meshFilter.mesh.bounds.max);
++        Debug.Log("MeshFilter min:" + meshFilter.mesh.bounds.min);
++        Debug.Log("Renderer max:" + renderer.bounds.max);
++        Debug.Log("Renderer min:" + renderer.bounds.min);
++
++        Vector3 localPosi = hit.collider.gameObject.transform.localPosition;
++        Debug.Log("localPosition - center:" + (localPosi - meshFilter.mesh.bounds.center));
++        Debug.Log("localPosition + center:" + (localPosi + meshFilter.mesh.bounds.center));
++        Debug.Log("localPosition - size:" + (localPosi - meshFilter.mesh.bounds.size));
++        Debug.Log("localPosition + size:" + (localPosi + meshFilter.mesh.bounds.size));
++        //Contains	設定した point が、バウンディングボックスに含まれているか確認します
++        Debug.Log("Contains:" + meshFilter.mesh.bounds.Contains(setPoint));
++        // ClosestPoint	バウンディングボックスにもっとも近い点
++        Debug.Log("ClosestPoint:" + meshFilter.mesh.bounds.ClosestPoint(setPoint));
++        Debug.Log("Submeshes: " + meshFilter.mesh.subMeshCount);
++        Debug.Log("isReadable: " + meshFilter.mesh.isReadable);
++    }
++
++
++
+ }
+
+
+================================================================================
+Significant Changes: 312
+-	private const float _click_limit_distance = 20f;
+
++    const float _click_limit_distance = GlobalConst.UI_RAYCAST_MAX_DISTANCE;
+
+-	private bool _isProcessingClick;
+
++    private bool _isProcessingClick = false;
+
++    private static ClickCtrl _instance;
+
++    public static ClickCtrl Instance
+
++    {
+
++        get
+
++        {
+
++            if (_instance == null)
+
++            {
+
++                _instance = FindFirstObjectByType<ClickCtrl>();
+
++                if (_instance == null)
+
++                {
+
++                    GameObject go = new GameObject("ClickCtrl");
+
++                    _instance = go.AddComponent<ClickCtrl>();
+
++                }
+
++            }
+
++            return _instance;
+
++        }
+

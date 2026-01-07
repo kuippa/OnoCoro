@@ -1,0 +1,334 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\DebugInfoCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\UI\DebugInfoCtrl.cs
+================================================================================
+
+--- DebugInfoCtrl.cs+++ DebugInfoCtrl.cs@@ -1,143 +1,165 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// DebugInfoCtrl
+ using System;
++using System.Collections;
++using System.Collections.Generic;
++using UnityEngine;
++using UnityEngine.UI;
++using UnityEngine.Profiling;    // Profiler
+ using CommonsUtility;
+-using UnityEngine;
+-using UnityEngine.Profiling;
+-using UnityEngine.SceneManagement;
+-using UnityEngine.UI;
++using System.Net.Http.Headers;
+ 
+ public class DebugInfoCtrl : MonoBehaviour
+ {
+-	private static string _app_version = "";
++    private static string _app_version = "";
++    private float _time = 0;
++    private float _fps = 0;
++    private const float _updateInterval = 1.5f;
+ 
+-	private float _time;
++    private string GetAppVer()
++    {
++        if (_app_version != "")
++        {
++            return _app_version;
++        }
++        string app_versions = "BuildDate: " + Utility.GetAppVersion();
++        app_versions += " Application: " + Application.version;
++        _app_version = app_versions;
++        return _app_version;
++    }
+ 
+-	private float _fps;
++    private string GetAppFPS()
++    {
++        string fps = "";
++        fps += "APP_FPS:" + Application.targetFrameRate;
++        fps += " FPS:" + _fps;
++        return fps;
++    }
+ 
+-	private const float _updateInterval = 1.5f;
++    private string GetAppDPI()
++    {
++        return "DP:"+Utility.GetScreenDp() + " DPI:" + Screen.dpi;
++    }
+ 
+-	private string GetAppVer()
+-	{
+-		if (_app_version != "")
+-		{
+-			return _app_version;
+-		}
+-		_app_version = string.Concat("BuildDate: " + GameObjectTreat.GetAppBuildDate() + Environment.NewLine, "Application: ", GameObjectTreat.GetAppVersion());
+-		return _app_version;
+-	}
++    private string GetAppMemory()
++    {
++        // https://docs.unity3d.com/ScriptReference/Profiling.Profiler.html
++        string mem = "";
++        mem += "Total:" + GetMemoryString(Profiler.GetTotalReservedMemoryLong());
++        mem += "Alloc:" + GetMemoryString(Profiler.GetTotalAllocatedMemoryLong());
++        mem += "Unuse:" + GetMemoryString(Profiler.GetTotalUnusedReservedMemoryLong());
++        return mem;
++    }
+ 
+-	private string GetAppFPS()
+-	{
+-		return string.Concat("" + "APP_FPS:" + Application.targetFrameRate, " FPS:", _fps.ToString());
+-	}
+ 
+-	private string GetAppDPI()
+-	{
+-		return "DP:" + Utility.GetScreenDp() + " DPI:" + Screen.dpi;
+-	}
++    private string GetMemoryString(long memory)
++    {
++        string ret = "";
++        ret = String.Format("{0:#,0} MB ", ConvBytesToMGBytes(memory));
++        return ret;
++    }
+ 
+-	private string GetGameSpeed()
+-	{
+-		return "SIM SPEED:" + GameSpeedCtrl.GetGameSpeed();
+-	}
++    private long ConvBytesToMGBytes(long memory)
++    {
++        return memory/(1024*1024);
++    }
+ 
+-	private string GetWind()
+-	{
+-		return " Wind:" + WindCtrl.GetDirectionText() + " " + WindCtrl.GetWindSpeed() + "m/s";
+-	}
++    // 充電状況
++    private string GetBatteryStatusInfo()
++    {
++        // Unknown	The device's battery status cannot be determined. If battery status is not available on your target platform, SystemInfo.batteryStatus will return this value.
++        // Charging	Device is plugged in and charging.
++        // Discharging	Device is unplugged and discharging.
++        // NotCharging	Device is plugged in, but is not charging.
++        // Full	Device is plugged in and the battery is full.
++        string batteryStatus = "";
++        batteryStatus += "BatteryStatus:";
++        // batteryStatus += "BatteryStatus:" + SystemInfo.batteryStatus.ToString();
++        if (SystemInfo.batteryStatus == BatteryStatus.Charging)
++        {
++            batteryStatus += BatteryStatus.Charging.ToString();
++        }
++        return batteryStatus;        
++    }
+ 
+-	private string GetAppMemory()
+-	{
+-		return string.Concat(string.Concat("" + "Total:" + GetMemoryString(Profiler.GetTotalReservedMemoryLong()), "Alloc:", GetMemoryString(Profiler.GetTotalAllocatedMemoryLong())), "Unuse:", GetMemoryString(Profiler.GetTotalUnusedReservedMemoryLong()));
+-	}
++    // 通信環境
++    private string GetReachabilityInfo()
++    {
++        string reachabilityText = "";
++        // reachabilityText = Application.internetReachability.ToString();
++        if (Application.internetReachability == NetworkReachability.NotReachable)
++        {
++            reachabilityText = "[discon]";
++        }
++        //Check if the device can reach the internet via a carrier data network
++        else if (Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork)
++        {
++            reachabilityText = "[Carrier]";
++        }
++        //Check if the device can reach the internet via a LAN
++        else if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork)
++        {
++            reachabilityText = "[LAN/Wi-Fi]";
++        }
++        return reachabilityText;
++    }
+ 
+-	private string GetMemoryString(long memory)
+-	{
+-		return $"{ConvBytesToMGBytes(memory):#,0} MB ";
+-	}
++    private string GetSceneName()
++    {
++        return "Scene:"+UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
++    }
+ 
+-	private long ConvBytesToMGBytes(long memory)
+-	{
+-		return memory / 1048576;
+-	}
+ 
+-	private string GetBatteryStatusInfo()
+-	{
+-		string text = "";
+-		text += "BatteryStatus:";
+-		if (SystemInfo.batteryStatus == BatteryStatus.Charging)
+-		{
+-			text += BatteryStatus.Charging;
+-		}
+-		return text;
+-	}
++    private void InitDebugWindow()
++    {
++        if (GameConfig._APP_GAME_MODE != GlobalConst.GAME_MODE_DEBUG)
++        {
++            this.gameObject.SetActive(false);
++            return;
++        }
+ 
+-	private string GetReachabilityInfo()
+-	{
+-		string result = "";
+-		if (Application.internetReachability == NetworkReachability.NotReachable)
+-		{
+-			result = "[discon]";
+-		}
+-		else if (Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork)
+-		{
+-			result = "[Carrier]";
+-		}
+-		else if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork)
+-		{
+-			result = "[LAN/Wi-Fi]";
+-		}
+-		return result;
+-	}
++        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++        // Debug.Log("DebugInfoCtrl.InitDebugWindow()");
+ 
+-	private string GetSceneName()
+-	{
+-		return "Scene:" + SceneManager.GetActiveScene().name;
+-	}
++        // GameObject debugWindow = GameObject.Find("DebugWindow");
++        GameObject debugWindow = this.gameObject;
++        String debug_info = "";
++        if (debugWindow != null)
++        {
++            // Debug.Log("DebugWindow is found");
++            debug_info = GetSceneName();
++            debug_info += "\n" + GetAppVer();
++            debug_info += "\n" + GetAppFPS();
++            debug_info += "\n" + GetAppDPI();
++            debug_info += "\n" + GetAppMemory();
++            debug_info += "\n" + GetBatteryStatusInfo();
++            debug_info += "\n" + GetReachabilityInfo();
++            debugWindow.GetComponentInChildren<Text>().text = debug_info;
+ 
+-	private void InitDebugWindow()
+-	{
+-		if (GameConfig._APP_GAME_MODE != "debug")
+-		{
+-			base.gameObject.SetActive(value: false);
+-			return;
+-		}
+-		GameObject gameObject = base.gameObject;
+-		string text = "";
+-		if (gameObject != null)
+-		{
+-			text = GetSceneName();
+-			text = text + Environment.NewLine + GetAppVer();
+-			text = text + Environment.NewLine + GetAppFPS();
+-			text = text + Environment.NewLine + GetAppDPI();
+-			text = text + Environment.NewLine + GetAppMemory();
+-			text = text + Environment.NewLine + GetBatteryStatusInfo();
+-			text = text + Environment.NewLine + GetReachabilityInfo();
+-			text = text + Environment.NewLine + GetGameSpeed();
+-			text = text + " " + GetWind();
+-			gameObject.GetComponentInChildren<Text>().text = text;
+-		}
+-		else
+-		{
+-			Debug.Log("DebugWindow is not found");
+-		}
+-	}
++        }
++        else
++        {
++            Debug.Log("DebugWindow is not found");
++        }
++    }
+ 
+-	private void Awake()
+-	{
+-		GameConfig.InitGameConfig();
+-		InitDebugWindow();
+-	}
+ 
+-	private void Update()
+-	{
+-		_time += Time.deltaTime;
+-		if (_time > 1.5f)
+-		{
+-			_fps = 1f / Time.deltaTime;
+-			InitDebugWindow();
+-			_time = 0f;
+-		}
+-	}
++    void Awake()
++    {
++        GameConfig.InitGameConfig();
++        InitDebugWindow();
++        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++    }
++
++    void Update()
++    {
++        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++        _time += Time.deltaTime;
++        if (_time > _updateInterval)
++        {
++            _fps = 1.0f / Time.deltaTime;
++            InitDebugWindow();
++            _time = 0;
++        }
++    }
++
++
+ }
+
+
+================================================================================
+Significant Changes: 229
+-	private static string _app_version = "";
+
++    private static string _app_version = "";
+
++    private float _time = 0;
+
++    private float _fps = 0;
+
++    private const float _updateInterval = 1.5f;
+
+-	private float _time;
+
++    private string GetAppVer()
+
++    {
+
++        if (_app_version != "")
+
++        {
+
++            return _app_version;
+
++        }
+
++        string app_versions = "BuildDate: " + Utility.GetAppVersion();
+
++        app_versions += " Application: " + Application.version;
+
++        _app_version = app_versions;
+
++        return _app_version;
+
++    }
+
+-	private float _fps;
+
++    private string GetAppFPS()
+
++    {
+

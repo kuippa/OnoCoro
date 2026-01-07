@@ -1,0 +1,305 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\RainDropsCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Tower\RainDropsCtrl.cs
+================================================================================
+
+--- RainDropsCtrl.cs+++ RainDropsCtrl.cs@@ -1,135 +1,145 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// RainDropsCtrl
++using UnityEngine;
++using UnityEditor;
+ using System.Collections;
+ using CommonsUtility;
+-using UnityEngine;
+ 
+ public class RainDropsCtrl : MonoBehaviour
+ {
+-	private Vector3 _rainDropPosition = Vector3.zero;
++// puddle については、雨が降るときに生成するようにする
+ 
+-	private bool _is_rain = true;
++    private Vector3 _rainDropPosition = Vector3.zero;
++    private bool _is_rain = true;
++    private GameObject _puddles_holder = null;
++    private float _checkRadius = 10f; // チェックする半径
++    private int _requiredRainCount = 5; // 必要なRainタグのオブジェクト数
++    private int _check_count = 0; // チェック回数
++    private const float RAIN_CHECK = 5.0f;
++    private const float STATIONARY_DISTANCE = 5f;    // 雨粒が同じところに留まっている距離
++    private const float PUDDLE_ABOVE_DISTANCE = 0.25f;    // 地面からの距離
++    private const int PUDDLE_MAX_COUNT = 10;        // 水たまりの最大数
++    private const int MAX_CHECK_COUNT = 10;         // 判定回数が上限に達したら雨粒を消す
+ 
+-	private GameObject _puddles_holder;
++    private bool MakePuddle()
++    {
++        // 生成する水たまりの数を数える
++        float rainDropCount = 0;
++        GameObject[] rainDrops = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Puddle.ToString());
++        rainDropCount = rainDrops.Length;
+ 
+-	private float _checkRadius = 10f;
++        // 15個以上の水たまりはエラー発生のため生成しない 
++        // IndexOutOfRangeException: Index was outside the bounds of the array. が発生するため
++        if (rainDropCount > PUDDLE_MAX_COUNT)
++        {
++            return false;
++        }
+ 
+-	private int _requiredRainCount = 5;
++		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/Puddle");
++        Vector3 setPoint = DemCtrl.GetDemAbovePosition(this.gameObject, PUDDLE_ABOVE_DISTANCE);
++        Quaternion setRotation = Quaternion.Euler(0, 0, 0);
++        GameObject unit = Instantiate(prefab, setPoint, setRotation);
++        unit.tag = GameEnum.TagType.Puddle.ToString();
++        unit.name = GameEnum.TagType.Puddle.ToString() + Time.time.ToString();
++        unit.transform.SetParent(GetPuddleHolder().transform);
+ 
+-	private int _check_count;
++        // Debug.Log("MakePuddle" + this.name + " " + rainDropCount);
++        return true;
++    }
+ 
+-	private const float RAIN_CHECK = 5f;
+ 
+-	private const float STATIONARY_DISTANCE = 5f;
++    private GameObject GetPuddleHolder()
++    {
++        if (_puddles_holder == null)
++        {
++            _puddles_holder = GameObject.Find("puddles");
++            if (_puddles_holder == null)
++            {
++                _puddles_holder = new GameObject("puddles");
++            }
++        }
++        return _puddles_holder;
++    }
+ 
+-	private const float PUDDLE_ABOVE_DISTANCE = 0.25f;
++    private bool CheckExistRainsInRadius()
++    {
++        bool ret = false;
++        // 一定の距離内にあるオブジェクトを取得
++        Collider[] hitColliders = Physics.OverlapSphere(this.transform.position, _checkRadius);
++        int rainCount = 0;
+ 
+-	private const int PUDDLE_MAX_COUNT = 10;
++        // 取得したオブジェクトのタグをチェック
++        foreach (var hitCollider in hitColliders)
++        {
++            if (hitCollider.CompareTag(GameEnum.TagType.RainDrop.ToString()))
++            {
++                rainCount++;
++            }
++        }
+ 
+-	private const int MAX_CHECK_COUNT = 10;
++        // Rainタグのオブジェクトが5個以上ある場合の処理
++        if (rainCount >= _requiredRainCount)
++        {
++            // Debug.Log("一定の距離内にRainタグのオブジェクトが" + rainCount + "個あります。");
++            ret = true;
++        }
++        return ret;
++    }
+ 
+-	private bool MakePuddle()
+-	{
+-		if ((float)GameObject.FindGameObjectsWithTag(GameEnum.TagType.Puddle.ToString()).Length > 10f)
+-		{
+-			return false;
+-		}
+-		GameObject original = Resources.Load<GameObject>("Prefabs/WorkUnit/Puddle");
+-		Vector3 demAbovePosition = DemCtrl.GetDemAbovePosition(base.gameObject, 0.25f);
+-		Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
+-		GameObject obj = Object.Instantiate(original, demAbovePosition, rotation);
+-		obj.tag = GameEnum.TagType.Puddle.ToString();
+-		obj.name = GameEnum.TagType.Puddle.ToString() + Time.time;
+-		obj.transform.SetParent(GetPuddleHolder().transform);
+-		return true;
+-	}
++    private void OnTriggerCheck()
++    {
++        _check_count++;
++        if (_check_count > MAX_CHECK_COUNT)
++        {
++            _is_rain = false;
++            GameObjectTreat.DestroyAll(this.gameObject);
++            return;
++        }
+ 
+-	private GameObject GetPuddleHolder()
+-	{
+-		if (_puddles_holder == null)
+-		{
+-			_puddles_holder = GameObject.Find("puddles");
+-			if (_puddles_holder == null)
+-			{
+-				_puddles_holder = new GameObject("puddles");
+-			}
+-		}
+-		return _puddles_holder;
+-	}
++        if (!this.gameObject.activeSelf)
++        {
++            _is_rain = false;
++            return;
++        }
+ 
+-	private bool CheckExistRainsInRadius()
+-	{
+-		bool result = false;
+-		Collider[] array = Physics.OverlapSphere(base.transform.position, _checkRadius);
+-		int num = 0;
+-		Collider[] array2 = array;
+-		for (int i = 0; i < array2.Length; i++)
+-		{
+-			if (array2[i].CompareTag(GameEnum.TagType.RainDrop.ToString()))
+-			{
+-				num++;
+-			}
+-		}
+-		if (num >= _requiredRainCount)
+-		{
+-			result = true;
+-		}
+-		return result;
+-	}
++        if (_rainDropPosition != Vector3.zero)
++        {
++            if (Vector3.Distance(_rainDropPosition, this.gameObject.transform.position) > STATIONARY_DISTANCE)
++            {
++                // 雨が集まっていたら水たまりを生成
++                if (GameConfig._STAGE_PADDLE_MODE && CheckExistRainsInRadius())
++                {
++                    // Debug.Log("同じ場所に一定時間停止" + this.name);
++                    if (MakePuddle())
++                    {
++                        _is_rain = false;
++                        GameObjectTreat.DestroyAll(this.gameObject);
++                    }
++                    return;
++                }
++            }
++        }
+ 
+-	private void OnTriggerCheck()
+-	{
+-		_check_count++;
+-		if ((float)_check_count > 10f * GameSpeedCtrl.GetGameSpeed())
+-		{
+-			_is_rain = false;
+-			GameObjectTreat.DestroyAll(base.gameObject);
+-			return;
+-		}
+-		if (!base.gameObject.activeSelf)
+-		{
+-			_is_rain = false;
+-			return;
+-		}
+-		if (_rainDropPosition != Vector3.zero && Vector3.Distance(_rainDropPosition, base.gameObject.transform.position) <= 5f)
+-		{
+-			if (GameConfig._STAGE_PADDLE_MODE && CheckExistRainsInRadius())
+-			{
+-				if (MakePuddle())
+-				{
+-					_is_rain = false;
+-					GameObjectTreat.DestroyAll(base.gameObject);
+-				}
+-				return;
+-			}
+-			if (GameConfig._STAGE_RAIN_ABSORB_MODE)
+-			{
+-				ChangeColliderSize();
+-			}
+-		}
+-		_rainDropPosition = base.gameObject.transform.position;
+-	}
++        _rainDropPosition = this.gameObject.transform.position;
++        // Debug.Log("OnTriggerCheck" + this.name);
++    }
+ 
+-	private void ChangeColliderSize()
+-	{
+-		base.gameObject.transform.Find("absorbcollider").gameObject.GetComponent<RainAbsorbCtrl>().ChangeColliderSize(0.7f);
+-	}
++    IEnumerator RainDrops()
++    {
++        while (_is_rain)
++        {
++            yield return new WaitForSeconds(RAIN_CHECK);        
++            OnTriggerCheck();
++        }
+ 
+-	private IEnumerator RainDrops()
+-	{
+-		while (_is_rain)
+-		{
+-			yield return new WaitForSeconds(5f);
+-			OnTriggerCheck();
+-		}
+-	}
++    }
+ 
+-	private void Awake()
+-	{
+-	}
++    void Awake()
++    {
++        // RainDrops();
++    }
+ 
+-	private void Start()
+-	{
+-		StartCoroutine(RainDrops());
+-	}
++    void Start()
++    {
++        StartCoroutine(RainDrops());        
++    }
++
+ }
+
+
+================================================================================
+Significant Changes: 213
+-	private Vector3 _rainDropPosition = Vector3.zero;
+
+-	private bool _is_rain = true;
+
++    private Vector3 _rainDropPosition = Vector3.zero;
+
++    private bool _is_rain = true;
+
++    private GameObject _puddles_holder = null;
+
++    private float _checkRadius = 10f; // チェックする半径
+
++    private int _requiredRainCount = 5; // 必要なRainタグのオブジェクト数
+
++    private int _check_count = 0; // チェック回数
+
++    private const float RAIN_CHECK = 5.0f;
+
++    private const float STATIONARY_DISTANCE = 5f;    // 雨粒が同じところに留まっている距離
+
++    private const float PUDDLE_ABOVE_DISTANCE = 0.25f;    // 地面からの距離
+
++    private const int PUDDLE_MAX_COUNT = 10;        // 水たまりの最大数
+
++    private const int MAX_CHECK_COUNT = 10;         // 判定回数が上限に達したら雨粒を消す
+
+-	private GameObject _puddles_holder;
+
++    private bool MakePuddle()
+
++    {
+
++        float rainDropCount = 0;
+
++        GameObject[] rainDrops = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Puddle.ToString());
+
++        rainDropCount = rainDrops.Length;
+
+-	private float _checkRadius = 10f;
+

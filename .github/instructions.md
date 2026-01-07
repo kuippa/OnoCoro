@@ -758,6 +758,7 @@ for (int i = 0; i < 10; i++)
 ```csharp
 int result = (x > 0) ? 10 : -10;
 string message = isValid ? "Valid" : "Invalid";
+GameObject obj = transform != null ? transform.gameObject : null;
 ```
 
 ✅ **良い例:**
@@ -780,6 +781,12 @@ if (isValid)
 else
 {
     message = "Invalid";
+}
+
+GameObject foundObject = null;
+if (transform != null)
+{
+    foundObject = transform.gameObject;
 }
 ```
 
@@ -874,26 +881,159 @@ if (user.age >= ADULT_AGE_THRESHOLD)
 }
 ```
 
-### 7. インデントとフォーマット
+### 7. 変数名の命名規則
 
-- インデント: スペース4つ
-- 波括弧のスタイル: 改行してから開く（K&R スタイル）
-- 1行の最大文字数: 120文字を推奨
+**意味のある名前を使用し、一時的な名前を避ける**
 
-### 8. エラーハンドリング
+変数名は、その変数が何を表すのかを明確に示すものにしてください。
 
-**例外は適切にキャッチし、ログを出力すること**
-
+❌ **悪い例:**
 ```csharp
-try
+GameObject obj = GameObject.Find("Canvas");
+Transform t = parent.transform.Find("Content");
+int temp = CalculateValue();
+string str = GetMessage();
+Button btn = GetComponent<Button>();
+```
+
+✅ **良い例:**
+```csharp
+GameObject canvasObject = GameObject.Find("Canvas");
+Transform contentTransform = parent.transform.Find("Content");
+int calculatedValue = CalculateValue();
+string errorMessage = GetMessage();
+Button startButton = GetComponent<Button>();
+```
+
+**例外的に許可される短い変数名:**
+- ループカウンタ: `i`, `j`, `k`（ただしネストが深い場合は `index`, `row`, `col` など明確な名前を推奨）
+- 座標: `x`, `y`, `z`
+- イベント引数: `e` （ただし `eventArgs` の方が望ましい）
+
+**変数名の接頭辞・接尾辞:**
+```csharp
+// GameObjectには適切な接尾辞を
+GameObject loadingCanvas;        // "Canvas"がついているとUIだとわかる
+GameObject playerCharacter;      // "Character"で実体がわかる
+
+// Transformには"Transform"を
+Transform contentTransform;
+Transform scrollbarTransform;
+
+// Componentには型を示す名前を
+Button closeButton;
+Text statusText;
+Image backgroundImage;
+```
+
+### 8. 冗長な条件分岐の回避
+
+### Early Return パターンの徹底使用
+
+**必須**: 条件チェックは Early Return（ガード句）パターンを使用し、ネストしたif文を避けること。
+
+#### ❌ 絶対に避けるべきパターン
+```csharp
+// NG: ネストしたif文
+if (transform.parent != null)
 {
-    File.WriteAllText(filePath, content);
-}
-catch (Exception ex)
-{
-    Debug.LogError($"ファイルの書き込みに失敗しました: {filePath}\nエラー: {ex.Message}");
+    if (someCondition)
+    {
+        if (anotherCondition)
+        {
+            // 正常系の処理
+        }
+    }
 }
 ```
+
+#### ✅ 必ず使用すべきパターン
+```csharp
+// OK: Early Return パターン
+if (transform.parent == null)
+{
+    Debug.LogWarning("No parent found");
+    return;
+}
+
+if (!someCondition)
+{
+    return;
+}
+
+if (!anotherCondition)
+{
+    return;
+}
+
+// 正常系の処理（ネストなし）
+```
+
+### 具体例: WindowCloseCtrl
+
+#### ❌ 悪い例（現在のコード）
+```csharp
+private void CloseWindow()
+{
+    if (transform.parent != null)
+    {
+        if (transform.parent.gameObject.name == "titlebar")
+        {
+            if (transform.parent.parent != null)
+            {
+                transform.parent.parent.gameObject.SetActive(false);
+            }
+            return;
+        }
+        transform.parent.gameObject.SetActive(false);
+    }
+    else
+    {
+        Debug.LogWarning("No parent found");
+    }
+}
+```
+
+#### ✅ 良い例（Early Return使用）
+```csharp
+private void CloseWindow()
+{
+    // ガード句: 異常系を先に処理
+    if (transform.parent == null)
+    {
+        Debug.LogWarning("No parent found");
+        return;
+    }
+
+    // タイトルバーの場合は親の親を非表示
+    if (transform.parent.gameObject.name == "titlebar")
+    {
+        if (transform.parent.parent == null)
+        {
+            Debug.LogWarning("Grandparent not found");
+            return;
+        }
+        transform.parent.parent.gameObject.SetActive(false);
+        return;
+    }
+
+    // 通常の場合は親を非表示
+    transform.parent.gameObject.SetActive(false);
+}
+```
+
+### Early Return のメリット
+
+1. **可読性**: 正常系のコードがフラットで読みやすい
+2. **保守性**: 条件追加時にネストが深くならない
+3. **認知負荷軽減**: 前提条件が明確で理解しやすい
+4. **バグ予防**: else節の書き忘れを防げる
+
+### 適用ルール
+
+- **nullチェック**: 必ず最初に行い、nullの場合は即return
+- **前提条件**: ビジネスロジックの前にすべてチェック
+- **ネストの深さ**: 2段階以上のネストは禁止（Early Returnで解消）
 
 ---
 

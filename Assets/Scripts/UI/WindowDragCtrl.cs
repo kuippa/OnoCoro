@@ -4,73 +4,57 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class WindowDragCtrl : MonoBehaviour , IDragHandler
+public class WindowDragCtrl : MonoBehaviour, IDragHandler, IBeginDragHandler, IEventSystemHandler
 {
-    public void OnDrag(PointerEventData eventData)
+    private Vector2 _dragStartPosition;
+    private Vector2 _panelStartPosition;
+    private RectTransform _parentRectTransform;
+    private Canvas _canvas;
+
+    void Start()
     {
-        // print($"OnDrag : {eventData}");
-        // this.transform.position = eventData.position;
-        // Debug.Log($"this.transform.position : {this.transform.position} + this.transform.parent.position : {this.transform.parent.position}" );
-        // // this.transform.position : (368.50, 424.00, 0.00) + this.transform.parent.position : (368.50, 309.00, 0.00)
-        // Debug.Log($"eventData.position : {eventData.position}");
-
-        Vector2 pos = this.transform.parent.position - this.transform.position;
-        this.transform.parent.position = eventData.position + pos;
-
-        // TODO: 端をクリックしてもドラッグ開始で中心に来てしまうので調整
-
-
-
-        // クリックした相対位置を取得
-        // Vector2 pos = this.transform.position - eventData.position;
-
-        // this.GetComponentInParent.<RectTransform>().position = eventData.position;
+        if (transform.parent != null)
+        {
+            _parentRectTransform = transform.parent.GetComponent<RectTransform>();
+        }
+        _canvas = GetComponentInParent<Canvas>();
     }
 
-        // // header にOnDragを登録
-        // GameObject header = GameObject.Find("header");
-        // // header.GetComponent<RectTransform>().SetAsLastSibling();
-        // // header.GetComponent<RectTransform>().SetAsFirstSibling();
-        // EventTrigger trigger = header.AddComponent<EventTrigger>();
-        // EventTrigger.Entry entry = new EventTrigger.Entry();
-        // entry.eventID = EventTriggerType.Drag;
-        // entry.callback.AddListener((data) => { OnDrag((PointerEventData)data); });
-        // trigger.triggers.Add(entry);
+    /// <summary>
+    /// ドラッグ開始時の処理
+    /// ドラッグ開始位置とパネルの初期位置を記録
+    /// </summary>
+    /// <param name="eventData">ポインターイベントデータ</param>
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (_parentRectTransform == null)
+        {
+            return;
+        }
 
-    // public void OnDrag(PointerEventData eventData)
-    // {
+        _dragStartPosition = eventData.position;
+        _panelStartPosition = _parentRectTransform.anchoredPosition;
+    }
 
-    //     //Create a ray going from the camera through the mouse position
-    //     Ray ray = Camera.main.ScreenPointToRay(eventData.position);
-    //     //Calculate the distance between the Camera and the GameObject, and go this distance along the ray
-    //     Vector3 rayPoint = ray.GetPoint(Vector3.Distance(transform.position, Camera.main.transform.position));
-    //     //Move the GameObject when you drag it
-    //     transform.position = rayPoint;
+    /// <summary>
+    /// ドラッグ中の処理
+    /// ドラッグの移動量だけパネルを移動
+    /// </summary>
+    /// <param name="eventData">ポインターイベントデータ</param>
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (_parentRectTransform == null || _canvas == null)
+        {
+            return;
+        }
 
-    //     // if (eventData.pointerEnter != null && eventData.pointerEnter.transform as RectTransform != null)
-    //     //     m_DraggingPlane = eventData.pointerEnter.transform as RectTransform;
+        Vector2 currentPosition = eventData.position;
+        Vector2 dragDelta = currentPosition - _dragStartPosition;
+        
+        // Canvasのスケールを考慮
+        float scaleFactor = _canvas.scaleFactor;
+        dragDelta = dragDelta / scaleFactor;
 
-    //     // var rt = m_DraggingIcon.GetComponent<RectTransform>();
-    //     // Vector3 globalMousePos;
-    //     // if (RectTransformUtility.ScreenPointToWorldPointInRectangle(m_DraggingPlane, data.position, data.pressEventCamera, out globalMousePos))
-    //     // {
-    //     //     rt.position = globalMousePos;
-    //     //     rt.rotation = m_DraggingPlane.rotation;
-    //     // }
-
-    //     // // マウスがヒットした地面の座標を取得
-    //     // RaycastHit hit;
-    //     // Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-    //     // if (Physics.Raycast(ray, out hit))
-    //     // {
-    //     //     // マウスがヒットした地面の座標を取得
-    //     //     if (hit.collider.gameObject.layer != LayerMask.NameToLayer(EnemyEnum.LayerType.Ground.ToString()))
-    //     //     {
-    //     //         return;
-    //     //     }
-    //     //     // マーカーの座標をマウスの座標にする
-    //     //     transform.position = hit.point;
-    //     // }
-    // }
-
+        _parentRectTransform.anchoredPosition = _panelStartPosition + dragDelta;
+    }
 }

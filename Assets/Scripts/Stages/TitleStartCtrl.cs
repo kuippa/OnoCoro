@@ -20,8 +20,11 @@ public class TitleStartCtrl : MonoBehaviour
     
     // File Constants
     private const string _YAML_FILE_EXTENSION = ".yaml";
-    private const string _STAGE_LIST_FILE_NAME = "public_doc/stagelist.csv";
+    private const string _STAGE_LIST_FILE_NAME = "stagelist.csv";
     private const string _ABOUT_GAME_FILE_NAME = "aboutthisgame.txt";
+    
+    // Prefab Paths
+    private const string _PREFAB_PATH_LOADING = "Prefabs/UI/nowloading";
     
     // URL Constants
     private const string _BUG_REPORT_URL = "https://forms.gle/CdvySsxeXMDAigTQ9";
@@ -37,6 +40,7 @@ public class TitleStartCtrl : MonoBehaviour
     private const string _OBJ_PNL_STAGE_SELECTOR = "pnlStageSelector";
     private const string _OBJ_PNL_STAGE_EDITOR = "pnlStageEditor";
     private const string _OBJ_PNL_ABOUT_THIS_GAME = "pnlAboutThisGame";
+    private const string _OBJ_PNL_BOTTOM_BAR = "pnlBottomBar";
     private const string _OBJ_PNL_YAML_EDITOR = "pnlYAMLEditor";
     private const string _OBJ_TXT_VERSION_INFO = "txtVersionInfo";
     private const string _OBJ_TMP_GAME_INFO = "tmpGameInfo";
@@ -44,8 +48,6 @@ public class TitleStartCtrl : MonoBehaviour
     private const string _OBJ_TXT_YAML_PATH = "txtYamlPath";
     
     // GameObject Path Constants
-    private const string _PATH_STAGE_SELECTOR_CONTENT = "pnlStageSelector/Scroll View/Viewport/Content";
-    private const string _PATH_STAGE_SELECTOR_SCROLLBAR = "pnlStageSelector/Scroll View/Scrollbar Vertical";
     private const string _PATH_STAGE_EDITOR_CONTENT = "pnlStageEditor/Scroll View/Viewport/Content";
     private const string _PATH_STAGE_EDITOR_SCROLLBAR = "pnlStageEditor/Scroll View/Scrollbar Vertical";
     
@@ -54,6 +56,10 @@ public class TitleStartCtrl : MonoBehaviour
     private const string _CHILD_IMG_STAGE_ICON = "imgStageIcon";
     private const string _CHILD_TXT_STAGE_INFO = "txtStageInfo";
     private const string _CHILD_TXT_STAGE_PATH = "txtStagePath";
+    
+    // UI Child Paths (relative to parent)
+    private const string _CHILD_PATH_SCROLLVIEW_CONTENT = "Scroll View/Viewport/Content";
+    private const string _CHILD_PATH_SCROLLVIEW_SCROLLBAR = "Scroll View/Scrollbar Vertical";
     
     // Instance Names
     private const string _INSTANCE_UI_STAGE_SELECTOR = "UIStageSelector";
@@ -80,18 +86,15 @@ public class TitleStartCtrl : MonoBehaviour
     private const string _MSG_BUG_REPORT_LOG = "OnClickBugReport ";
     
     // Numeric Constants
-    private const float _CANVAS_PLANE_DISTANCE = 100f;
     private const float _SCENE_LOAD_DELAY = 0.1f;
     private const float _SCROLLBAR_TOP_VALUE = 1f;
-    
-    // Text Format Constants
-    private const string _VERSION_PREFIX = "version:";
     
     // Private Fields
     private GameObject _pnlStageSelector;
     private GameObject _pnlStageEditor;
     private GameObject _pnlAboutThisGame;
     private GameObject _pnlYAMLEditor;
+    private GameObject _pnlBottomBar;
     private GameObject _loading;
     private GameObject _StageScrollbar;
     private GameObject _EditorScrollbar;
@@ -131,16 +134,22 @@ public class TitleStartCtrl : MonoBehaviour
 
     private void SetStageContent(GameObject content, string scenepath, string[] stageinfo)
     {
-        GameObject gameObject = UnityEngine.Object.Instantiate(PrefabManager.UIStageSelectorPrefab, content.transform);
-        gameObject.name = _INSTANCE_UI_STAGE_SELECTOR;
-        gameObject.transform.Find(_CHILD_TXT_STAGE_DISPLAY_NAME).GetComponent<TextMeshProUGUI>().text = stageinfo[0];
-        gameObject.transform.Find(_CHILD_IMG_STAGE_ICON).GetComponent<Image>().sprite = Resources.Load<Sprite>(stageinfo[1]);
-        gameObject.transform.Find(_CHILD_TXT_STAGE_INFO).GetComponent<TextMeshProUGUI>().text = stageinfo[2];
-        gameObject.transform.Find(_CHILD_TXT_STAGE_PATH).GetComponent<Text>().text = scenepath;
-        Button btn = gameObject.GetComponent<Button>();
-        btn.onClick.AddListener(delegate
+        if (PrefabManager.UIStageSelectorPrefab == null)
         {
-            OnClickSelectStage(btn);
+            Debug.LogError("UIStageSelectorPrefab が null です。PrefabManager が正しく初期化されているか確認してください。");
+            return;
+        }
+        
+        GameObject stageListItem = UnityEngine.Object.Instantiate(PrefabManager.UIStageSelectorPrefab, content.transform);
+        stageListItem.name = _INSTANCE_UI_STAGE_SELECTOR;
+        stageListItem.transform.Find(_CHILD_TXT_STAGE_DISPLAY_NAME).GetComponent<TextMeshProUGUI>().text = stageinfo[0];
+        stageListItem.transform.Find(_CHILD_IMG_STAGE_ICON).GetComponent<Image>().sprite = Resources.Load<Sprite>(stageinfo[1]);
+        stageListItem.transform.Find(_CHILD_TXT_STAGE_INFO).GetComponent<TextMeshProUGUI>().text = stageinfo[2];
+        stageListItem.transform.Find(_CHILD_TXT_STAGE_PATH).GetComponent<Text>().text = scenepath;
+        Button stageButton = stageListItem.GetComponent<Button>();
+        stageButton.onClick.AddListener(delegate
+        {
+            OnClickSelectStage(stageButton);
         });
     }
 
@@ -180,6 +189,7 @@ public class TitleStartCtrl : MonoBehaviour
             return;
         }
         string fileName = Path.GetFileName(component.text + _YAML_FILE_EXTENSION);
+        Debug.Log("OnClickSelectEditStage: " + fileName);
         string text = LoadStreamingAsset.AllTextStream(fileName);
         if (text == null)
         {
@@ -236,20 +246,28 @@ public class TitleStartCtrl : MonoBehaviour
     private Dictionary<string, string[]> GetSceneInfoDict()
     {
         Dictionary<string, string[]> dictionary = new Dictionary<string, string[]>();
-        string[] array = LoadStreamingAsset.CsvLines(_STAGE_LIST_FILE_NAME);
-        for (int i = 0; i < array.Length; i++)
+        string[] csvLines = LoadStreamingAsset.CsvLines(_STAGE_LIST_FILE_NAME);
+        
+        if (csvLines == null)
         {
-            string[] array2 = LoadStreamingAsset.CsvCols(array[i]);
-            if (array2.Length != 4)
+            Debug.LogError($"ステージリストファイルが見つかりません: {_STAGE_LIST_FILE_NAME}");
+            Debug.LogError($"期待されるパス: {LoadStreamingAsset.StageFilePath(_STAGE_LIST_FILE_NAME)}");
+            return dictionary;
+        }
+        
+        for (int i = 0; i < csvLines.Length; i++)
+        {
+            string[] csvColumns = LoadStreamingAsset.CsvCols(csvLines[i]);
+            if (csvColumns.Length != 4)
             {
-                Debug.LogWarning(_MSG_INVALID_LINE_FORMAT + array[i]);
+                Debug.LogWarning(_MSG_INVALID_LINE_FORMAT + csvLines[i]);
                 continue;
             }
-            dictionary.Add(array2[0], new string[3]
+            dictionary.Add(csvColumns[0], new string[3]
             {
-                array2[1],
-                array2[2],
-                array2[3]
+                csvColumns[1],
+                csvColumns[2],
+                csvColumns[3]
             });
         }
         return dictionary;
@@ -412,10 +430,8 @@ public class TitleStartCtrl : MonoBehaviour
         InitializeLoadingCanvas(missingObjects);
         InitializePanels(missingObjects);
         RegisterButtonListeners(missingObjects);
-        InitializeStageContents(missingObjects);
+        // InitializeStageContents(missingObjects);
         InitializeVersionInfo(missingObjects);
-        CheckRuntimeObjects(missingObjects);
-        
         CheckMissingObjects(missingObjects);
     }
 
@@ -424,34 +440,36 @@ public class TitleStartCtrl : MonoBehaviour
         _loading = GameObject.Find(_OBJ_LOADING);
         if (_loading == null)
         {
-            missingObjects.Add(_OBJ_LOADING);
-            return;
+            GameObject loadingPrefab = Resources.Load<GameObject>(_PREFAB_PATH_LOADING);
+            if (loadingPrefab != null)
+            {
+                _loading = UnityEngine.Object.Instantiate(loadingPrefab);
+                _loading.name = _OBJ_LOADING;
+            }
+            else
+            {
+                missingObjects.Add(_OBJ_LOADING);
+                return;
+            }
         }
         _loading.SetActive(value: false);
-        if (_loading.GetComponent<Canvas>() != null)
-        {
-            _loading.GetComponent<Canvas>().planeDistance = _CANVAS_PLANE_DISTANCE;
-        }
     }
 
     private void InitializePanels(List<string> missingObjects)
     {
-        _pnlStageSelector = FindAndSetupPanel(_OBJ_PNL_STAGE_SELECTOR, missingObjects);
-        _pnlStageEditor = FindAndSetupPanel(_OBJ_PNL_STAGE_EDITOR, missingObjects);
+        // _pnlStageSelector = FindAndSetupPanel(_OBJ_PNL_STAGE_SELECTOR, missingObjects);
+        // _pnlStageEditor = FindAndSetupPanel(_OBJ_PNL_STAGE_EDITOR, missingObjects);
         _pnlAboutThisGame = FindAndSetupPanel(_OBJ_PNL_ABOUT_THIS_GAME, missingObjects);
-        _pnlYAMLEditor = FindAndSetupPanel(_OBJ_PNL_YAML_EDITOR, missingObjects);
+        // _pnlYAMLEditor = FindAndSetupPanel(_OBJ_PNL_YAML_EDITOR, missingObjects);
+        _pnlBottomBar = FindAndSetupPanel(_OBJ_PNL_BOTTOM_BAR, missingObjects, true);
     }
 
-    private GameObject FindAndSetupPanel(string panelName, List<string> missingObjects)
+    private GameObject FindAndSetupPanel(string panelName, List<string> missingObjects, Boolean setActiveFalse = false)
     {
-        GameObject panel = GameObject.Find(panelName);
-        if (panel == null)
+        GameObject panel = FindGameObject(panelName, missingObjects, "Panel");
+        if (panel != null)
         {
-            missingObjects.Add(panelName);
-        }
-        else
-        {
-            panel.SetActive(value: false);
+            panel.SetActive(value: setActiveFalse);
         }
         return panel;
     }
@@ -460,80 +478,87 @@ public class TitleStartCtrl : MonoBehaviour
     {
         RegisterButton(_OBJ_BTN_GAME_CLOSE, OnClickGameClose, missingObjects);
         RegisterButton(_OBJ_BTN_ABOUT_GAME, OnClickAboutGame, missingObjects);
-        RegisterButton(_OBJ_BTN_STAGE_EDITOR, OnClickStageEditor, missingObjects);
-        RegisterButton(_OBJ_BTN_STAGE, OnClickStageSelect, missingObjects);
-        RegisterButton(_OBJ_BTN_YAML_EDIT, OnClickYamlEdit, missingObjects);
+        // RegisterButton(_OBJ_BTN_STAGE_EDITOR, OnClickStageEditor, missingObjects);
+        // RegisterButton(_OBJ_BTN_STAGE, OnClickStageSelect, missingObjects);
+        // RegisterButton(_OBJ_BTN_YAML_EDIT, OnClickYamlEdit, missingObjects);
         RegisterButton(_OBJ_BTN_BUG_REPORT, OnClickBugReport, missingObjects);
     }
 
     private void RegisterButton(string buttonName, UnityEngine.Events.UnityAction action, List<string> missingObjects)
     {
-        GameObject buttonObj = GameObject.Find(buttonName);
-        if (buttonObj == null)
+        GameObject buttonObj = FindGameObject(buttonName, missingObjects, "Button");
+        if (buttonObj != null)
         {
-            missingObjects.Add(buttonName);
-            return;
-        }
-        
-        Button buttonComponent = buttonObj.GetComponent<Button>();
-        if (buttonComponent != null)
-        {
-            buttonComponent.onClick.AddListener(action);
+            Button buttonComponent = buttonObj.GetComponent<Button>();
+            if (buttonComponent != null)
+            {
+                buttonComponent.onClick.AddListener(action);
+            }
         }
     }
 
     private void InitializeStageContents(List<string> missingObjects)
     {
-        GameObject stageContents = FindAndInitialize(_PATH_STAGE_SELECTOR_CONTENT, SetStageContents, missingObjects);
-        _StageScrollbar = FindAndInitialize(_PATH_STAGE_SELECTOR_SCROLLBAR, SetScrollbarTopPosition, missingObjects);
-        GameObject stageEditorContents = FindAndInitialize(_PATH_STAGE_EDITOR_CONTENT, SetStageEditorContents, missingObjects);
-        _EditorScrollbar = FindAndInitialize(_PATH_STAGE_EDITOR_SCROLLBAR, SetScrollbarTopPosition, missingObjects);
+        if (_pnlStageSelector == null)
+        {
+            Debug.LogError("[InitializeStageContents] _pnlStageSelectorがnullです");
+            missingObjects.Add("pnlStageSelector (parent is null)");
+            return;
+        }
+
+        // Content要素の初期化
+        GameObject contentObject = FindGameObject(_CHILD_PATH_SCROLLVIEW_CONTENT, missingObjects, "Content", _pnlStageSelector);
+        if (contentObject != null)
+        {
+            SetStageContents(contentObject);
+        }
+        
+        // Scrollbar要素の初期化
+        _StageScrollbar = FindGameObject(_CHILD_PATH_SCROLLVIEW_SCROLLBAR, missingObjects, "Scrollbar", _pnlStageSelector);
+        if (_StageScrollbar != null)
+        {
+            SetScrollbarTopPosition(_StageScrollbar);
+        }
     }
 
-    private GameObject FindAndInitialize(string objectPath, System.Action<GameObject> initializeAction, List<string> missingObjects)
+    private GameObject FindGameObject(string path, List<string> missingObjects, string objectType = "", GameObject parent = null)
     {
-        GameObject obj = GameObject.Find(objectPath);
-        if (obj == null)
+        GameObject obj = null;
+        
+        if (parent != null)
         {
-            missingObjects.Add(objectPath);
+            Transform transform = parent.transform.Find(path);
+            if (transform != null)
+            {
+                obj = transform.gameObject;
+            }
         }
         else
         {
-            initializeAction(obj);
+            obj = GameObject.Find(path);
         }
+        
+        if (obj == null)
+        {
+            string typeInfo = string.IsNullOrEmpty(objectType) ? "" : $" ({objectType})";
+            string fullPath = parent != null ? $"{parent.name}/{path}" : path;
+            Debug.LogError($"GameObject not found{typeInfo}: {fullPath}");
+            missingObjects.Add(parent != null ? $"{parent.name}/{path}" : path);
+        }
+        
         return obj;
     }
 
     private void InitializeVersionInfo(List<string> missingObjects)
     {
-        GameObject txtVersionInfo = GameObject.Find(_OBJ_TXT_VERSION_INFO);
-        if (txtVersionInfo == null)
-        {
-            missingObjects.Add(_OBJ_TXT_VERSION_INFO);
-        }
-        else
+        GameObject txtVersionInfo = FindGameObject(_OBJ_TXT_VERSION_INFO, missingObjects, "VersionInfo", _pnlBottomBar);
+        if (txtVersionInfo != null)
         {
             TextMeshProUGUI textComponent = txtVersionInfo.GetComponent<TextMeshProUGUI>();
             if (textComponent != null)
             {
-                textComponent.SetText(_VERSION_PREFIX + GameObjectTreat.GetAppBuildDate());
+                textComponent.SetText(GameObjectTreat.GetAppBuildDate());
             }
-        }
-    }
-
-    private void CheckRuntimeObjects(List<string> missingObjects)
-    {
-        if (GameObject.Find(_OBJ_TMP_INPUT_FIELD) == null)
-        {
-            missingObjects.Add(_OBJ_TMP_INPUT_FIELD + " (pnlYAMLEditor内)");
-        }
-        if (GameObject.Find(_OBJ_TXT_YAML_PATH) == null)
-        {
-            missingObjects.Add(_OBJ_TXT_YAML_PATH + " (pnlYAMLEditor内)");
-        }
-        if (GameObject.Find(_OBJ_TMP_GAME_INFO) == null)
-        {
-            missingObjects.Add(_OBJ_TMP_GAME_INFO + " (pnlAboutThisGame内)");
         }
     }
 
@@ -550,12 +575,4 @@ public class TitleStartCtrl : MonoBehaviour
         }
     }
 
-
-
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

@@ -1,0 +1,484 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\DemCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\APP\DemCtrl.cs
+================================================================================
+
+--- DemCtrl.cs+++ DemCtrl.cs@@ -1,181 +1,260 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// DemCtrl
+ using System.Linq;
+ using UnityEngine;
+ 
+ public static class DemCtrl
+ {
+-	private const float _POPUP_DISTANCE = 1f;
+-
+-	private const float _MARGIN_DISTANCE = 3f;
+-
+-	private const float _RAYCAST_DISTANCE = 200f;
+-
+-	private static Vector3 _dem_center_pos = Vector3.zero;
+-
+-	private static GameObject _dem = null;
+-
+-	internal static Vector3 GetClosestPointOnBounds(Collider other)
+-	{
+-		Vector3 position = other.gameObject.transform.position;
+-		if (_dem == null)
+-		{
+-			_dem = GetDemObject();
+-			_dem_center_pos = GetDemPosition(_dem);
+-		}
+-		if (_dem == null)
+-		{
+-			return Vector3.zero;
+-		}
+-		Collider component = _dem.GetComponent<Collider>();
+-		if (component == null)
+-		{
+-			return Vector3.zero;
+-		}
+-		Vector3 closestPoint = component.ClosestPointOnBounds(position);
+-		float y = other.bounds.size.y;
+-		for (int i = 0; i < 20; i++)
+-		{
+-			closestPoint = AdjustPositionWithinBounds(closestPoint, _dem, y, i);
+-			if (HitDemPoint(ref closestPoint, other, y))
+-			{
+-				break;
+-			}
+-		}
+-		return closestPoint;
+-	}
+-
+-	private static bool HitDemPoint(ref Vector3 closestPoint, Collider other, float objectHeight)
+-	{
+-		int layerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
+-		if (Physics.Raycast(closestPoint + Vector3.up * 200f, Vector3.down, out var hitInfo, float.PositiveInfinity, layerMask) && hitInfo.collider.gameObject.name != other.gameObject.name)
+-		{
+-			closestPoint = hitInfo.point;
+-			closestPoint.y += objectHeight + 1f;
+-			return true;
+-		}
+-		return false;
+-	}
+-
+-	private static Vector3 AdjustPositionWithinBounds(Vector3 position, GameObject demObject, float objectHeight, int iterate = 0)
+-	{
+-		MeshFilter component = demObject.GetComponent<MeshFilter>();
+-		if (component == null)
+-		{
+-			return position;
+-		}
+-		if (_dem_center_pos == Vector3.zero)
+-		{
+-			_dem_center_pos = GetDemPosition(demObject);
+-		}
+-		Vector3 result = position;
+-		Vector3 size = component.mesh.bounds.size;
+-		result.x = Mathf.Clamp(result.x, _dem_center_pos.x - size.x / 2f + 3f * (float)iterate, _dem_center_pos.x + size.x / 2f - 3f * (float)iterate);
+-		result.z = Mathf.Clamp(result.z, _dem_center_pos.z - size.z / 2f + 3f * (float)iterate, _dem_center_pos.z + size.z / 2f - 3f * (float)iterate);
+-		float b = _dem_center_pos.y + size.y * 0.5f + objectHeight;
+-		result.y = Mathf.Max(result.y, b);
+-		result.y += 1f;
+-		return result;
+-	}
+-
+-	internal static float GetDemHeight(GameObject demObject)
+-	{
+-		if (demObject == null)
+-		{
+-			return 0f;
+-		}
+-		MeshFilter component = demObject.GetComponent<MeshFilter>();
+-		if (component == null)
+-		{
+-			return 0f;
+-		}
+-		return component.mesh.bounds.size.y;
+-	}
+-
+-	private static Vector3 GetDemPosition(GameObject dem)
+-	{
+-		if (dem == null)
+-		{
+-			return Vector3.zero;
+-		}
+-		Vector3 zero = Vector3.zero;
+-		zero = dem.transform.localPosition;
+-		MeshRenderer component = dem.GetComponent<MeshRenderer>();
+-		if (component != null)
+-		{
+-			Vector3 center = component.bounds.center;
+-			zero.x += center.x;
+-			zero.y += center.y;
+-			zero.z += center.z;
+-		}
+-		return zero;
+-	}
+-
+-	internal static GameObject GetDemObject()
+-	{
+-		GameObject result = null;
+-		GameObject[] array = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Ground.ToString());
+-		if (array == null || array.Length < 1)
+-		{
+-			GameObject[] array2 = Object.FindObjectsOfType<GameObject>();
+-			Debug.Log("GetDemObject dem is null " + array2.Length);
+-			array = array2.Where((GameObject obj) => obj.name.StartsWith("dem_") && obj.tag == GameEnum.TagType.Untagged.ToString()).ToArray();
+-		}
+-		if (array.Length >= 1)
+-		{
+-			array[0].tag = GameEnum.TagType.Ground.ToString();
+-			array[0].layer = LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
+-			result = array[0];
+-		}
+-		return result;
+-	}
+-
+-	internal static Vector3 GetDemRndAbovePosition(float drop_distance)
+-	{
+-		Vector3 zero = Vector3.zero;
+-		if (_dem == null)
+-		{
+-			_dem = GetDemObject();
+-			_dem_center_pos = GetDemPosition(_dem);
+-		}
+-		MeshFilter component = _dem.GetComponent<MeshFilter>();
+-		if (component == null)
+-		{
+-			return zero;
+-		}
+-		Vector3 size = component.mesh.bounds.size;
+-		zero.x = Random.Range(_dem_center_pos.x - size.x / 2f + 3f, _dem_center_pos.x + size.x / 2f - 3f);
+-		zero.z = Random.Range(_dem_center_pos.z - size.z / 2f + 3f, _dem_center_pos.z + size.z / 2f - 3f);
+-		float y = _dem.transform.localScale.y;
+-		float y2 = _dem_center_pos.y + size.y * 0.5f * y + drop_distance;
+-		zero.y = y2;
+-		return zero;
+-	}
+-
+-	internal static Vector3 GetDemAbovePosition(GameObject target, float above_distance)
+-	{
+-		Vector3 zero = Vector3.zero;
+-		if (_dem == null)
+-		{
+-			_dem = GetDemObject();
+-			_dem_center_pos = GetDemPosition(_dem);
+-		}
+-		MeshFilter component = _dem.GetComponent<MeshFilter>();
+-		if (component == null)
+-		{
+-			return zero;
+-		}
+-		_ = component.mesh.bounds.size;
+-		zero.x = target.transform.position.x;
+-		zero.z = target.transform.position.z;
+-		Vector3 closestPoint = _dem.GetComponent<Collider>().ClosestPointOnBounds(zero);
+-		Collider component2 = target.GetComponent<Collider>();
+-		float objectHeight = 0f;
+-		if (HitDemPoint(ref closestPoint, component2, objectHeight))
+-		{
+-			zero.y = closestPoint.y;
+-		}
+-		zero.y = closestPoint.y + above_distance - 1f;
+-		return zero;
+-	}
++    private const float _POPUP_DISTANCE = 1f;   // 落ちたオブジェクトを上に持ち上げる距離
++    private const float _MARGIN_DISTANCE = 3f;   // 内側によせる距離
++    private static Vector3 _dem_center_pos = Vector3.zero;
++    private static GameObject _dem = null;   // DEM(Digital Elevation Model) 航空レーザ測量 地形データ
++
++    internal static Vector3 GetClosestPointOnBounds(Collider other)
++    {
++        Vector3 pos = other.gameObject.transform.position;
++        if (_dem == null)
++        {
++            _dem = GetDemObject();
++            _dem_center_pos = GetDemPosition(_dem);
++        }
++        Collider demcol = _dem.GetComponent<Collider>();
++        if (demcol == null)
++        {
++            // Debug.Log("GetClosestPointOnBounds " + "demcol is null");
++            return Vector3.zero;
++        }
++
++        Vector3 closestPoint = demcol.ClosestPointOnBounds(pos);
++        float objectHeight = other.bounds.size.y;
++        for (int i = 0; i < 20; i++)
++        {
++            // HITしなかった場合、内側に寄せてさらにhitするか試す
++            closestPoint = AdjustPositionWithinBounds(closestPoint, _dem, objectHeight, i);        // 地面領域よりはみ出ている場合内側に寄せる
++            if (HitDemPoint(ref closestPoint, other, objectHeight))
++            {
++                // 地面に当たった場合は処理を抜ける
++                break;
++            }
++        }
++        return closestPoint;
++    }
++
++
++    private static bool HitDemPoint(ref Vector3 closestPoint, Collider other, float objectHeight)
++    {
++        // ClosestPointOnBounds では直上の座標が取れないので、raycastで上書き取得する
++        RaycastHit hit;
++        int layerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
++        if (Physics.Raycast(closestPoint + Vector3.up * 200f, Vector3.down, out hit, Mathf.Infinity, layerMask))
++        // 上向きにRayを飛ばしても地面との衝突判定がとれない。半透過？
++        // if (Physics.Raycast(closestPoint + Vector3.up * 10f, Vector3.up, out hit, Mathf.Infinity, layerMask))
++        {
++            // Debug.Log("raycast hit:" + hit.point + " closestPoint:" + closestPoint + hit.collider.gameObject.name  + " : " + other.gameObject.name);
++            if (hit.collider.gameObject.name != other.gameObject.name)
++            {
++                // Debug.Log("raycast override by hit:" + hit.point);
++                closestPoint = hit.point;
++                closestPoint.y += objectHeight + _POPUP_DISTANCE;
++                return true;
++            }
++            else
++            {
++                // Debug.Log("raycast hit:" + hit.point + " closestPoint:" + closestPoint + hit.collider.gameObject.name  + " : " + other.gameObject.name);
++            }
++        }
++        return false;
++    }
++
++
++    private static Vector3 AdjustPositionWithinBounds(Vector3 position, GameObject demObject, float objectHeight, int iterate = 0)
++    {
++        MeshFilter meshFilter = demObject.GetComponent<MeshFilter>();
++        if (meshFilter == null)
++        {
++            // Debug.LogWarning("No MeshFilter component found on " + demObject.name);
++            return position;
++        }
++        if (_dem_center_pos == Vector3.zero)
++        {
++            // Debug.Log("AdjustPositionWithinBounds " + "_dem_center_pos is zero");
++            _dem_center_pos = GetDemPosition(demObject);
++        }
++
++        Vector3 adjustedPosition = position;
++        Vector3 meshSize = meshFilter.mesh.bounds.size;
++
++        // X軸の調整
++        adjustedPosition.x = Mathf.Clamp(
++            adjustedPosition.x,
++            _dem_center_pos.x - meshSize.x / 2 + _MARGIN_DISTANCE * iterate,
++            _dem_center_pos.x + meshSize.x / 2 - _MARGIN_DISTANCE * iterate
++        );
++
++        // Z軸の調整
++        adjustedPosition.z = Mathf.Clamp(
++            adjustedPosition.z,
++            _dem_center_pos.z - meshSize.z / 2 + _MARGIN_DISTANCE * iterate,
++            _dem_center_pos.z + meshSize.z / 2 - _MARGIN_DISTANCE * iterate
++        );
++
++        // Y軸の調整（地面マップの厚み考慮）
++        float groundHeight = _dem_center_pos.y + meshSize.y * 0.5f; // 地面の上面の高さ
++        float minHeight = groundHeight + objectHeight;
++        adjustedPosition.y = Mathf.Max(adjustedPosition.y, minHeight);
++        adjustedPosition.y += _POPUP_DISTANCE;
++        // Debug.Log("adjustedPosition:" + adjustedPosition + " groundHeight:" + groundHeight + " minHeight:" + minHeight);
++
++        return adjustedPosition;
++    }
++
++    internal static float GetDemHeight(GameObject demObject)
++    {
++        MeshFilter meshFilter = demObject.GetComponent<MeshFilter>();
++        if (meshFilter == null)
++        {
++            return 0;
++        }
++        Vector3 meshSize = meshFilter.mesh.bounds.size;
++        float height = meshSize.y;
++        return height;
++    }
++
++    private static Vector3 GetDemPosition(GameObject dem)
++    {
++        Vector3 setPos = Vector3.zero;
++        setPos = dem.transform.localPosition;
++
++        // demがメッシュレンダーを持っているか確認
++        MeshRenderer meshRenderer = dem.GetComponent<MeshRenderer>();
++        if (meshRenderer != null)
++        {
++            Vector3 center = meshRenderer.bounds.center;
++            // Debug.Log("dem center" + dem.name + " center:" + center + " setPos:" + setPos);
++            setPos.x += center.x;
++            setPos.y += center.y;
++            setPos.z += center.z;
++        }
++        return setPos;
++    }
++
++
++    internal static GameObject GetDemObject()
++    {
++        GameObject ret_dem = null;
++        GameObject[] dem = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Ground.ToString());
++        if (dem == null || dem.Length < 1)
++        {
++
++            GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
++            Debug.Log("GetDemObject " + "dem is null " + allObjects.Length);
++
++            // Debug.Log("InitWindow " + "dem is null" + dem.Length);
++            // DEMが見つからない(ステージの設定し忘れ)場合は、dem_を探す
++            dem = allObjects.Where(
++                obj => obj.name.StartsWith("dem_")
++                && obj.tag == GameEnum.TagType.Untagged.ToString()
++                ).ToArray();
++            // Untagged は、デフォルトのタグなので FindGameObjectsWithTag では取得できない
++
++            // dem = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Untagged.ToString()).Where(
++            //     obj => obj.name.StartsWith("dem_")
++            //     ).ToArray();
++            
++            // if (dem == null || dem.Length < 1)
++            // {
++            //     Debug.LogError("No objects with name starting with 'dem_' found.");
++            // }
++            // else
++            // {
++            //     Debug.Log("Found " + dem.Length + " objects with name starting with 'dem_'.");
++            // }                
++        }
++
++        // 1つ目のDEMのみ処理する Groundは1つしか手動でつけない前提
++        if (dem.Length >= 1)
++        {
++            dem[0].tag = GameEnum.TagType.Ground.ToString();
++            dem[0].layer = LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
++            ret_dem = dem[0];
++            // Debug.Log("GetDemObject " + "dem is null " + dem.Length);
++            // return null;
++        }
++
++        return ret_dem;
++    }
++
++
++    // RainDrop 用
++    internal static Vector3 GetDemRndAbovePosition(float drop_distance)
++    {
++        Vector3 abovePos = Vector3.zero;
++        if (_dem == null)
++        {
++            _dem = GetDemObject();
++            _dem_center_pos = GetDemPosition(_dem);
++        }
++        MeshFilter meshFilter = _dem.GetComponent<MeshFilter>();
++        if (meshFilter == null)
++        {
++            // Debug.Log("GetDemAbarbPosition " + "meshFilter is null");
++            return abovePos;
++        }
++        Vector3 meshSize = meshFilter.mesh.bounds.size;
++        abovePos.x = Random.Range(
++            _dem_center_pos.x - meshSize.x / 2 + _MARGIN_DISTANCE
++            , _dem_center_pos.x + meshSize.x / 2 - _MARGIN_DISTANCE
++            );
++
++        abovePos.z = Random.Range(
++            _dem_center_pos.z - meshSize.z / 2 + _MARGIN_DISTANCE
++            , _dem_center_pos.z + meshSize.z / 2 - _MARGIN_DISTANCE
++            );
++
++        float groundHeight = _dem_center_pos.y + meshSize.y * 0.5f; // 地面の上面の高さ
++        float minHeight = groundHeight + drop_distance;
++        abovePos.y = minHeight;
++
++        return abovePos;
++    }
++
++    // Puddle 用
++    internal static Vector3 GetDemAbovePosition(GameObject target, float above_distance)
++    {
++        Vector3 abovePos = Vector3.zero;
++        if (_dem == null)
++        {
++            _dem = GetDemObject();
++            _dem_center_pos = GetDemPosition(_dem);
++        }
++        MeshFilter meshFilter = _dem.GetComponent<MeshFilter>();
++        if (meshFilter == null)
++        {
++            return abovePos;
++        }
++        Vector3 meshSize = meshFilter.mesh.bounds.size;
++        
++        abovePos.x = target.transform.position.x;
++        abovePos.z = target.transform.position.z;
++
++        Collider demcol = _dem.GetComponent<Collider>();
++        Vector3 closestPoint = demcol.ClosestPointOnBounds(abovePos);
++
++        Collider other = target.GetComponent<Collider>();
++        // float objectHeight = other.bounds.size.y;
++        float objectHeight = 0;
++        if (HitDemPoint(ref closestPoint, other, objectHeight))
++        {
++            abovePos.y = closestPoint.y;
++        }
++
++        abovePos.y = closestPoint.y + above_distance - _POPUP_DISTANCE;
++
++        // TODO:
++        // なぜかy が 200 以上に持ち上がることがあるので、地面の高さより下にならないようにする
++
++
++
++        return abovePos;
++    }
++
++
+ }
+
+
+================================================================================
+Significant Changes: 337
+-	private const float _POPUP_DISTANCE = 1f;
+
+-	private const float _MARGIN_DISTANCE = 3f;
+
+-	private const float _RAYCAST_DISTANCE = 200f;
+
+-	private static Vector3 _dem_center_pos = Vector3.zero;
+
+-	private static GameObject _dem = null;
+
+-	internal static Vector3 GetClosestPointOnBounds(Collider other)
+
+-	{
+
+-		Vector3 position = other.gameObject.transform.position;
+
+-		if (_dem == null)
+
+-		{
+
+-			_dem = GetDemObject();
+
+-			_dem_center_pos = GetDemPosition(_dem);
+
+-		}
+
+-		if (_dem == null)
+
+-		{
+
+-			return Vector3.zero;
+
+-		}
+
+-		Collider component = _dem.GetComponent<Collider>();
+
+-		if (component == null)
+
+-		{
+

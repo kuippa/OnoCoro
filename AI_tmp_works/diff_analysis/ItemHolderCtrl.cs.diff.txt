@@ -1,0 +1,429 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\ItemHolderCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Item\ItemHolderCtrl.cs
+================================================================================
+
+--- ItemHolderCtrl.cs+++ ItemHolderCtrl.cs@@ -1,219 +1,185 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// ItemHolderCtrl
++using System;
++using System.Collections;
+ using System.Collections.Generic;
+-using System.Linq;
+ using UnityEngine;
++using UnityEngine.UI;
+ using UnityEngine.EventSystems;
+-using UnityEngine.UI;
++using CommonsUtility;
+ 
+-public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEventSystemHandler, IEndDragHandler, IDropHandler
++public class ItemHolderCtrl : MonoBehaviour , IDragHandler, IEndDragHandler, IDropHandler
+ {
+-	private const string _PLACEMENT_NAME = "Item_";
++    const string _PLACEMENT_NAME = "Item_";
++    ItemStruct _item = new ItemStruct();
+ 
+-	private ItemStruct _item;
++    private Vector2 _prevPos;
+ 
+-	private Vector2 _prevPos;
++    public void OnDrag(PointerEventData eventData)
++    {
++        Vector3 SetPos = new Vector3(eventData.position.x, eventData.position.y, this.transform.position.z);
++        this.transform.position = SetPos;
++    }
+ 
+-	public void OnDrag(PointerEventData eventData)
+-	{
+-		Vector3 position = new Vector3(eventData.position.x, eventData.position.y, base.transform.position.z);
+-		base.transform.position = position;
+-	}
++    public void OnEndDrag(PointerEventData eventData)
++    {
++        // Debug.Log("OnEndDrag" + this.name + " :" + this.transform.GetSiblingIndex());
++        var results = new List<RaycastResult>();
++        EventSystem.current.RaycastAll(eventData, results);
+ 
+-	public void OnEndDrag(PointerEventData eventData)
+-	{
+-		List<RaycastResult> list = new List<RaycastResult>();
+-		EventSystem.current.RaycastAll(eventData, list);
+-		foreach (RaycastResult item in list)
+-		{
+-			if (!(base.name == item.gameObject.GetComponentInParent<ItemHolderCtrl>().name) && !(item.gameObject.GetComponentInParent<ItemHolderCtrl>() == null) && item.gameObject.GetComponentInParent<ItemHolderCtrl>().name.StartsWith("Item_"))
+-			{
+-				int siblingIndex = base.transform.GetSiblingIndex();
+-				int siblingIndex2 = item.gameObject.GetComponentInParent<ItemHolderCtrl>().transform.GetSiblingIndex();
+-				ChangeSiblingIndex(siblingIndex2);
+-				item.gameObject.GetComponentInParent<ItemHolderCtrl>().ChangeSiblingIndex(siblingIndex);
+-				break;
+-			}
+-		}
+-		LayoutRebuilder.MarkLayoutForRebuild(base.transform as RectTransform);
+-	}
++        foreach (var result in results)
++        {
++            // Debug.Log(result.gameObject.name + " :" + result.gameObject.GetComponentInParent<ItemHolderCtrl>().name);
++            if (this.name == result.gameObject.GetComponentInParent<ItemHolderCtrl>().name 
++            || result.gameObject.GetComponentInParent<ItemHolderCtrl>() == null)
++            {
++                continue;
++            }
++            // _PLACEMENT_NAME で始まるオブジェクトの場合
++            if (result.gameObject.GetComponentInParent<ItemHolderCtrl>().name.StartsWith(_PLACEMENT_NAME))
++            {
++                // Debug.Log("OnEndDrag" + this.name + " :" 
++                //     + this.transform.GetSiblingIndex() + " : " 
++                //     + result.gameObject.GetComponentInParent<ItemHolderCtrl>().name + " :" 
++                //     + result.gameObject.GetComponentInParent<ItemHolderCtrl>().transform.GetSiblingIndex());
++                int btrade_index = this.transform.GetSiblingIndex();
++                int index = result.gameObject.GetComponentInParent<ItemHolderCtrl>().transform.GetSiblingIndex();
++                ChangeSiblingIndex(index);
++                result.gameObject.GetComponentInParent<ItemHolderCtrl>().ChangeSiblingIndex(btrade_index);
++                break;
++            }
++        }
++        LayoutRebuilder.MarkLayoutForRebuild(this.transform as RectTransform);
++    }
+ 
+-	public void OnDrop(PointerEventData eventData)
+-	{
+-	}
++    public void OnDrop(PointerEventData eventData)
++    {
++        // Debug.Log("OnDrop" + this.name + " :" + this.transform.GetSiblingIndex());
++    }
+ 
+-	private void Awake()
+-	{
+-		EventTrigger eventTrigger = base.gameObject.AddComponent<EventTrigger>();
+-		EventTrigger.Entry entry = new EventTrigger.Entry
+-		{
+-			eventID = EventTriggerType.Select
+-		};
+-		entry.callback.AddListener(delegate
+-		{
+-			OnClickItemHolder();
+-		});
+-		eventTrigger.triggers.Add(entry);
+-	}
+ 
+-	private void ChangeIcon(Sprite sprite)
+-	{
+-		Image componentInChildren = base.transform.Find("pnlHolder").Find("Item_icon").GetComponentInChildren<Image>();
+-		componentInChildren.sprite = sprite;
+-		if (componentInChildren.sprite != null)
+-		{
+-			Color color = componentInChildren.color;
+-			color.a = 1f;
+-			componentInChildren.color = color;
+-		}
+-		else
+-		{
+-			Color color2 = componentInChildren.color;
+-			color2.a = 0f;
+-			componentInChildren.color = color2;
+-		}
+-	}
++    void Awake()
++    {
++		Button btn1 = GameObject.Find(this.name).GetComponent<Button>();
++		// btn1.onClick.AddListener(OnTestClick);
++        // ボタンのセレクトが解除されたら
++        // btn1.OnDeselect.AddListener(OnTestClick);
++    }
+ 
+-	private int GetFreeItemIndex()
+-	{
+-		if (_item.Name == null)
+-		{
+-			return base.transform.GetSiblingIndex();
+-		}
+-		return -1;
+-	}
++    private void ChangeIcon(Sprite sprite)
++    {
++        Image icon = this.transform.Find("pnlHolder").Find("Item_icon").GetComponentInChildren<Image>();
++        icon.sprite = sprite;
++        // 子要素のpnlHolderに画像が設定されていた場合アルファ値を255にする
++        if (icon.sprite != null)
++        {
++            // 画像が設定されていた場合透過度を0にする
++            Color color = icon.color;
++            color.a = 1.0f;
++            icon.color = color;
++        }
++        else
++        {
++            Color color = icon.color;
++            color.a = 0.0f;
++            icon.color = color;
+ 
+-	internal int GetAppendableItemIndex(ItemStruct item)
+-	{
+-		int freeItemIndex = GetFreeItemIndex();
+-		if (freeItemIndex == -1 && _item.Name == item.Name)
+-		{
+-			return base.transform.GetSiblingIndex();
+-		}
+-		return freeItemIndex;
+-	}
++        }
++    }
+ 
+-	private void SetAltText(ItemStruct item)
+-	{
+-		Transform transform = base.transform.Find("pnlHolder").Find("Item_icon").Find("txtAlt");
+-		if (transform != null)
+-		{
+-			transform.gameObject.GetComponent<Text>().text = item.Info;
+-		}
+-	}
++    private int GetFreeItemIndex()
++    {
++        if (_item.Name == null)
++        {
++            return this.transform.GetSiblingIndex();
++        }
++        return -1;
++    }
+ 
+-	internal void AddItemToHolder(ItemStruct item)
+-	{
+-		if (_item.Name == item.Name)
+-		{
+-			_item.AddStack(item.Stack);
+-			SetStackText();
+-			if (_item.Stack == 0)
+-			{
+-				_item = default(ItemStruct);
+-				ChangeIcon(null);
+-				SetAltText(_item);
+-				SetActiveImageFlag(active: false);
+-			}
+-		}
+-		else
+-		{
+-			_item = item;
+-			Sprite sprite = Resources.Load<Sprite>(item.ItemIconPath);
+-			ChangeIcon(sprite);
+-			SetAltText(item);
+-		}
+-	}
++    internal int GetAppendableItemIndex(ItemStruct item)
++    {
++        int ret = GetFreeItemIndex();
++        if (ret == -1)
++        {
++            // _item が item と同じ場合
++            if (_item.Name == item.Name)
++            {
++                return this.transform.GetSiblingIndex();
++            }
++        }
++        return ret;
++    }
+ 
+-	internal ItemStruct GetItem()
+-	{
+-		return _item;
+-	}
++    private void SetAltText(ItemStruct item)
++    {
++        Transform unit = this.transform.Find("pnlHolder").Find("Item_icon").Find("txtAlt");
++        if (unit != null)
++        {
++            Text text1 = unit.gameObject.GetComponent<Text>();
++            text1.text = item.Info;
++        }
++    }
+ 
+-	internal void ChangeSiblingIndex(int index)
+-	{
+-		base.transform.SetSiblingIndex(index);
+-		base.name = "Item_" + base.transform.GetSiblingIndex();
+-		base.transform.Find("txtIndex").GetComponentInChildren<Text>().text = (index + 1).ToString();
+-		SetStackText();
+-	}
++    internal void AddItemToHolder(ItemStruct item)
++    {
++        if (_item.Name == item.Name)
++        {
++            _item.AddStack(item.Stack);
++            SetStackText();
++            if (_item.Stack == 0)
++            {
++                _item = new ItemStruct();
++                ChangeIcon(null);
++                SetAltText(_item);
++                return;
++            }
++        }
++        else
++        {
++            _item = item;
++            Sprite sprite = Resources.Load<Sprite>(item.ItemIconPath);
++            ChangeIcon(sprite);
++            SetAltText(item);
++        }
++    }
+ 
+-	private void OnClickItemHolder()
+-	{
+-		int siblingIndex = base.transform.GetSiblingIndex();
+-		Debug.Log("SelectItemByClick: " + base.name + " :" + siblingIndex);
+-		ItemAction.SelectItem(siblingIndex + 1);
+-	}
++    internal ItemStruct GetItem()
++    {
++        return _item;
++    }
+ 
+-	internal ItemStruct SelectItem()
+-	{
+-		ItemStruct item = GetItem();
+-		Button component = GetComponent<Button>();
+-		if (component == null)
+-		{
+-			return item;
+-		}
+-		if (item.Name != null)
+-		{
+-			if (!LoupeCtrl.IsLoupe(item.Name))
+-			{
+-				SpawnMarkerPointerCtrl.SetMarkerActive(isActive: true);
+-			}
+-			component.Select();
+-			SetActiveImageFlag(active: true);
+-		}
+-		else
+-		{
+-			SpawnMarkerPointerCtrl.SetMarkerActive(isActive: false);
+-			component.Select();
+-			component.OnDeselect(null);
+-			SetActiveImageFlag(active: false);
+-		}
+-		return item;
+-	}
++    internal void ChangeSiblingIndex(int index)
++    {
++        this.transform.SetSiblingIndex(index);
++        this.name = _PLACEMENT_NAME + (this.transform.GetSiblingIndex()).ToString();
++        this.transform.Find("txtIndex").GetComponentInChildren<Text>().text = (index+1).ToString();
++        SetStackText();
+ 
+-	private void SetStackText()
+-	{
+-		if (_item.Stack > 1)
+-		{
+-			base.transform.Find("txtStack").GetComponentInChildren<Text>().text = _item.Stack.ToString();
+-		}
+-		else
+-		{
+-			base.transform.Find("txtStack").GetComponentInChildren<Text>().text = "";
+-		}
+-	}
++        // TODO: デバッグのためにランダムで色を変える
++        // this.GetComponentInChildren<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f, 0.25f, 0.25f);
++        // this.GetComponentInChildren<Image>().color = UnityEngine.Random.ColorHSV(0.5f, 1f, 0.5f, 1f, 0.5f, 1f, 0.85f, 0.85f);
+ 
+-	private void SetActiveImageFlag(bool active)
+-	{
+-		GameObject[] allActiveImageObjects = GetAllActiveImageObjects();
+-		GameObject gameObject = base.transform.Find("pnlHolder").Find("active_Image").gameObject;
+-		GameObject[] array = allActiveImageObjects;
+-		foreach (GameObject gameObject2 in array)
+-		{
+-			if (gameObject2 == null)
+-			{
+-				continue;
+-			}
+-			Image component = gameObject2.GetComponent<Image>();
+-			if (!(component == null))
+-			{
+-				if (gameObject == gameObject2)
+-				{
+-					component.enabled = active;
+-				}
+-				else
+-				{
+-					component.enabled = false;
+-				}
+-			}
+-		}
+-	}
++    }
+ 
+-	private GameObject[] GetAllActiveImageObjects()
+-	{
+-		return (from t in Object.FindObjectsOfType<Transform>()
+-			where t.name == "active_Image"
+-			select t.gameObject).ToArray();
+-	}
++    private void SetStackText()
++    {
++        if (_item.Stack > 1)
++        {
++            this.transform.Find("txtStack").GetComponentInChildren<Text>().text = _item.Stack.ToString();
++        }
++        else
++        {
++            this.transform.Find("txtStack").GetComponentInChildren<Text>().text = "";
++        }
++    }
++
++
++    public void OnTestClick()
++    {
++        // Debug.Log("click " + this.name + " :" + this.transform.GetSiblingIndex());
++        // Debug.Log("click " + this.name + " :" + this.transform.GetSiblingIndex() + " :" + _item.Name + " " + _item.Stack);
++        // Debug.Log(_item.ItemID + " " + _item.Name + " " + _item.ToolTip + " " + _item.Info + " " + _item.CreateCost + " " + _item.CostType + " " + _item.CostTime + " " + _item.Stack + " " + _item.ItemIconPath + " " + _item.ItemImagePath + " " + _item.HolderIndex);
++
++        // SpawnMarkerPointerCtrl.SetMarkerActive(true);
++    }
++
++
+ }
+
+
+================================================================================
+Significant Changes: 322
+-public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEventSystemHandler, IEndDragHandler, IDropHandler
+
++public class ItemHolderCtrl : MonoBehaviour , IDragHandler, IEndDragHandler, IDropHandler
+
+-	private const string _PLACEMENT_NAME = "Item_";
+
++    const string _PLACEMENT_NAME = "Item_";
+
++    ItemStruct _item = new ItemStruct();
+
+-	private ItemStruct _item;
+
++    private Vector2 _prevPos;
+
+-	private Vector2 _prevPos;
+
++    public void OnDrag(PointerEventData eventData)
+
++    {
+
++        Vector3 SetPos = new Vector3(eventData.position.x, eventData.position.y, this.transform.position.z);
+
++        this.transform.position = SetPos;
+
++    }
+
+-	public void OnDrag(PointerEventData eventData)
+
+-	{
+
+-		Vector3 position = new Vector3(eventData.position.x, eventData.position.y, base.transform.position.z);
+
+-		base.transform.position = position;
+
+-	}
+
++    public void OnEndDrag(PointerEventData eventData)
+
++    {
+

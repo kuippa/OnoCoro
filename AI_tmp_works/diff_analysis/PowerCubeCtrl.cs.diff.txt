@@ -1,0 +1,107 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\PowerCubeCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Tower\PowerCubeCtrl.cs
+================================================================================
+
+--- PowerCubeCtrl.cs+++ PowerCubeCtrl.cs@@ -1,28 +1,37 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// PowerCubeCtrl
++using System.Collections;
++using System.Collections.Generic;
++using Unity.VisualScripting;
++using UnityEditor.Experimental.GraphView;
++using UnityEngine;
++using UnityEngine.UI;
++using UnityEngine.Rendering;
+ using CommonsUtility;
+-using UnityEngine;
+ 
+ public class PowerCubeCtrl : MonoBehaviour
+ {
+-	private PowerCube _powerCube;
++    PowerCube _powerCube = null;
+ 
+-	private void OnTriggerEnter(Collider other)
+-	{
+-		if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
+-		{
+-			UnitStruct unitStruct = _powerCube.UnitStruct;
+-			int baseScore = unitStruct.BaseScore;
+-			if (ScoreCtrl.IsScorePositiveInt(baseScore, unitStruct.ScoreType))
+-			{
+-				ScoreCtrl.UpdateAndDisplayScore(baseScore, unitStruct.ScoreType);
+-				GameObjectTreat.DestroyAll(base.gameObject);
+-			}
+-		}
+-	}
++    private void OnTriggerEnter(Collider other)
++    {
++        // Debug.Log("OnTriggerEnter" + other.gameObject.tag + " " + other.gameObject.name);
+ 
+-	private void Awake()
+-	{
+-		_powerCube = base.gameObject.AddComponent<PowerCube>();
+-	}
++        if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
++        {
++            UnitStruct unitStruct = _powerCube.UnitStruct;
++            int score =  (int)unitStruct.BaseScore;
++            if (ScoreCtrl.IsScorePositiveInt(score, unitStruct.ScoreType))
++            {
++                ScoreCtrl.UpdateAndDisplayScore(score, unitStruct.ScoreType);
++                GameObjectTreat.DestroyAll(this.gameObject);
++                // return;
++            }
++            // Debug.Log("OnTriggerEnter" + other.gameObject.tag + " " + other.gameObject.name);
++        }
++    }
++
++    void Awake()
++    {
++        _powerCube = this.gameObject.AddComponent<PowerCube>();
++
++    }
+ }
+
+
+================================================================================
+Significant Changes: 36
+-	private PowerCube _powerCube;
+
++    PowerCube _powerCube = null;
+
+-	private void OnTriggerEnter(Collider other)
+
+-	{
+
+-		if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
+
+-		{
+
+-			UnitStruct unitStruct = _powerCube.UnitStruct;
+
+-			int baseScore = unitStruct.BaseScore;
+
+-			if (ScoreCtrl.IsScorePositiveInt(baseScore, unitStruct.ScoreType))
+
+-			{
+
+-				ScoreCtrl.UpdateAndDisplayScore(baseScore, unitStruct.ScoreType);
+
+-				GameObjectTreat.DestroyAll(base.gameObject);
+
+-			}
+
+-		}
+
+-	}
+
++    private void OnTriggerEnter(Collider other)
+
++    {
+
+-	private void Awake()
+
+-	{
+
+-		_powerCube = base.gameObject.AddComponent<PowerCube>();
+

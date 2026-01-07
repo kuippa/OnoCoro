@@ -1,0 +1,290 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\GarbageCubeCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Tower\GarbageCubeCtrl.cs
+================================================================================
+
+--- GarbageCubeCtrl.cs+++ GarbageCubeCtrl.cs@@ -1,154 +1,106 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// GarbageCubeCtrl
+-using System.Collections;
+-using System.Collections.Generic;
++// using System.Collections;
++using UnityEngine;
++using UnityEngine.UI;
+ using CommonsUtility;
+-using UnityEngine;
++
+ 
+ public class GarbageCubeCtrl : MonoBehaviour
+ {
+-	private struct SpawnRequest
+-	{
+-		public Vector3 Position;
++    internal const int _SIZE_NORMAL = 0;
++    internal const int _SIZE_SMALL = 1;
++    internal const int _SIZE_BIG = 2;
++    private const string _GARBAGE_CUBE_PARENT_NAME = "GarbageCubes";
++    private const float _SPREAD_RADIUS = 2.0f;
++    private const float _GARBAGE_CUBE_SIZE = 0.3f;
++    private const float _GARBAGE_CUBE_SIZE_SMALL = 0.08f;
++    private const float _GARBAGE_CUBE_SIZE_BIG_MIN = 1.5f;
++    internal const float _GARBAGE_CUBE_SIZE_BIG_MAX = 3.0f;  // お掃除ロボットの吸い込み範囲より大きくしては駄目
+ 
+-		public int SizeFlag;
+ 
+-		public bool IsSwayingPoint;
++    private static Vector3 GetLocalScale(int sizeFlag)
++    {
++        Vector3 localScale = Vector3.zero;
++        if (sizeFlag == _SIZE_SMALL)
++        {
++            localScale = new Vector3(
++                Utility.fRandomRange(_GARBAGE_CUBE_SIZE_SMALL, _GARBAGE_CUBE_SIZE)
++                , Utility.fRandomRange(_GARBAGE_CUBE_SIZE_SMALL, _GARBAGE_CUBE_SIZE)
++                , Utility.fRandomRange(_GARBAGE_CUBE_SIZE_SMALL, _GARBAGE_CUBE_SIZE));
++        }
++        else if (sizeFlag == _SIZE_BIG)
++        {
++            localScale = new Vector3(
++                Utility.fRandomRange(_GARBAGE_CUBE_SIZE_BIG_MIN, _GARBAGE_CUBE_SIZE_BIG_MAX)
++                , Utility.fRandomRange(_GARBAGE_CUBE_SIZE_BIG_MIN, _GARBAGE_CUBE_SIZE_BIG_MAX)
++                , Utility.fRandomRange(_GARBAGE_CUBE_SIZE_BIG_MIN, _GARBAGE_CUBE_SIZE_BIG_MAX));
++        }
++        else
++        {
++            localScale = new Vector3(_GARBAGE_CUBE_SIZE, _GARBAGE_CUBE_SIZE, _GARBAGE_CUBE_SIZE);
++        }
++        return localScale;
++    }
+ 
+-		public SpawnRequest(Vector3 pos, int size, bool sway)
+-		{
+-			Position = pos;
+-			SizeFlag = size;
+-			IsSwayingPoint = sway;
+-		}
+-	}
++    internal static GameObject SpawnGarbageCube(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
++    {
++		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/GarbageCube");
++        prefab.transform.localScale = GetLocalScale(sizeFlag);
++        Vector3 setPoint = spawnPoint;
++        Quaternion setRotation = Quaternion.identity;
++        if (isSwayingPoint)
++        {
++            setPoint.x += Utility.fRandomRange(-1 * _SPREAD_RADIUS, _SPREAD_RADIUS);
++            setPoint.z += Utility.fRandomRange(-1 * _SPREAD_RADIUS, _SPREAD_RADIUS);
++            setRotation = Quaternion.Euler(Utility.fRandomRange(0,360), Utility.fRandomRange(0,360), Utility.fRandomRange(0,360));
+ 
+-	private const int _MAX_CREATE_PER_FRAME = 200;
++        }
++        GameObject unit = Instantiate(prefab, setPoint, setRotation);
++        unit.tag = GameEnum.TagType.Garbage.ToString();
+ 
+-	internal const int _SIZE_NORMAL = 0;
++        int idx = GameObjectTreat.IndexObjectByTag(GameEnum.TagType.Garbage.ToString());
++        unit.name = GameEnum.ModelsType.GarbageCube.ToString() + idx.ToString();
++        unit.AddComponent<GarbageCube>();
++        unit.GetComponent<GarbageCube>()._item_struct.ItemID = unit.name;
++        unit.GetComponent<GarbageCube>()._unit_struct.UnitID = unit.name;
+ 
+-	internal const int _SIZE_SMALL = 1;
++        Rigidbody rb = unit.GetComponent<Rigidbody>();
++        if (rb == null)
++        {
++            rb = unit.AddComponent<Rigidbody>();
++        }
++        // rb.linearVelocity = Vector3.zero;
++        // rb.angularVelocity = Vector3.zero;
+ 
+-	internal const int _SIZE_BIG = 2;
++        // 物理エンジンがオブジェクトの速度に関係なく、常に他のオブジェクトとの衝突を検出します。
++        // これにより、高速で移動するオブジェクトが他のオブジェクトを通り抜けることがなくなります。
++        // ただし、この設定はパフォーマンスに影響を与えるため、
++        // 物理エンジンが他のオブジェクトとの衝突を検出する必要がない場合は、
++        // Discrete または Continuous Speculative に設定することをお勧めします。
++        // rb.collisionDetectionMode = CollisionDetectionMode.Continuous; 
++        
++        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
++        // rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;  // Default
++        // rb.collisionDetectionMode = CollisionDetectionMode.Discrete; //
+ 
+-	private static GameObject _parent_holder;
++        // rb.linearVelocity = Vector3.zero;
++        // rb.angularVelocity = Vector3.zero;
++        // if (GameConfig._APP_GAME_MODE == GlobalConst.GAME_MODE_DEBUG)
++        // {
++        //     rb.linearDamping = 2;
++        // }        
+ 
+-	private const string _GARBAGE_CUBE_PARENT_NAME = "GarbageCubes";
+ 
+-	private const float _SPREAD_RADIUS = 2f;
++        if (unit.GetComponent<Collider>() == null)
++        {
++            // Debug.Log("Add Collider");
++            unit.AddComponent<BoxCollider>();
++        }
++        Transform parentTransform = GameObjectTreat.GetParentTransform(_GARBAGE_CUBE_PARENT_NAME);
++        unit.transform.SetParent(parentTransform);
+ 
+-	private const float _GARBAGE_CUBE_SIZE = 0.3f;
++        return unit;
++    }
+ 
+-	private const float _GARBAGE_CUBE_SIZE_SMALL = 0.08f;
+ 
+-	private const float _GARBAGE_CUBE_SIZE_BIG_MIN = 1.5f;
+ 
+-	internal const float _GARBAGE_CUBE_SIZE_BIG_MAX = 3f;
+-
+-	private Queue<SpawnRequest> _spawnQueue = new Queue<SpawnRequest>();
+-
+-	private bool _isProcessingQueue;
+-
+-	private static Vector3 GetLocalScale(int sizeFlag)
+-	{
+-		Vector3 zero = Vector3.zero;
+-		return sizeFlag switch
+-		{
+-			1 => new Vector3(Utility.fRandomRange(0.08f, 0.3f), Utility.fRandomRange(0.08f, 0.3f), Utility.fRandomRange(0.08f, 0.3f)), 
+-			2 => new Vector3(Utility.fRandomRange(1.5f, 3f), Utility.fRandomRange(1.5f, 3f), Utility.fRandomRange(1.5f, 3f)), 
+-			_ => new Vector3(0.3f, 0.3f, 0.3f), 
+-		};
+-	}
+-
+-	internal void SpawnGarbageCubeAsync(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
+-	{
+-		_spawnQueue.Enqueue(new SpawnRequest(spawnPoint, sizeFlag, isSwayingPoint));
+-		if (!_isProcessingQueue)
+-		{
+-			StartCoroutine(ProcessSpawnQueue());
+-		}
+-	}
+-
+-	private IEnumerator ProcessSpawnQueue()
+-	{
+-		if (_isProcessingQueue)
+-		{
+-			yield break;
+-		}
+-		_isProcessingQueue = true;
+-		WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+-		while (_spawnQueue.Count > 0)
+-		{
+-			for (int i = 0; i < 200; i++)
+-			{
+-				if (_spawnQueue.Count <= 0)
+-				{
+-					break;
+-				}
+-				SpawnRequest spawnRequest = _spawnQueue.Dequeue();
+-				SpawnGarbageCube(spawnRequest.Position, spawnRequest.SizeFlag, spawnRequest.IsSwayingPoint);
+-			}
+-			yield return waitForEndOfFrame;
+-		}
+-		_isProcessingQueue = false;
+-	}
+-
+-	private IEnumerator SpawnGarbageCubeCoroutine(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
+-	{
+-		SpawnGarbageCube(spawnPoint, sizeFlag, isSwayingPoint);
+-		yield return null;
+-	}
+-
+-	internal static GameObject SpawnGarbageCube(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
+-	{
+-		GameObject garbageCubePrefab = PrefabManager.GarbageCubePrefab;
+-		garbageCubePrefab.transform.localScale = GetLocalScale(sizeFlag);
+-		Vector3 position = spawnPoint;
+-		Quaternion rotation = Quaternion.identity;
+-		if (isSwayingPoint)
+-		{
+-			position.x += Utility.fRandomRange(-2f, 2f);
+-			position.z += Utility.fRandomRange(-2f, 2f);
+-			rotation = Quaternion.Euler(Utility.fRandomRange(0, 360), Utility.fRandomRange(0, 360), Utility.fRandomRange(0, 360));
+-		}
+-		GameObject obj = Object.Instantiate(garbageCubePrefab, position, rotation);
+-		SetGarbageCubeProperties(obj);
+-		SetGarbageCubeRb(obj);
+-		return obj;
+-	}
+-
+-	private static void SetGarbageCubeProperties(GameObject unit)
+-	{
+-		unit.tag = GameEnum.TagType.Garbage.ToString();
+-		int garbageCubeUID = PrefabManager.GarbageCubeUID;
+-		unit.name = GameEnum.ModelsType.GarbageCube.ToString() + garbageCubeUID;
+-		GarbageCube garbageCube = unit.GetComponent<GarbageCube>();
+-		if (garbageCube == null)
+-		{
+-			garbageCube = unit.AddComponent<GarbageCube>();
+-		}
+-		garbageCube._item_struct.ItemID = unit.name;
+-		garbageCube._unit_struct.UnitID = unit.name;
+-		Transform holderParentTransform = GameObjectTreat.GetHolderParentTransform(ref _parent_holder, "GarbageCubes");
+-		unit.transform.SetParent(holderParentTransform);
+-	}
+-
+-	private static void SetGarbageCubeRb(GameObject unit)
+-	{
+-		Rigidbody rigidbody = unit.GetComponent<Rigidbody>();
+-		if (rigidbody == null)
+-		{
+-			rigidbody = unit.AddComponent<Rigidbody>();
+-		}
+-		rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+-		if (unit.GetComponent<Collider>() == null)
+-		{
+-			unit.AddComponent<BoxCollider>();
+-		}
+-	}
+-
+-	private void Awake()
+-	{
+-		StartCoroutine(ProcessSpawnQueue());
+-	}
+ }
+
+
+================================================================================
+Significant Changes: 185
+-	private struct SpawnRequest
+
+-	{
+
+-		public Vector3 Position;
+
++    internal const int _SIZE_NORMAL = 0;
+
++    internal const int _SIZE_SMALL = 1;
+
++    internal const int _SIZE_BIG = 2;
+
++    private const string _GARBAGE_CUBE_PARENT_NAME = "GarbageCubes";
+
++    private const float _SPREAD_RADIUS = 2.0f;
+
++    private const float _GARBAGE_CUBE_SIZE = 0.3f;
+
++    private const float _GARBAGE_CUBE_SIZE_SMALL = 0.08f;
+
++    private const float _GARBAGE_CUBE_SIZE_BIG_MIN = 1.5f;
+
++    internal const float _GARBAGE_CUBE_SIZE_BIG_MAX = 3.0f;  // お掃除ロボットの吸い込み範囲より大きくしては駄目
+
+-		public int SizeFlag;
+
+-		public bool IsSwayingPoint;
+
++    private static Vector3 GetLocalScale(int sizeFlag)
+
++    {
+
++        Vector3 localScale = Vector3.zero;
+
++        if (sizeFlag == _SIZE_SMALL)
+
++        {
+
++            localScale = new Vector3(
+

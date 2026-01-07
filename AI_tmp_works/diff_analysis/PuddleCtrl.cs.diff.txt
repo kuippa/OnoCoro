@@ -1,0 +1,174 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\PuddleCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Tower\PuddleCtrl.cs
+================================================================================
+
+--- PuddleCtrl.cs+++ PuddleCtrl.cs@@ -1,62 +1,74 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// PuddleCtrl
+ using System;
++using UnityEngine;
+ using CommonsUtility;
+-using UnityEngine;
+ 
+ public class PuddleCtrl : MonoBehaviour
+ {
+-	private const float PUDDLE_INCREASE = 4f;
++    private const float PUDDLE_INCREASE = 4f;    // 雨粒あたりの増加サイズm^2
+ 
+-	private float GetPuddleDimension(GameObject puddle)
+-	{
+-		Vector3 localScale = puddle.transform.localScale;
+-		return localScale.x * localScale.z;
+-	}
++    private float GetPuddleDimension(GameObject puddle)
++    {
++        // 水たまりの面積を取得する
++        Vector3 scale = puddle.transform.localScale;
++        return scale.x * scale.z;
++    }
+ 
+-	private void ChangePuddleSize()
+-	{
+-		float num = MathF.Sqrt(GetPuddleDimension(base.gameObject) + 4f);
+-		base.transform.localScale = new Vector3(num, 0f, num);
+-	}
++    private void ChangePuddleSize()
++    {
++        // 1個の雨粒につき、1平米ずつ大きくする
+ 
+-	private Vector3 GetPuddleHighestPoint(GameObject puddle, GameObject other_puddle)
+-	{
+-		Vector3 position = puddle.transform.position;
+-		if (other_puddle.transform.position.y > position.y)
+-		{
+-			position.y = other_puddle.transform.position.y;
+-		}
+-		return position;
+-	}
++        // 現在の水たまりのサイズを取得
++        float puddleDimension = GetPuddleDimension(this.gameObject);
++        float newScale = MathF.Sqrt(puddleDimension + PUDDLE_INCREASE);
++        this.transform.localScale = new Vector3(newScale, 0, newScale);
++    }
+ 
+-	private void MergerPuddle(GameObject other_puddle)
+-	{
+-		float puddleDimension = GetPuddleDimension(base.gameObject);
+-		float puddleDimension2 = GetPuddleDimension(other_puddle);
+-		float num = MathF.Sqrt(puddleDimension + puddleDimension2);
+-		if (puddleDimension > puddleDimension2)
+-		{
+-			base.transform.localScale = new Vector3(num, 0f, num);
+-			GameObjectTreat.DestroyAll(other_puddle);
+-		}
+-		else
+-		{
+-			other_puddle.transform.localScale = new Vector3(num, 0f, num);
+-			GameObjectTreat.DestroyAll(base.gameObject);
+-		}
+-	}
++    private Vector3 GetPuddleHighestPoint(GameObject puddle, GameObject other_puddle)
++    {
++        // 水たまりの最高点を取得する
++        Vector3 highestPoint = puddle.transform.position;
++        if (other_puddle.transform.position.y > highestPoint.y)
++        {
++            highestPoint.y = other_puddle.transform.position.y;
++        }
++        return highestPoint;
++    }
+ 
+-	private void OnTriggerEnter(Collider other)
+-	{
+-		if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString())
+-		{
+-			ChangePuddleSize();
+-			GameObjectTreat.DestroyAll(other.gameObject);
+-		}
+-		else if (other.gameObject.tag == GameEnum.TagType.Puddle.ToString())
+-		{
+-			MergerPuddle(other.gameObject);
+-		}
+-	}
++    private void MergerPuddle(GameObject other_puddle)
++    {
++        // 他の水たまりと合体する
++        float puddleDimension = GetPuddleDimension(this.gameObject);
++        float othrDimension = GetPuddleDimension(other_puddle);
++        float newScale = MathF.Sqrt(puddleDimension + othrDimension);
++
++        if (puddleDimension > othrDimension)
++        {
++            // 他の水たまりを消す
++            this.transform.localScale = new Vector3(newScale, 0, newScale);
++            // this.transform.position = GetPuddleHighestPoint(this.gameObject, other_puddle);
++            GameObjectTreat.DestroyAll(other_puddle);
++        }
++        else
++        {
++            // 自分を消す
++            other_puddle.transform.localScale = new Vector3(newScale, 0, newScale);
++            // other_puddle.transform.position = GetPuddleHighestPoint(other_puddle, this.gameObject);
++            GameObjectTreat.DestroyAll(this.gameObject);
++        }
++    }
++
++    void OnTriggerEnter(Collider other)
++    {
++        if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString())
++        {
++            ChangePuddleSize();
++            GameObjectTreat.DestroyAll(other.gameObject);
++        }
++        else if (other.gameObject.tag == GameEnum.TagType.Puddle.ToString())
++        {
++            // Debug.Log("OnTriggerEnter " + other.name + " object:" + other.gameObject.name);
++            MergerPuddle(other.gameObject);
++        }
++    }
++
+ }
+
+
+================================================================================
+Significant Changes: 97
+-	private const float PUDDLE_INCREASE = 4f;
+
++    private const float PUDDLE_INCREASE = 4f;    // 雨粒あたりの増加サイズm^2
+
+-	private float GetPuddleDimension(GameObject puddle)
+
+-	{
+
+-		Vector3 localScale = puddle.transform.localScale;
+
+-		return localScale.x * localScale.z;
+
+-	}
+
++    private float GetPuddleDimension(GameObject puddle)
+
++    {
+
++        Vector3 scale = puddle.transform.localScale;
+
++        return scale.x * scale.z;
+
++    }
+
+-	private void ChangePuddleSize()
+
+-	{
+
+-		float num = MathF.Sqrt(GetPuddleDimension(base.gameObject) + 4f);
+
+-		base.transform.localScale = new Vector3(num, 0f, num);
+
+-	}
+
++    private void ChangePuddleSize()
+
++    {
+
+-	private Vector3 GetPuddleHighestPoint(GameObject puddle, GameObject other_puddle)
+

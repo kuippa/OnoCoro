@@ -1,0 +1,273 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\EscMenuCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\UI\EscMenuCtrl.cs
+================================================================================
+
+--- EscMenuCtrl.cs+++ EscMenuCtrl.cs@@ -1,98 +1,140 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// EscMenuCtrl
++using System.Collections;
++using System.Collections.Generic;
++using UnityEngine;
++using UnityEngine.UI;
++using UnityEngine.SceneManagement;
++using UnityEngine.EventSystems;
+ using CommonsUtility;
+-using UnityEngine;
+-using UnityEngine.EventSystems;
+-using UnityEngine.SceneManagement;
+-using UnityEngine.UI;
+ 
+ public class EscMenuCtrl : MonoBehaviour
+ {
+-	private GameObject _esc_menu_window;
++    private GameObject _esc_menu_window = null;
++    private GameObject _environment = null;
++    private GameTimerCtrl _gameTimerCtrl = null;
+ 
+-	private GameObject _environment;
++    void Awake()
++    {
++        _environment = GameObject.Find("Environment").gameObject;
++        if (_environment == null)
++        {
++            Debug.Log("Environment is not found");
++        }
+ 
+-	private GameTimerCtrl _gameTimerCtrl;
++        GameObject txtGameTime = GameObject.Find("txtGameTime");
++        if (txtGameTime != null)
++        {
++            _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
++        }
+ 
+-	private void Awake()
+-	{
+-		_environment = GameObject.Find("Environment").gameObject;
+-		if (_environment == null)
+-		{
+-			Debug.Log("Environment is not found");
+-		}
+-		GameObject gameObject = GameObject.Find("txtGameTime");
+-		if (gameObject != null)
+-		{
+-			_gameTimerCtrl = gameObject.GetComponent<GameTimerCtrl>();
+-		}
+-		_esc_menu_window = base.gameObject.transform.Find("menuWindow").gameObject;
+-		ToggleEscMenuWindow(isOn: false);
+-		GameObject gameObject2 = base.gameObject.transform.Find("menuWindow/txtBackToGame").gameObject;
+-		if (gameObject2 != null)
+-		{
+-			gameObject2.GetComponent<Button>().onClick.AddListener(OnClickBackToGame);
+-		}
+-		GameObject gameObject3 = base.gameObject.transform.Find("menuWindow/txtBackToTitle").gameObject;
+-		if (gameObject3 != null)
+-		{
+-			gameObject3.GetComponent<Button>().onClick.AddListener(OnClickBackToTitle);
+-		}
+-		GameObject gameObject4 = base.gameObject.transform.Find("menuWindow/txtBackToWindows").gameObject;
+-		if (gameObject4 != null)
+-		{
+-			gameObject4.GetComponent<Button>().onClick.AddListener(OnClickBackToWindows);
+-		}
+-		GameObject gameObject5 = base.gameObject.transform.Find("menuWindow/txtOptions").gameObject;
+-		if (gameObject5 != null)
+-		{
+-			Button component = gameObject5.GetComponent<Button>();
+-			component.onClick.AddListener(OnClickOptions);
+-			component.interactable = false;
+-		}
+-	}
++        // menuWindowを非表示にする
++        _esc_menu_window = this.gameObject.transform.Find("menuWindow").gameObject;
++        ToggleEscMenuWindow(false);
+ 
+-	public void OnClickOptions()
+-	{
+-		ToggleEscMenuWindow(isOn: false);
+-	}
++        GameObject txtBackToGame = this.gameObject.transform.Find("menuWindow/txtBackToGame").gameObject;
++        if (txtBackToGame != null)
++        {
++            Button btn = txtBackToGame.GetComponent<Button>();
++            btn.onClick.AddListener(OnClickBackToGame);
++        }
+ 
+-	public void OnClickBackToTitle()
+-	{
+-		SceneManager.LoadScene("TitlteStart");
+-		ToggleEscMenuWindow(isOn: false);
+-	}
++        GameObject txtBackToTitlte = this.gameObject.transform.Find("menuWindow/txtBackToTitle").gameObject;
++        if (txtBackToTitlte != null)
++        {
++            Button btn = txtBackToTitlte.GetComponent<Button>();
++            btn.onClick.AddListener(OnClickBackToTitle);
++        }
+ 
+-	public void OnClickBackToWindows()
+-	{
+-		base.gameObject.AddComponent<GameCtrl>().GameClose();
+-	}
++        GameObject txtBackToWindows = this.gameObject.transform.Find("menuWindow/txtBackToWindows").gameObject;
++        if (txtBackToWindows != null)
++        {
++            Button btn = txtBackToWindows.GetComponent<Button>();
++            btn.onClick.AddListener(OnClickBackToWindows);
++        }
+ 
+-	public void OnClickBackToGame()
+-	{
+-		ToggleEscMenuWindow(isOn: false);
+-	}
++        GameObject txtOptions = this.gameObject.transform.Find("menuWindow/txtOptions").gameObject;
++        if (txtOptions != null)
++        {
++            Button btn = txtOptions.GetComponent<Button>();
++            btn.onClick.AddListener(OnClickOptions);
++        }
+ 
+-	public bool GetEscMenuWindowStatus()
+-	{
+-		bool result = false;
+-		if (_esc_menu_window != null)
+-		{
+-			result = _esc_menu_window.activeSelf;
+-		}
+-		return result;
+-	}
++    }
+ 
+-	public void ToggleEscMenuWindow(bool isOn)
+-	{
+-		if (_esc_menu_window != null)
+-		{
+-			EventSystem.current.SetSelectedGameObject(null);
+-			_esc_menu_window.SetActive(isOn);
+-		}
+-		if (_gameTimerCtrl != null)
+-		{
+-			_gameTimerCtrl._isPaused = isOn;
+-		}
+-	}
++    public void OnClickOptions()
++    {
++        // オプション画面を呼び出す
++        // TODO:
++        // UnityEngine.SceneManagement.SceneManager.LoadScene("OptionScene");
++        ToggleEscMenuWindow(false);
++
++    }    
++
++    public void OnClickBackToTitle()
++    {
++        // タイトル画面に戻る
++        // TODO:
++        // UnityEngine.SceneManagement.SceneManager.LoadScene("TitleScene");
++        Debug.Log("OnClickBackToTitle:: これはまだ未実装です");
++        ToggleEscMenuWindow(false);
++    }
++
++    public void OnClickBackToWindows()
++    {
++        GameCtrl gameCtrl = this.gameObject.AddComponent<GameCtrl>();
++        gameCtrl.GameClose();
++        // ToggleEscMenuWindow(false);
++
++    }
++
++    public void OnClickBackToGame()
++    {
++        ToggleEscMenuWindow(false);
++    }
++
++    public bool GetEscMenuWindowStatus()
++    {
++        bool ret = false;
++        if (_esc_menu_window != null)
++        {
++            ret = _esc_menu_window.activeSelf;
++        }        
++        return ret;
++    }
++
++    public void ToggleEscMenuWindow(bool isOn)
++    {
++        if (_esc_menu_window != null)
++        {
++            // buttonのselectedを解除する
++            EventSystem.current.SetSelectedGameObject(null);
++            _esc_menu_window.SetActive(isOn);
++        }
++
++        // ゲーム内時間を一時停止
++        // Environment
++        // _environment.SetActive(isOn ? false : true);
++
++        // Invalid AABB aabb でアニメーション関係でバグが発生するため、Time.timeScaleを使わない
++        // // Physics.autoSimulation = isOn ? false : true;
++        // Time.timeScale = isOn ? 0 : 1;
++        // Time.fixedDeltaTime = 0.02f * Time.timeScale;
++        // // Animator animator = GetComponent<Animator>();
++        // // animator.speed = isOn ? 0 : 1;
++
++
++        // GameTimerCtrl gameTimerCtrl = this.gameObject.AddComponent<GameTimerCtrl>();
++        // gameTimerCtrl._buf_time = Time.time;
++
++        // 時計の進行だけを止めているのでマウスカーソルや他のイベントは動いてしまう
++        // TODO: 他のイベントも止める
++        if (_gameTimerCtrl != null)
++        {
++            _gameTimerCtrl._isPaused = isOn;
++        }
++
++        // Debug.Log("ToggleEscMenuWindow:" + isOn + Time.timeScale);
++    }
++
++    
++
+ }
+
+
+================================================================================
+Significant Changes: 159
+-	private GameObject _esc_menu_window;
+
++    private GameObject _esc_menu_window = null;
+
++    private GameObject _environment = null;
+
++    private GameTimerCtrl _gameTimerCtrl = null;
+
+-	private GameObject _environment;
+
++    void Awake()
+
++    {
+
++        _environment = GameObject.Find("Environment").gameObject;
+
++        if (_environment == null)
+
++        {
+
++            Debug.Log("Environment is not found");
+
++        }
+
+-	private GameTimerCtrl _gameTimerCtrl;
+
++        GameObject txtGameTime = GameObject.Find("txtGameTime");
+
++        if (txtGameTime != null)
+
++        {
+
++            _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
+
++        }
+
+-	private void Awake()
+
+-	{
+

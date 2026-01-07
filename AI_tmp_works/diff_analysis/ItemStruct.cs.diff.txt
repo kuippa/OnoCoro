@@ -1,0 +1,130 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\ItemStruct.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Models\ItemStruct.cs
+================================================================================
+
+--- ItemStruct.cs+++ ItemStruct.cs@@ -1,49 +1,40 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// ItemStruct
+-using System;
++using System.Collections;
++using System.Collections.Generic;
+ 
+-[Serializable]
++[System.Serializable]
+ public struct ItemStruct
+ {
+-	public string Name { get; set; }
++    public string Name { get; set;}
++    public string ItemID { get; set;}
++    public string ToolTip { get; set;}
++    public string Info { get; set;}
++    public int CreateCost { get; set;}
++    public string CostType { get; set;}
++    public float CostTime { get; set;}
++    public int Stack { get; set;}
++    public string ItemIconPath { get; set;}
++    public string ItemImagePath { get; set;}
++    public int HolderIndex { get; set;}
+ 
+-	public string ItemID { get; set; }
++    public ItemStruct(string name, string ItemID, string ToolTip, string Info, int CreateCost, string CostType, float CostTime, int Stack, string ItemIconPath, string ItemImagePath, int HolderIndex)
++    {
++        this.Name = name;
++        this.ItemID = ItemID;
++        this.ToolTip = ToolTip;
++        this.Info = Info;
++        this.CreateCost = CreateCost;
++        this.CostType = CostType;
++        this.CostTime = CostTime;
++        this.Stack = Stack;
++        this.ItemIconPath = ItemIconPath;
++        this.ItemImagePath = ItemImagePath;
++        this.HolderIndex = HolderIndex;
++    }
+ 
+-	public string ToolTip { get; set; }
++    public void AddStack(int stack)
++    {
++        this.Stack += stack;
++    }
+ 
+-	public string Info { get; set; }
+ 
+-	public int CreateCost { get; set; }
+-
+-	public string CostType { get; set; }
+-
+-	public float CostTime { get; set; }
+-
+-	public int Stack { get; set; }
+-
+-	public string ItemIconPath { get; set; }
+-
+-	public string ItemImagePath { get; set; }
+-
+-	public int HolderIndex { get; set; }
+-
+-	public ItemStruct(string name, string ItemID, string ToolTip, string Info, int CreateCost, string CostType, float CostTime, int Stack, string ItemIconPath, string ItemImagePath, int HolderIndex)
+-	{
+-		Name = name;
+-		this.ItemID = ItemID;
+-		this.ToolTip = ToolTip;
+-		this.Info = Info;
+-		this.CreateCost = CreateCost;
+-		this.CostType = CostType;
+-		this.CostTime = CostTime;
+-		this.Stack = Stack;
+-		this.ItemIconPath = ItemIconPath;
+-		this.ItemImagePath = ItemImagePath;
+-		this.HolderIndex = HolderIndex;
+-	}
+-
+-	public void AddStack(int stack)
+-	{
+-		Stack += stack;
+-	}
+-}
++}
+
+================================================================================
+Significant Changes: 62
+-[Serializable]
+
++[System.Serializable]
+
+-	public string Name { get; set; }
+
++    public string Name { get; set;}
+
++    public string ItemID { get; set;}
+
++    public string ToolTip { get; set;}
+
++    public string Info { get; set;}
+
++    public int CreateCost { get; set;}
+
++    public string CostType { get; set;}
+
++    public float CostTime { get; set;}
+
++    public int Stack { get; set;}
+
++    public string ItemIconPath { get; set;}
+
++    public string ItemImagePath { get; set;}
+
++    public int HolderIndex { get; set;}
+
+-	public string ItemID { get; set; }
+
++    public ItemStruct(string name, string ItemID, string ToolTip, string Info, int CreateCost, string CostType, float CostTime, int Stack, string ItemIconPath, string ItemImagePath, int HolderIndex)
+
++    {
+
++        this.Name = name;
+
++        this.ItemID = ItemID;
+
++        this.ToolTip = ToolTip;
+

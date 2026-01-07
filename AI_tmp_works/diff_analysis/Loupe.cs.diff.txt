@@ -1,0 +1,101 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\Loupe.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Models\Loupe.cs
+================================================================================
+
+--- Loupe.cs+++ Loupe.cs@@ -1,20 +1,40 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// Loupe
++using System.Collections;
++using System.Collections.Generic;
+ using UnityEngine;
++using CommonsUtility;
+ 
+ public class Loupe : MonoBehaviour, IItemStructProvider
+ {
+-	internal ItemStruct _item_struct;
++    public ItemStruct ItemStruct => _item_struct;
++    internal ItemStruct _item_struct = new ItemStruct();
+ 
+-	public ItemStruct ItemStruct => _item_struct;
++    void Awake()
++    // void Start()
++    {
++        #if UNITY_EDITOR
++            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++        #endif
++        _item_struct = new ItemStruct(
++            "Loupe"
++            , "LoupeID"
++            , "Tips Loupe"
++            , "Loupe Info"
++            , -1
++            , GlobalConst.SHORT_SCORE1_SCALE
++            , 0.0f
++            , 1
++            , "imgs/icons/search_fill24"
++            , "imgs/icons/search_fill24"
++            , 2);
+ 
+-	private void Awake()
+-	{
+-		_item_struct = new ItemStruct("Loupe", "LoupeID", "Tips Loupe", "Loupe Info", -1, "BIT", 0f, 1, "imgs/icons/search_fill24", "imgs/icons/search_fill24", 2);
+-	}
++        // Debug.Log("GarbageCube.Awake() _item_struct.Name: " + _item_struct.Name);
+ 
+-	internal ItemStruct GetItemStruct()
+-	{
+-		return _item_struct;
+-	}
++// Assets/Resources/imgs/icons/virus-covid-solid.svg
++    }
++
++    internal ItemStruct GetItemStruct()
++    {
++        return _item_struct;
++    }
++
+ }
+
+
+================================================================================
+Significant Changes: 33
+-	internal ItemStruct _item_struct;
+
++    public ItemStruct ItemStruct => _item_struct;
+
++    internal ItemStruct _item_struct = new ItemStruct();
+
+-	public ItemStruct ItemStruct => _item_struct;
+
++    void Awake()
+
++    {
+
++        #if UNITY_EDITOR
+
++        #endif
+
++        _item_struct = new ItemStruct(
+
++            "Loupe"
+
++            , "LoupeID"
+
++            , "Tips Loupe"
+
++            , "Loupe Info"
+
++            , -1
+
++            , GlobalConst.SHORT_SCORE1_SCALE
+
++            , 0.0f
+
++            , 1
+
++            , "imgs/icons/search_fill24"
+
++            , "imgs/icons/search_fill24"
+
++            , 2);
+

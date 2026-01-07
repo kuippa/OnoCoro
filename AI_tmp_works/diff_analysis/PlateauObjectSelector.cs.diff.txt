@@ -1,0 +1,163 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\PlateauObjectSelector.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Plateau\PlateauObjectSelector.cs
+================================================================================
+
+--- PlateauObjectSelector.cs+++ PlateauObjectSelector.cs@@ -1,57 +1,69 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// PlateauObjectSelector
++using UnityEngine;
++using UnityEngine.InputSystem;
++using UnityEngine.EventSystems;
+ using PLATEAU.CityInfo;
+-using UnityEngine;
+-using UnityEngine.EventSystems;
+-using UnityEngine.InputSystem;
++using System;
+ 
+ public class PlateauObjectSelector : MonoBehaviour
+ {
+-	private const float _CLICK_MAX_DISTANCE = 250f;
+ 
+-	private GameObject _selectedObject;
++    private const float _CLICK_MAX_DISTANCE = 250.0f;
++    private GameObject _selectedObject;
+ 
+-	private void Start()
+-	{
+-	}
+ 
+-	private void Update()
+-	{
+-	}
++    private void Start()
++    {
++    }
+ 
+-	private GameObject GetTargetObject()
+-	{
+-		_selectedObject = null;
+-		Vector2 vector = Mouse.current.position.ReadValue();
+-		if (EventSystem.current.IsPointerOverGameObject())
+-		{
+-			return null;
+-		}
+-		if (Physics.Raycast(Camera.main.ScreenPointToRay(vector), out var hitInfo, 250f))
+-		{
+-			_selectedObject = hitInfo.collider.gameObject;
+-			return _selectedObject;
+-		}
+-		return null;
+-	}
++    private void Update()
++    {
++        // if (Mouse.current.leftButton.wasPressedThisFrame)
++        // {
++        //     TrySelectObject();
++        // }
++    }
+ 
+-	internal bool IsPLATEAUObject()
+-	{
+-		GameObject targetObject = GetTargetObject();
+-		if (targetObject == null)
+-		{
+-			return false;
+-		}
+-		return targetObject.GetComponent<PLATEAUCityObjectGroup>() != null;
+-	}
++    private GameObject GetTargetObject()
++    {
++        _selectedObject = null;
++        Vector2 mousePosition = Mouse.current.position.ReadValue();
++        if (EventSystem.current.IsPointerOverGameObject())
++        {
++            return null;
++        }
+ 
+-	internal bool IsPLATEAUObject(GameObject obj)
+-	{
+-		return obj.GetComponent<PLATEAUCityObjectGroup>() != null;
+-	}
++        Ray PointRay = Camera.main.ScreenPointToRay(mousePosition);
++        RaycastHit hit;
++        if (Physics.Raycast(PointRay, out hit, _CLICK_MAX_DISTANCE))
++        {
++            _selectedObject = hit.collider.gameObject;
++            return _selectedObject;
++        }
++        return null;
++    }
++    internal bool IsPLATEAUObject()
++    {
++        GameObject obj = GetTargetObject();
++        if (obj == null)
++        {
++            return false;
++        }
++        return obj.GetComponent<PLATEAUCityObjectGroup>() != null;
++    }
+ 
+-	internal GameObject GetSelectedObject()
+-	{
+-		return _selectedObject;
+-	}
+-}
++    internal bool IsPLATEAUObject(GameObject obj)
++    {
++        return obj.GetComponent<PLATEAUCityObjectGroup>() != null;
++    }
++
++    internal GameObject GetSelectedObject()
++    {
++        return _selectedObject;
++    }
++
++    // デバッグ用：選択されたオブジェクトを視覚的に示す
++    // private void HighlightSelectedObject(GameObject obj)
++    // {
++    //     // 実装は省略（例：一時的に色を変える、アウトラインを表示するなど）
++    // }
++}
+
+================================================================================
+Significant Changes: 84
+-	private const float _CLICK_MAX_DISTANCE = 250f;
+
+-	private GameObject _selectedObject;
+
++    private const float _CLICK_MAX_DISTANCE = 250.0f;
+
++    private GameObject _selectedObject;
+
+-	private void Start()
+
+-	{
+
+-	}
+
+-	private void Update()
+
+-	{
+
+-	}
+
++    private void Start()
+
++    {
+
++    }
+
+-	private GameObject GetTargetObject()
+
+-	{
+
+-		_selectedObject = null;
+
+-		Vector2 vector = Mouse.current.position.ReadValue();
+
+-		if (EventSystem.current.IsPointerOverGameObject())
+
+-		{
+
+-			return null;
+

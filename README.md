@@ -5,7 +5,14 @@ SSDが吹き飛んだため御蔵入りしていましたが、復活させよ�
 バックアップとっていないかったことを反省してオープンソースでgithubに公開することにしました。
 しばらくは復旧作業になります。
 
-ライブコーディング
+
+SSDが壊れ、さすがに懲りたのでGit入れるついでにオープンソースプロジェクトになりました。
+https://github.com/kuippa/OnoCoro
+
+↓つくるオノコロ「まちづくりタワーディフェンスゲーム」の再生リスト
+https://www.youtube.com/playlist?list=PLxWlv9T7cA6bZvEUqwVlGvnpeO2LvK5qa
+
+↓ これまでの「タワーディフェンスみたいなゲームをUnityでつくる作業系ライブ」再生リスト
 https://www.youtube.com/playlist?list=PLxWlv9T7cA6YhDW4aLlfn6BCZQFYPrOJ3
 
 

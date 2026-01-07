@@ -1,0 +1,107 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\OkbtnCtrl.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\UI\OkbtnCtrl.cs
+================================================================================
+
+--- OkbtnCtrl.cs+++ OkbtnCtrl.cs@@ -1,34 +1,34 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// OkbtnCtrl
+-using CommonsUtility;
++using System.Collections;
++using System.Collections.Generic;
+ using UnityEngine;
+ using UnityEngine.UI;
++using CommonsUtility;
+ 
+ public class OkbtnCtrl : MonoBehaviour
+ {
+-	[SerializeField]
+-	private GameObject _okBtn;
+ 
+-	[SerializeField]
+-	private GameObject _closeBtn;
++    [SerializeField] private GameObject _okBtn;
++    [SerializeField] private GameObject _closeBtn;
++    [SerializeField] private GameObject _closeWindow;
+ 
+-	[SerializeField]
+-	private GameObject _closeWindow;
+ 
+-	private void Awake()
+-	{
+-		if (!(_okBtn == null) && !(_closeWindow == null))
+-		{
+-			_okBtn.GetComponent<Button>().onClick.AddListener(onOkClick);
+-			if (_closeBtn != null)
+-			{
+-				_closeBtn.GetComponent<Button>().onClick.AddListener(onOkClick);
+-			}
+-		}
+-	}
++    void Awake()
++    {
++        if (_okBtn == null || _closeWindow == null)
++        {
++            return;
++        }
++        _okBtn.GetComponent<Button>().onClick.AddListener(onOkClick);
++        if (_closeBtn != null)
++        {
++            _closeBtn.GetComponent<Button>().onClick.AddListener(onOkClick);
++        }
++    }
+ 
+-	public void onOkClick()
+-	{
+-		GameObjectTreat.DestroyAll(_closeWindow);
+-	}
++    public void onOkClick()
++    {
++        // Debug.Log("onOkClick");
++        GameObjectTreat.DestroyAll(_closeWindow);
++    }
++
+ }
+
+
+================================================================================
+Significant Changes: 40
+-	[SerializeField]
+
+-	private GameObject _okBtn;
+
+-	[SerializeField]
+
+-	private GameObject _closeBtn;
+
++    [SerializeField] private GameObject _okBtn;
+
++    [SerializeField] private GameObject _closeBtn;
+
++    [SerializeField] private GameObject _closeWindow;
+
+-	[SerializeField]
+
+-	private GameObject _closeWindow;
+
+-	private void Awake()
+
+-	{
+
+-		if (!(_okBtn == null) && !(_closeWindow == null))
+
+-		{
+
+-			_okBtn.GetComponent<Button>().onClick.AddListener(onOkClick);
+
+-			if (_closeBtn != null)
+
+-			{
+
+-				_closeBtn.GetComponent<Button>().onClick.AddListener(onOkClick);
+
+-			}
+
+-		}
+
+-	}
+

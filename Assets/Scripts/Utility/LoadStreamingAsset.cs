@@ -59,7 +59,12 @@ public static class LoadStreamingAsset
 
 	internal static string[] CsvLines(string fileName)
 	{
-		return AllTextStream(fileName).Split(new string[1] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+		string fileContent = AllTextStream(fileName);
+		if (fileContent == null)
+		{
+			return null;
+		}
+		return fileContent.Split(new string[1] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 	}
 
 	internal static string[] CsvCols(string line)

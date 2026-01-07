@@ -1,0 +1,140 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\EnemyStatus.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Enemy\EnemyStatus.cs
+================================================================================
+
+--- EnemyStatus.cs+++ EnemyStatus.cs@@ -1,50 +1,51 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// EnemyStatus
++using System.Collections;
++using System.Collections.Generic;
++using UnityEngine;
++
++
+ public class EnemyStatus
+ {
+-	internal enum EnemyStatusType
+-	{
+-		Name,
+-		ActivityLv,
+-		Hp,
+-		None,
+-		Normal,
+-		Poison,
+-		Burn,
+-		Freeze,
+-		Paralysis
+-	}
++    internal enum EnemyStatusType
++    {
++        Name,
++        ActivityLv, // 0-1 0:休眠 1:活動 
+ 
+-	internal string Name;
++        Hp,
++        None,
++        Normal,
++        Poison,
++        Burn,
++        Freeze,
++        Paralysis,
++    }
+ 
+-	internal int Hp;
++    // キャラクターのステータスを保持する
++    internal string Name;
++    internal int Hp;
++    internal int Mp;
++    internal int Attack;
++    internal int Defense;
++    internal int Speed;
+ 
+-	internal int Mp;
++    internal EnemyStatusType GetEnemyStatusType()
++    {
++        return EnemyStatusType.None;
++    }
+ 
+-	internal int Attack;
++    internal string GetEnemyStatusTypeString()
++    {
++        return "None";
++    }
+ 
+-	internal int Defense;
++    internal string GetEnemyName()
++    {
++        return Name;
++    }
+ 
+-	internal int Speed;
++    internal string SetEnemyName(string name)
++    {
++        Name = name;
++        return Name;
++    }
+ 
+-	internal EnemyStatusType GetEnemyStatusType()
+-	{
+-		return EnemyStatusType.None;
+-	}
+-
+-	internal string GetEnemyStatusTypeString()
+-	{
+-		return "None";
+-	}
+-
+-	internal string GetEnemyName()
+-	{
+-		return Name;
+-	}
+-
+-	internal string SetEnemyName(string name)
+-	{
+-		Name = name;
+-		return Name;
+-	}
+ }
+
+
+================================================================================
+Significant Changes: 70
+-	internal enum EnemyStatusType
+
+-	{
+
+-		Name,
+
+-		ActivityLv,
+
+-		Hp,
+
+-		None,
+
+-		Normal,
+
+-		Poison,
+
+-		Burn,
+
+-		Freeze,
+
+-		Paralysis
+
+-	}
+
++    internal enum EnemyStatusType
+
++    {
+
++        Name,
+
++        ActivityLv, // 0-1 0:休眠 1:活動 
+
+-	internal string Name;
+
++        Hp,
+
++        None,
+
++        Normal,
+

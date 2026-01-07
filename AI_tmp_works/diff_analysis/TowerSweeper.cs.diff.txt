@@ -1,0 +1,870 @@
+Change Type: significant_change
+ILSpy: g:\unity\OnoCoro2026\Assets\Recovery\.Editor\ILspy_CS\TowerSweeper.cs
+Scripts: g:\unity\OnoCoro2026\Assets\Scripts\Tower\TowerSweeper.cs
+================================================================================
+
+--- TowerSweeper.cs+++ TowerSweeper.cs@@ -1,356 +1,471 @@-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+-// TowerSweeper
++using System;
++using System.Collections;
+ using System.Collections.Generic;
++using UnityEngine;
++using UnityEngine.UI;
++using UnityEngine.Events;
++using CommonsUtility;
++using UnityEngine.AI;
++using Unity.VisualScripting;
++using System.Runtime.CompilerServices;
++using System.Diagnostics.CodeAnalysis;   // NavMeshAgentを使うために必要
+ using System.Linq;
+-using CommonsUtility;
+-using Unity.VisualScripting;
+-using UnityEngine;
+-using UnityEngine.AI;
+ 
+ public class TowerSweeper : MonoBehaviour
+ {
+-	private GameObject _MyDeck;
+-
+-	private NavMeshAgent _NavMeshAgent;
+-
+-	private GameObject _targetGarbage;
+-
+-	private List<GameObject> _AimGarbageLists = new List<GameObject>();
+-
+-	private List<GameObject> _IgnoreGarbageLists = new List<GameObject>();
+-
+-	private float _lastTriggerStayTime;
+-
+-	private const float _TRIGGER_STAY_INTERVAL = 0.02f;
+-
+-	private const float _TARGET_DEL_DISTANCE = 1.2f;
+-
+-	private double _time;
+-
+-	public GameObject _Active_Dock;
+-
+-	public GameObject _Sleep_Dock;
+-
+-	private bool _chargeMode;
+-
+-	private const float _BATTERY_ORG_SIZE = 0.5f;
+-
+-	internal float _LOOP_TIME = 0.6f;
+-
+-	internal float _FULL_BATTERY = 100f;
+-
+-	internal float _HP = 100f;
+-
+-	internal float _DECREASE_BATTERY = 1f;
+-
+-	internal float _CHARGE_BATTERY = 5f;
+-
+-	private const float _BATTERY_DISTANCE = 1.8f;
+-
+-	private bool _isDelete;
+-
+-	public void CreateSweeperUnit(Vector3 setPoint)
+-	{
+-		base.tag = GameEnum.TagType.TowerSweeper.ToString();
+-		int num = GameObjectTreat.IndexObjectByTag(base.tag);
+-		base.name = GameEnum.ModelsType.Sweeper.ToString() + num;
+-		this.AddComponent<Sweeper>();
+-		GetComponent<Sweeper>()._item_struct.ItemID = base.name;
+-		GetComponent<Sweeper>()._unit_struct.UnitID = base.name;
+-		base.transform.position = setPoint;
+-		GameObject gameObject = Object.Instantiate(Resources.Load("Prefabs/WorkUnit/TowerDock")) as GameObject;
+-		setPoint.x = setPoint.x + base.transform.localScale.x / 2f + 0.1f;
+-		gameObject.transform.position = setPoint;
+-		gameObject.tag = GameEnum.TagType.TowerDock.ToString();
+-		gameObject.name = gameObject.tag + num;
+-		_MyDeck = gameObject;
+-		if (_NavMeshAgent != null)
+-		{
+-			_NavMeshAgent.enabled = true;
+-		}
+-		ChangeBatteryDockMode(mode: false);
+-	}
+-
+-	private void OnDestroy()
+-	{
+-		GameObjectTreat.DestroyAll(base.gameObject);
+-	}
+-
+-	private void Awake()
+-	{
+-		_NavMeshAgent = NavMeshCtrl.GetNavMeshAgent(base.gameObject);
+-		ChangeBatteryDockMode(mode: false);
+-	}
+-
+-	private void OnTriggerEnter(Collider other)
+-	{
+-		float time = Time.time;
+-		if (!(time - _lastTriggerStayTime <= 0.02f))
+-		{
+-			_lastTriggerStayTime = time;
+-			if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
+-			{
+-				GameObject gameObject = other.gameObject;
+-				GameObjectTreat.DebugColorChange(gameObject, Color.red);
+-				SetTargetGarbage(gameObject);
+-			}
+-		}
+-	}
+-
+-	private void SetTargetGarbage(GameObject other)
+-	{
+-		if (!_AimGarbageLists.Contains(other))
+-		{
+-			_AimGarbageLists.Add(other);
+-		}
+-		if (CompareDistance(other))
+-		{
+-			GameObjectTreat.DebugColorChange(_targetGarbage, Color.green);
+-			_targetGarbage = other.gameObject;
+-		}
+-		else
+-		{
+-			GameObjectTreat.DebugColorChange(_targetGarbage, Color.blue);
+-		}
+-	}
+-
+-	private bool CompareDistance(GameObject compareObject)
+-	{
+-		if (_IgnoreGarbageLists.Contains(compareObject))
+-		{
+-			return false;
+-		}
+-		if (_targetGarbage == null)
+-		{
+-			_targetGarbage = compareObject.gameObject;
+-		}
+-		if (Vector3.Distance(base.transform.position, _targetGarbage.transform.position) >= Vector3.Distance(base.transform.position, compareObject.transform.position))
+-		{
+-			return true;
+-		}
+-		return false;
+-	}
+-
+-	private void MoveControl()
+-	{
+-		if (!CheckBattery())
+-		{
+-			return;
+-		}
+-		UpdateTargetGarbage();
+-		if (_targetGarbage == null)
+-		{
+-			NavMeshCtrl.LookAround(_NavMeshAgent, base.transform);
+-			return;
+-		}
+-		Vector3 position = _targetGarbage.transform.position;
+-		NavMeshCtrl.SetAgentSpeed(_NavMeshAgent);
+-		if (NavMeshCtrl.IsSameDestination(_NavMeshAgent, position))
+-		{
+-			return;
+-		}
+-		if (!NavMeshCtrl.SetNavMeshDestination(_NavMeshAgent, position, base.transform))
+-		{
+-			Vector3 vector = position;
+-			Debug.Log("SetNavMeshDestination false:" + vector.ToString());
+-			_targetGarbage = SetTargetGarbageIgnoreLists(_targetGarbage);
+-			return;
+-		}
+-		switch (_NavMeshAgent.pathStatus)
+-		{
+-		case NavMeshPathStatus.PathComplete:
+-			HandlePathComplete();
+-			break;
+-		case NavMeshPathStatus.PathPartial:
+-			if (_NavMeshAgent.remainingDistance <= 1.2f)
+-			{
+-				TriggerSweepGarbage();
+-			}
+-			break;
+-		case NavMeshPathStatus.PathInvalid:
+-			_targetGarbage = SetTargetGarbageIgnoreLists(_targetGarbage);
+-			break;
+-		}
+-	}
+-
+-	private void HandlePathComplete()
+-	{
+-		if (!_NavMeshAgent.hasPath)
+-		{
+-			_targetGarbage = SetTargetGarbageIgnoreLists(_targetGarbage);
+-		}
+-		else if (_NavMeshAgent.remainingDistance <= 1.2f)
+-		{
+-			TriggerSweepGarbage();
+-		}
+-	}
+-
+-	private void TriggerSweepGarbage()
+-	{
+-		SweepCtrl component = base.transform.Find("head").gameObject.GetComponent<SweepCtrl>();
+-		if (component != null)
+-		{
+-			component.SweepGarbage(_targetGarbage.GetComponent<Collider>());
+-		}
+-	}
+-
+-	private void UpdateTargetGarbage()
+-	{
+-		if (_targetGarbage == null || !IsValidTarget(_targetGarbage))
+-		{
+-			_targetGarbage = GetBestTargetFromList();
+-		}
+-	}
+-
+-	private bool IsValidTarget(GameObject target)
+-	{
+-		if (target != null)
+-		{
+-			return !_IgnoreGarbageLists.Contains(target);
+-		}
+-		return false;
+-	}
+-
+-	private GameObject GetBestTargetFromList()
+-	{
+-		return (from g in _AimGarbageLists.Where(IsValidTarget)
+-			orderby Vector3.Distance(base.transform.position, g.transform.position)
+-			select g).FirstOrDefault();
+-	}
+-
+-	private bool CheckBattery()
+-	{
+-		if (_HP <= 0f || _chargeMode)
+-		{
+-			ChargeBattery();
+-			return false;
+-		}
+-		DecreaseHP();
+-		return true;
+-	}
+-
+-	private void ChargeBattery()
+-	{
+-		if (_MyDeck == null)
+-		{
+-			return;
+-		}
+-		_chargeMode = true;
+-		float num = Vector3.Distance(base.transform.position, _MyDeck.transform.position);
+-		GameObject targetObject = base.transform.Find("battery_bar").gameObject;
+-		if (num > 1.8f)
+-		{
+-			if (NavMeshCtrl.GetDestination(_NavMeshAgent) != _MyDeck.transform.position)
+-			{
+-				NavMeshCtrl.SetDestination(_MyDeck.transform.position, _NavMeshAgent);
+-			}
+-			GameObjectTreat.ColorChange(targetObject, Color.red);
+-			return;
+-		}
+-		NavMeshCtrl.ClearDestination(_NavMeshAgent);
+-		ClearIgnoreGarbageLists();
+-		_HP += _CHARGE_BATTERY;
+-		BatteryView();
+-		ChangeBatteryDockMode(mode: true);
+-		if (_HP >= _FULL_BATTERY)
+-		{
+-			GameObjectTreat.ColorChange(targetObject, Color.green);
+-			_HP = _FULL_BATTERY;
+-			_chargeMode = false;
+-			ChangeBatteryDockMode(mode: false);
+-		}
+-	}
+-
+-	private void ChangeBatteryDockMode(bool mode)
+-	{
+-		if (!(_MyDeck == null))
+-		{
+-			if (_Active_Dock == null || _Sleep_Dock == null)
+-			{
+-				_Active_Dock = _MyDeck.transform.Find("ChargeMode").gameObject;
+-				_Sleep_Dock = _MyDeck.transform.Find("SleepMode").gameObject;
+-			}
+-			if (mode)
+-			{
+-				_Active_Dock.SetActive(value: true);
+-				_Sleep_Dock.SetActive(value: false);
+-			}
+-			else
+-			{
+-				_Active_Dock.SetActive(value: false);
+-				_Sleep_Dock.SetActive(value: true);
+-			}
+-		}
+-	}
+-
+-	private void DebugNavMeshAgent(NavMeshAgent NavMeshAgent)
+-	{
+-		Debug.Log("NavMeshAgent:" + NavMeshAgent.name + " hasPath:" + NavMeshAgent.hasPath + " pathStatus:" + NavMeshAgent.pathStatus.ToString() + " remainingDistance:" + NavMeshAgent.remainingDistance + " destination:" + NavMeshAgent.destination.ToString() + " pathPending:" + NavMeshAgent.pathPending + _targetGarbage.transform.position.ToString() + _targetGarbage.name);
+-	}
+-
+-	private GameObject SetTargetGarbageIgnoreLists(GameObject targetGarbage)
+-	{
+-		_IgnoreGarbageLists.Add(targetGarbage);
+-		GameObjectTreat.DebugColorChange(targetGarbage, Color.black);
+-		targetGarbage = null;
+-		return targetGarbage;
+-	}
+-
+-	private void ClearIgnoreGarbageLists()
+-	{
+-		foreach (GameObject ignoreGarbageList in _IgnoreGarbageLists)
+-		{
+-			GameObjectTreat.DebugColorChange(ignoreGarbageList, Color.yellow);
+-		}
+-		_IgnoreGarbageLists.Clear();
+-	}
+-
+-	private void DecreaseHP()
+-	{
+-		_HP -= _DECREASE_BATTERY;
+-		BatteryView();
+-	}
+-
+-	private void BatteryView()
+-	{
+-		GameObject obj = base.transform.Find("battery_bar").gameObject;
+-		Vector3 localScale = obj.transform.localScale;
+-		localScale.y = 0.5f * _HP / _FULL_BATTERY;
+-		obj.transform.localScale = localScale;
+-	}
+-
+-	private bool IsPowerState()
+-	{
+-		bool num = ScoreCtrl.IsScorePositiveInt(0, "CLK");
+-		if (!num)
+-		{
+-			SignPowerOutageCtrl.GetOrCreateCirclePowerOutage(base.gameObject);
+-			return num;
+-		}
+-		SignPowerOutageCtrl.UnSignPowerOutage(base.gameObject);
+-		return num;
+-	}
+-
+-	internal void StartDeleteUnitProcess()
+-	{
+-		_isDelete = true;
+-	}
+-
+-	internal void DeleteUnitProcess()
+-	{
+-		UnitStruct unitStruct = GetComponent<Sweeper>().GetUnitStruct();
+-		ScoreCtrl.UpdateAndDisplayScore(unitStruct.DeleteCost, unitStruct.ScoreType);
+-		GameObjectTreat.DestroyAll(_MyDeck);
+-		GameObjectTreat.DestroyAll(base.gameObject);
+-	}
+-
+-	private void Update()
+-	{
+-		_time += Time.deltaTime;
+-		if (_time > (double)(_LOOP_TIME / GameSpeedCtrl.GetGameSpeed()) && !_isDelete && IsPowerState())
+-		{
+-			_time = 0.0;
+-			MoveControl();
+-		}
+-	}
++    private GameObject _MyDeck = null;
++    NavMeshAgent _NavMeshAgent = null;
++    private GameObject _targetGarbage = null;    // 狙いのゴミ
++    List<GameObject> _AimGarbageLists = new List<GameObject>();    // 狙いのゴミ候補
++    List<GameObject> _IgnoreGarbageLists = new List<GameObject>();    // 無視するゴミ候補
++    private float _lastTriggerStayTime;
++    private const float _TRIGGER_STAY_INTERVAL = 0.02f; 
++    private const float _TARGET_DEL_DISTANCE = 1.2f;    // 消し込みの最低距離 ヘッド2.2
++
++    private double _time = 0;            // ループ経過時間
++    public GameObject _Active_Dock = null;
++    public GameObject _Sleep_Dock = null;
++
++    bool _chargeMode = false;
++    const float _BATTERY_ORG_SIZE = 0.5f;
++
++    // [SerializeField]
++    internal float _LOOP_TIME = 0.6f;      // ループ時間
++    internal float _MOVE_SPEED = 3f;    // 移動速度
++    // public float _ROTATE_ANGLE = 78;  // 回転角度
++    internal float _FULL_BATTERY = 100f;  // バッテリーの最大容量
++    internal float _HP = 100f;  // ヒットポイント（バッテリー）
++    internal float _DECREASE_BATTERY = 1.0f;  // バッテリーの減少量
++    internal float _CHARGE_BATTERY = 5f;  // バッテリーの回復量
++    private const float _BATTERY_DISTANCE = 1.8f;  // バッテリーの充電距離
++
++    private bool _isDelete = false; // 削除処理実行中かどうか
++
++    public void CreateSweeperUnit(Vector3 setPoint)
++    {
++        this.tag = GameEnum.TagType.TowerSweeper.ToString();
++        int idx = GameObjectTreat.IndexObjectByTag(this.tag);
++        this.name = GameEnum.ModelsType.Sweeper.ToString() + idx.ToString();
++        this.AddComponent<Sweeper>();
++        this.GetComponent<Sweeper>()._item_struct.ItemID = this.name;
++        this.GetComponent<Sweeper>()._unit_struct.UnitID = this.name;
++
++        this.transform.position = setPoint;
++        GameObject TowerDock = Instantiate(Resources.Load("Prefabs/WorkUnit/TowerDock")) as GameObject;
++        setPoint.x = setPoint.x + this.transform.localScale.x / 2 + 0.1f;
++        TowerDock.transform.position = setPoint;
++        TowerDock.tag = GameEnum.TagType.TowerDock.ToString();
++        TowerDock.name = TowerDock.tag + idx;
++        _MyDeck = TowerDock;
++        if (_NavMeshAgent != null)
++        {
++            _NavMeshAgent.enabled = true;
++        }
++        ChangeBatteryDockMode(false);
++    }
++
++    void OnDestroy()
++    {
++        #if UNITY_EDITOR
++            Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++        #endif
++        GameObjectTreat.DestroyAll(this.gameObject);
++    }
++
++    void Awake()
++    {
++        #if UNITY_EDITOR
++            Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++        #endif
++        // GameConfig.InitGameConfig();
++
++        // NavMeshAgentを取得
++        _NavMeshAgent = this.GetComponent<NavMeshAgent>();
++        if (_NavMeshAgent == null)
++        {
++            Debug.Log("NavMeshAgent is null");
++            NavMeshBuildSettings settings = NavMesh.GetSettingsByIndex(1);
++            _NavMeshAgent = this.gameObject.AddComponent<NavMeshAgent>();
++            _NavMeshAgent.enabled = false;
++            _NavMeshAgent.agentTypeID = settings.agentTypeID;
++            _NavMeshAgent.speed = _MOVE_SPEED;
++            _NavMeshAgent.angularSpeed = 80;
++            _NavMeshAgent.autoBraking = true;
++            _NavMeshAgent.radius = 0.5f;
++            _NavMeshAgent.height = 2f;
++            _NavMeshAgent.areaMask = 1;
++            // _NavMeshAgent.stoppingDistance = 0.1f;  // stoppingDistance	目標地点のどれぐらい手前で停止するかの距離
++            _NavMeshAgent.enabled = true;
++        }
++        // _NavMeshAgent.autoRepath = true;    // autoRepath	エージェントが移動先に着いたり、途中で破棄された場合、新しいパスを取得する必要があるかどうか
++
++        // currentOffMeshLinkData	現在の OffMeshLinkData
++        ChangeBatteryDockMode(false);
++    }
++
++    private void OnTriggerEnter(Collider other)
++    {
++        // #if UNITY_EDITOR
++        //     Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
++        //     // Debug.Log(this.transform.position + " " + other.name);
++        // #endif
++
++        float currentTime = Time.time;
++        if (currentTime - _lastTriggerStayTime <= _TRIGGER_STAY_INTERVAL)
++        {
++            return;
++        }
++        _lastTriggerStayTime = currentTime;
++
++        // 視界に入ったゴミをターゲットにする
++        if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
++        {
++            GameObject otherGameObject = other.gameObject;
++            GameObjectTreat.DebugColorChange(otherGameObject, Color.red);
++            SetTargetGarbage(otherGameObject);
++        }
++    }
++
++    private void SetTargetGarbage(GameObject other)
++    {
++        // エリア内にあるゴミをリストに追加
++        if (!_AimGarbageLists.Contains(other))
++        {
++            _AimGarbageLists.Add(other);
++        }
++        // thisからの距離が近ければtargetGarbageを更新
++        if (CompareDistance(other))
++        {
++            GameObjectTreat.DebugColorChange(_targetGarbage, Color.green);
++            _targetGarbage = other.gameObject;
++        }
++        else
++        {
++            GameObjectTreat.DebugColorChange(_targetGarbage, Color.blue);
++        }
++    }
++
++    // 与えられた引数の距離を比較する
++    private bool CompareDistance(GameObject compareObject)
++    {
++        // 無視リストに含まれている場合は、比較しない
++        if (_IgnoreGarbageLists.Contains(compareObject))
++        {
++            return false;
++        }
++
++        if (_targetGarbage == null)
++        {
++            _targetGarbage = compareObject.gameObject;
++        }
++
++        if (Vector3.Distance(this.transform.position, _targetGarbage.transform.position) 
++            >= Vector3.Distance(this.transform.position, compareObject.transform.position))
++        {
++            return true;
++        }
++        else
++        {
++            return false;
++        }
++    }
++
++    void MoveControl()
++    {
++        // バッテリーのチェック
++        if (!CheckBattery())
++        {
++            return;
++        }
++
++        // ターゲットの更新
++        UpdateTargetGarbage();
++        if (_targetGarbage == null)
++        {
++            // ターゲットがない場合、周囲探索
++            TowerMoveCtrl.LookAround(_NavMeshAgent, this.transform);
++            return;
++        }
++
++        // 目的地の設定
++        Vector3 destination = _targetGarbage.transform.position;
++        if (IsSameDestination(destination))
++        {
++            return;
++        }
++        if (!SetNavMeshDestination(destination))
++        {
++            Debug.Log("SetNavMeshDestination false:" + destination);
++            _targetGarbage = SetTargetGarbageIgnoreLists(_targetGarbage);
++            return;
++        }
++        
++        // NavMeshの状態チェック
++        NavMeshPathStatus pathStatus = _NavMeshAgent.pathStatus;
++        switch (pathStatus)
++        {
++            case NavMeshPathStatus.PathComplete:
++                HandlePathComplete();
++                break;
++            case NavMeshPathStatus.PathPartial:
++                // Debug.Log("Path is partial. Waiting for complete path.");
++                if (_NavMeshAgent.remainingDistance <= _TARGET_DEL_DISTANCE)
++                {
++                    TriggerSweepGarbage();
++                }                
++                break;
++            case NavMeshPathStatus.PathInvalid:
++                // Debug.LogWarning("Path is invalid. Ignoring current target.");
++                _targetGarbage = SetTargetGarbageIgnoreLists(_targetGarbage);
++                break;
++            default:
++                // Debug.LogError($"Unexpected NavMeshPathStatus: {pathStatus}");
++                break;
++        }
++        // // ターゲットに移動中、もしくは経路探索中
++        // if (!CheckNavMeshPathStatus(_NavMeshAgent))
++        // {
++        //     Debug.Log("CheckNavMeshPathStatus false:" + destination);
++        //     return;
++        // }
++    }
++
++    private void HandlePathComplete()
++    {
++        if (!_NavMeshAgent.hasPath)
++        {
++            // Debug.Log("Path is complete but agent has no path. Ignoring current target." + _targetGarbage.name);
++            _targetGarbage = SetTargetGarbageIgnoreLists(_targetGarbage);
++            return;
++        }
++
++        if (_NavMeshAgent.remainingDistance <= _TARGET_DEL_DISTANCE)
++        {
++            TriggerSweepGarbage();
++        }
++    }
++
++    private void TriggerSweepGarbage()
++    {
++        GameObject head = this.transform.Find("head").gameObject;
++        SweepCtrl sweepCtrl = head.GetComponent<SweepCtrl>();
++        if (sweepCtrl != null)
++        {
++            sweepCtrl.SweepGarbage(_targetGarbage.GetComponent<Collider>());
++        }
++        else
++        {
++            // Debug.LogError("SweepCtrl component not found on head object.");
++        }
++    }
++
++    private void UpdateTargetGarbage()
++    {
++        if (_targetGarbage == null || !IsValidTarget(_targetGarbage))
++        {
++            _targetGarbage = GetBestTargetFromList();
++        }
++    }
++
++    private bool IsValidTarget(GameObject target)
++    {
++        return target != null && !_IgnoreGarbageLists.Contains(target);
++    }
++
++    private GameObject GetBestTargetFromList()
++    {
++        return _AimGarbageLists
++            .Where(IsValidTarget)
++            .OrderBy(g => Vector3.Distance(this.transform.position, g.transform.position))
++            .FirstOrDefault();
++    }
++
++    private bool CheckBattery()
++    {
++        if (_HP <= 0 || _chargeMode)
++        {
++            ChargeBattery();
++            return false;
++        }
++        DecreaseHP();
++        return true;
++    }
++
++    private void ChargeBattery()
++    {
++        if (_MyDeck == null)
++        {
++            // Debug.Log("_MyDeck is null ");
++            return;
++        }
++        _chargeMode = true;
++        // deckとの距離が遠ければ、deckに向かって移動する
++        float distance = Vector3.Distance(this.transform.position, _MyDeck.transform.position);
++        GameObject battery_bar = this.transform.Find("battery_bar").gameObject;
++        if ( distance > _BATTERY_DISTANCE)
++        {
++            if (TowerMoveCtrl.GetDestination(_NavMeshAgent) != _MyDeck.transform.position)
++            {
++                TowerMoveCtrl.SetDestination(_MyDeck.transform.position, _NavMeshAgent);
++            }
++            GameObjectTreat.ColorChange(battery_bar, Color.red);            
++        }
++        else
++        {
++            TowerMoveCtrl.ClearDestination(_NavMeshAgent);
++            ClearIgnoreGarbageLists();
++            _HP += _CHARGE_BATTERY;
++            BatteryView();
++            ChangeBatteryDockMode(true);
++            if (_HP >= _FULL_BATTERY)
++            {
++                GameObjectTreat.ColorChange(battery_bar, Color.green);            
++                _HP = _FULL_BATTERY;
++                _chargeMode = false;
++                ChangeBatteryDockMode(false);
++            }
++        }
++    }
++
++    private void ChangeBatteryDockMode(bool mode)
++    {
++        if (_MyDeck == null)
++        {
++            // Debug.Log("_MyDeck is null ");
++            return;
++        }
++
++        if (_Active_Dock == null || _Sleep_Dock == null)
++        {
++            // Debug.Log("_MyDeck.name " + _MyDeck.name);
++
++            _Active_Dock = _MyDeck.transform.Find("ChargeMode").gameObject;
++            _Sleep_Dock = _MyDeck.transform.Find("SleepMode").gameObject;
++        }
++        if (mode)
++        {
++            _Active_Dock.SetActive(true);
++            _Sleep_Dock.SetActive(false);    
++        }
++        else
++        {
++            _Active_Dock.SetActive(false);
++            _Sleep_Dock.SetActive(true);
++        }
++    }
++
++    private bool IsSameDestination(Vector3 destination)
++    {
++        if (TowerMoveCtrl.GetDestination(_NavMeshAgent) == destination)
++        {
++            return true;
++        }
++        return false;
++    }
++
++    private bool IsOnNavMesh(NavMeshAgent NavMeshAgent)
++    {
++        if (!NavMeshAgent.isOnNavMesh)
++        {
++            Debug.Log("isOnNavMesh false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
++            return false;
++        }
++        return true;
++    }
++
++    private void DebugNavMeshAgent(NavMeshAgent NavMeshAgent)
++    {
++        Debug.Log("NavMeshAgent:" + NavMeshAgent.name 
++            + " hasPath:" + NavMeshAgent.hasPath
++            + " pathStatus:" + NavMeshAgent.pathStatus 
++            + " remainingDistance:" + NavMeshAgent.remainingDistance 
++            + " destination:" + NavMeshAgent.destination 
++            + " pathPending:" + NavMeshAgent.pathPending
++            // + " isPathStale:" + NavMeshAgent.isPathStale
++            + _targetGarbage.transform.position
++            + _targetGarbage.name
++            );
++    }
++
++    private bool SetNavMeshDestination(Vector3 destination)
++    {
++        Vector3 relativePos = destination - this.transform.position;
++        this.transform.localRotation = TowerMoveCtrl.GetRotateAngle(relativePos);
++        TowerMoveCtrl.SetDestination(destination, _NavMeshAgent);
++        if (!IsOnNavMesh(_NavMeshAgent))
++        {
++            return false;
++        }
++        return true;
++    }
++
++    private GameObject SetTargetGarbageIgnoreLists(GameObject targetGarbage)
++    {
++        // Debug.Log("SetTargetGarbageIgnoreLists " + targetGarbage);
++        _IgnoreGarbageLists.Add(targetGarbage);
++        GameObjectTreat.DebugColorChange(targetGarbage, Color.black);
++        targetGarbage = null;
++        return targetGarbage;
++    }
++
++    private void ClearIgnoreGarbageLists()
++    {
++
++        foreach (GameObject ignoreGarbage in _IgnoreGarbageLists)
++        {
++            GameObjectTreat.DebugColorChange(ignoreGarbage, Color.yellow);
++        }
++
++        _IgnoreGarbageLists.Clear();
++    }
++
++    // HPを時間経過で減らす
++    private void DecreaseHP()
++    {
++        _HP -= _DECREASE_BATTERY;
++        // return;
++        BatteryView();
++    }
++
++    private void BatteryView()
++    {
++        GameObject battery_bar = this.transform.Find("battery_bar").gameObject;
++        Vector3 battery_bar_scale = battery_bar.transform.localScale;
++        battery_bar_scale.y = _BATTERY_ORG_SIZE * _HP / _FULL_BATTERY;
++        battery_bar.transform.localScale = battery_bar_scale;
++
++    }
++
++    internal void StartDeleteUnitProcess()
++    {
++        _isDelete = true;
++    }
++
++    internal void DeleteUnitProcess()
++    {
++        // TODO: ユニットを灰色、半透明にする
++
++        // ターゲットを消去する
++        // Debug.Log("DeleteUnitProcess" + this.name);
++
++        UnitStruct unitStruct = this.GetComponent<Sweeper>().GetUnitStruct();
++        // if (ScoreCtrl.IsScorePositiveInt(unitStruct.DeleteCost, unitStruct.ScoreType))
++        // {
++            ScoreCtrl.UpdateAndDisplayScore((int)unitStruct.DeleteCost, unitStruct.ScoreType);
++            // return true;
++        // }
++        GameObjectTreat.DestroyAll(_MyDeck);
++        GameObjectTreat.DestroyAll(this.gameObject);
++    }
++
++    void Update()
++    {
++        _time += Time.deltaTime;
++        if (_time > _LOOP_TIME && !_isDelete)
++        {
++            _time = 0;
++            MoveControl();
++        }
++    }
++
+ }
+
+
+================================================================================
+Significant Changes: 660
+-	private GameObject _MyDeck;
+
+-	private NavMeshAgent _NavMeshAgent;
+
+-	private GameObject _targetGarbage;
+
+-	private List<GameObject> _AimGarbageLists = new List<GameObject>();
+
+-	private List<GameObject> _IgnoreGarbageLists = new List<GameObject>();
+
+-	private float _lastTriggerStayTime;
+
+-	private const float _TRIGGER_STAY_INTERVAL = 0.02f;
+
+-	private const float _TARGET_DEL_DISTANCE = 1.2f;
+
+-	private double _time;
+
+-	public GameObject _Active_Dock;
+
+-	public GameObject _Sleep_Dock;
+
+-	private bool _chargeMode;
+
+-	private const float _BATTERY_ORG_SIZE = 0.5f;
+
+-	internal float _LOOP_TIME = 0.6f;
+
+-	internal float _FULL_BATTERY = 100f;
+
+-	internal float _HP = 100f;
+
+-	internal float _DECREASE_BATTERY = 1f;
+
+-	internal float _CHARGE_BATTERY = 5f;
+
+-	private const float _BATTERY_DISTANCE = 1.8f;
+
+-	private bool _isDelete;
+
