@@ -28,9 +28,9 @@ public class PrefabManager
 
 	private static GameObject _pathBloomPrefab;
 
-	private static GameObject _UIStageSelectorPrefab;
-
-	private static GameObject _UIStageFileListPrefab;
+	// private static GameObject _UIStageSelectorPrefab;
+	// private static GameObject _UIStageFileListPrefab;
+	private static GameObject _UIStageInfoBoxPrefab;
 
 	private static int _garbageCubeUID;
 
@@ -44,27 +44,15 @@ public class PrefabManager
 
 	private static int _powerCubeUID;
 
-	internal static GameObject UIStageFileListPrefab
+	internal static GameObject UIStageInfoBoxPrefab
 	{
 		get
 		{
-			if (_UIStageFileListPrefab == null)
+			if (_UIStageInfoBoxPrefab == null)
 			{
-				_UIStageFileListPrefab = Resources.Load<GameObject>("Prefabs/UI/UIStageFileList");
+				_UIStageInfoBoxPrefab = Resources.Load<GameObject>("Prefabs/UI/UIStageInfoBox");
 			}
-			return _UIStageFileListPrefab;
-		}
-	}
-
-	internal static GameObject UIStageSelectorPrefab
-	{
-		get
-		{
-			if (_UIStageSelectorPrefab == null)
-			{
-				_UIStageSelectorPrefab = Resources.Load<GameObject>("Prefabs/UI/UIStageSelector");
-			}
-			return _UIStageSelectorPrefab;
+			return _UIStageInfoBoxPrefab;
 		}
 	}
 

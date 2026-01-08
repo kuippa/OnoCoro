@@ -13,14 +13,12 @@ public class WindowCloseCtrl : MonoBehaviour
         var button = GetComponent<UnityEngine.UI.Button>();
         if (button == null)
         {
+            Debug.LogWarning("WindowCloseCtrl: Button component not found.");
             return;
         }
 
-        if (button.onClick.GetPersistentEventCount() > 0)
-        {
-            return;
-        }
-
+        // Inspector設定をクリアしてコードで設定
+        button.onClick.RemoveAllListeners();
         button.onClick.AddListener(CloseWindow);
     }
 
@@ -28,6 +26,7 @@ public class WindowCloseCtrl : MonoBehaviour
     {
         if (transform.parent == null)
         {
+            Debug.LogWarning("WindowCloseCtrl: No parent to close.");
             return;
         }
 

@@ -116,7 +116,7 @@ public class TitleStartCtrl : MonoBehaviour
 			UnityEngine.Debug.Log("StagePath is null");
 			return;
 		}
-		string fileName = Path.GetFileName(component.text + ".yaml");
+		string fileName = Path.GetFileName(component.text + _YAML_FILE_EXTENSION);
 		string text = LoadStreamingAsset.AllTextStream(fileName);
 		if (text == null)
 		{
@@ -173,7 +173,7 @@ public class TitleStartCtrl : MonoBehaviour
 	private Dictionary<string, string[]> GetSceneInfoDict()
 	{
 		Dictionary<string, string[]> dictionary = new Dictionary<string, string[]>();
-		string[] array = LoadStreamingAsset.CsvLines("stagelist.csv");
+		string[] array = LoadStreamingAsset.CsvLines(_STAGE_LIST_FILE_NAME);
 		for (int i = 0; i < array.Length; i++)
 		{
 			string[] array2 = LoadStreamingAsset.CsvCols(array[i]);
