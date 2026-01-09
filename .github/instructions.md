@@ -926,7 +926,261 @@ Text statusText;
 Image backgroundImage;
 ```
 
-### 8. 冗長な条件分岐の回避
+### 8. ユーティリティクラスの設計原則
+
+**関連する機能は適切なユーティリティクラスに集約すること**
+
+コードの重複を避け、保守性を高めるため、共通処理は静的ユーティリティクラスに集約してください。
+
+#### ユーティリティクラスの分類
+
+**LoadStreamingAsset** - StreamingAssetsフォルダ関連
+- ファイルの読み込み
+- ファイルパスの生成
+- ファイル存在チェック
+- StreamingAssets固有の操作
+
+```csharp
+// ✅ 良い例: StreamingAssets関連はすべてLoadStreamingAssetに集約
+public static class LoadStreamingAsset
+{
+    public const string YAML_FILE_EXTENSION = ".yaml";
+    public const string STAGE_LIST_FILE_NAME = "stagelist.csv";
+    
+    // YAML関連の操作を集約
+    public static string GetYamlFileName(string sceneName)
+    {
+        return Path.GetFileName(sceneName + YAML_FILE_EXTENSION);
+    }
+    
+    public static bool YamlFileExists(string sceneName)
+    {
+        string yamlFileName = GetYamlFileName(sceneName);
+        string yamlFilePath = StageFilePath(yamlFileName);
+        return File.Exists(yamlFilePath);
+    }
+    
+    internal static string StageFilePath(string fileName)
+    {
+        return Path.Combine(Application.streamingAssetsPath, _STAGING_SUB_FOLDER, fileName);
+    }
+}
+
+// 使用例
+string fileName = LoadStreamingAsset.GetYamlFileName(sceneName);
+bool exists = LoadStreamingAsset.YamlFileExists(sceneName);
+```
+
+**UIHelper** - UI操作関連
+- GameObject検索
+- ボタン登録
+- スクロールバー制御
+- パネルのセットアップ
+
+```csharp
+public static class UIHelper
+{
+    // Prefabパス定数
+    public const string PREFAB_PATH_LOADING = "Prefabs/UI/nowloading";
+    
+    // GameObject検索（エラーハンドリング付き）
+    public static GameObject FindGameObject(string path, List<string> missingObjects, 
+                                           string objectType = "", GameObject parent = null);
+    
+    // ボタン登録
+    public static void RegisterButton(string buttonName, UnityEngine.Events.UnityAction action, 
+                                     List<string> missingObjects, GameObject parent = null);
+    
+    public static void RegisterChildButton(GameObject parent, string childButtonName, 
+                                          System.Action<Button> action);
+    
+    // スクロールバー制御
+    public static void ResetScrollbarInPanel(GameObject parentPanel);
+    
+    // パネルセットアップ
+    public static GameObject FindAndSetupPanel(string panelName, List<string> missingObjects, 
+                                              bool setActiveFalse = false);
+}
+```
+
+**FileOperationUtility** - ファイル操作関連
+- エディタでファイルを開く
+- デフォルトアプリでファイルを開く
+- 画像読み込み
+
+**StageDataManager** - ステージデータ管理
+- シーンリストの取得
+- CSVからのデータ読み込み
+- シーン情報の統合
+
+**LogUtility** - ログ管理
+- レベル別ログ出力
+- ファイル出力
+- 条件付きコンパイル
+
+#### 設計ルール
+
+1. **単一責任の原則**: 1つのユーティリティクラスは1つの責務を持つ
+2. **静的クラス**: ユーティリティは`static class`として定義
+3. **定数の集約**: 関連する定数は該当ユーティリティクラスに配置
+4. **名前空間**: 特定の名前空間は使わず、グローバルに配置（UnityのScriptAssembliesに準拠）
+
+❌ **悪い例: コントローラに直接実装**
+```csharp
+public class TitleStartCtrl : MonoBehaviour
+{
+    private void OnClickStageEditor(Button btnStageEditor)
+    {
+        // 直接Path.GetFileNameを使用
+        string fileName = Path.GetFileName(sceneName + ".yaml");
+        
+        // 直接File.Existsを使用
+        if (File.Exists(LoadStreamingAsset.StageFilePath(fileName)))
+        {
+            // ...
+        }
+    }
+}
+```
+
+✅ **良い例: ユーティリティクラスに集約**
+```csharp
+public class TitleStartCtrl : MonoBehaviour
+{
+    private void OnClickStageEditor(Button btnStageEditor)
+    {
+        // LoadStreamingAssetに集約された操作を使用
+        string fileName = LoadStreamingAsset.GetYamlFileName(sceneName);
+        
+        if (LoadStreamingAsset.YamlFileExists(sceneName))
+        {
+            // ...
+        }
+    }
+}
+```
+
+### 9. UIスクロールビューの取り扱い
+
+**ScrollRectの位置制御とタイミング**
+
+スクロールビューの位置を制御する際は、以下の原則に従ってください。
+
+#### 基本原則
+
+1. **ScrollRect.normalizedPositionを使用する**
+   - `Scrollbar.value`の直接操作は避ける
+   - `normalizedPosition = new Vector2(0, 1)`で最上部へ
+
+2. **コンテンツ更新後にリセットする**
+   - テキストやアイテムの設定後にスクロール位置を更新
+   - コンテンツサイズが確定してから実行
+
+3. **アクティブ状態をチェックする**
+   - 非アクティブなパネルのScrollbarは操作しない
+   - ユーティリティ関数内でチェックを行う
+
+#### 実装パターン
+
+```csharp
+// UIHelper.cs
+public static void ResetScrollbarInPanel(GameObject parentPanel)
+{
+    // アクティブチェックを内包
+    if (parentPanel == null || !parentPanel.activeSelf)
+    {
+        return;
+    }
+    
+    // ScrollRectを使用（Scrollbar直接操作は不可）
+    ScrollRect scrollRect = parentPanel.GetComponentInChildren<ScrollRect>(true);
+    if (scrollRect != null)
+    {
+        scrollRect.normalizedPosition = new Vector2(0, 1); // x=0(左), y=1(上)
+    }
+}
+```
+
+#### 呼び出しタイミング
+
+```csharp
+// ❌ 悪い例: コンテンツ設定前にリセット
+private void OnClickAboutGame()
+{
+    _pnlAboutThisGame.SetActive(value: true);
+    UIHelper.ResetScrollbarInPanel(_pnlAboutThisGame); // 早すぎる
+    
+    textComponent.text = LoadStreamingAsset.AllTextStream(...);
+}
+
+// ✅ 良い例: コンテンツ設定後にリセット
+private void OnClickAboutGame()
+{
+    _pnlAboutThisGame.SetActive(value: true);
+    
+    string text = LoadStreamingAsset.AllTextStream(...);
+    textComponent.text = text;
+    
+    UIHelper.ResetScrollbarInPanel(_pnlAboutThisGame); // コンテンツ確定後
+}
+```
+
+#### パネル切り替え時
+
+```csharp
+// ✅ 良い例: SetActive後にリセット、activeチェックは関数内で実施
+private void OnClickStageSelect()
+{
+    _pnlStageSelector.SetActive(!_pnlStageSelector.activeSelf);
+    UIHelper.ResetScrollbarInPanel(_pnlStageSelector); // 内部でactiveチェック
+}
+```
+
+#### 変数格納の不要化
+
+従来のように`_StageScrollbar`などの変数にScrollbarを格納する必要はありません。
+
+❌ **悪い例: 変数に格納して管理**
+```csharp
+private GameObject _StageScrollbar;
+private const string _CHILD_PATH_SCROLLVIEW_SCROLLBAR = "Scroll View/Scrollbar Vertical";
+
+void Awake()
+{
+    _StageScrollbar = UIHelper.FindGameObject(_CHILD_PATH_SCROLLVIEW_SCROLLBAR, ...);
+    UIHelper.SetScrollbarTopPosition(_StageScrollbar);
+}
+
+void OnClickStageSelect()
+{
+    UIHelper.SetScrollbarTopPosition(_StageScrollbar);
+}
+```
+
+✅ **良い例: 親パネルから自動検索**
+```csharp
+// フィールド変数不要、定数も不要
+
+void Awake()
+{
+    // コンテンツ設定後に親パネルを渡すだけ
+    UIHelper.ResetScrollbarInPanel(_pnlStageSelector);
+}
+
+void OnClickStageSelect()
+{
+    _pnlStageSelector.SetActive(!_pnlStageSelector.activeSelf);
+    UIHelper.ResetScrollbarInPanel(_pnlStageSelector); // 親から自動検索
+}
+```
+
+**メリット:**
+- 変数管理不要（メモリ効率向上）
+- パス定数不要（保守性向上）
+- コードがシンプルで読みやすい
+- GetComponentInChildren(true)で非アクティブな子も検索可能
+
+### 10. 冗長な条件分岐の回避
 
 ### Early Return パターンの徹底使用
 
@@ -1034,6 +1288,41 @@ private void CloseWindow()
 - **nullチェック**: 必ず最初に行い、nullの場合は即return
 - **前提条件**: ビジネスロジックの前にすべてチェック
 - **ネストの深さ**: 2段階以上のネストは禁止（Early Returnで解消）
+
+---
+
+## コード提案前のチェックリスト
+
+AIアシスタントがコードを提案する際は、以下のチェックリストを必ず確認してください：
+
+### 必須チェック項目
+
+- [ ] **定数化**: マジックナンバー・マジックストリングがないか
+- [ ] **中括弧**: すべての制御文に`{}`があるか
+- [ ] **三項演算子**: `? :`や`?.`を使用していないか
+- [ ] **Early Return**: ネストした`if`を避け、ガード句を使用しているか
+- [ ] **関数の長さ**: 40行以内に収まっているか
+- [ ] **変数名**: 意味のある名前になっているか（`obj`, `temp`, `str`などを避ける）
+- [ ] **ユーティリティの使用**: 共通処理を適切なユーティリティクラスに集約しているか
+  - StreamingAssets操作 → `LoadStreamingAsset`
+  - UI操作 → `UIHelper`
+  - ファイル操作 → `FileOperationUtility`
+  - ステージデータ → `StageDataManager`
+  - ログ出力 → `LogUtility`
+- [ ] **ScrollRect**: スクロール位置制御は`normalizedPosition`を使用しているか
+- [ ] **activeチェック**: UI操作前のactiveチェックは関数内で行っているか
+
+### コード提案の手順
+
+1. **規約違反がないか確認**
+2. **違反がある場合は修正してから提案**
+3. **提案時に使用した規約を簡潔に説明**
+
+```
+例:
+「LoadStreamingAssetにYAML操作を集約するため、GetYamlFileName()とYamlFileExists()を追加しました。
+これによりPath.GetFileNameとFile.Existsの直接使用を避け、StreamingAssets関連の操作が一元化されます。」
+```
 
 ---
 

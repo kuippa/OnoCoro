@@ -13,6 +13,12 @@ public static class LoadStreamingAsset
 	internal const string _STAGING_SUB_FOLDER = "staging";
 	internal const string _PUBLIC_DOC_SUB_FOLDER = "public_doc";
 	private const string _CSV_COMMENT_PREFIX = "#";
+	
+	// File name constants
+	public const string YAML_FILE_EXTENSION = ".yaml";
+	public const string STAGE_LIST_FILE_NAME = "stagelist.csv";
+	public const string ABOUT_GAME_FILE_NAME = "aboutthisgame.txt";
+	public const string NOTICE_FILE_NAME = "notice.txt";
 
 
 	internal static YamlStream LoadYamlFile(string fileName)
@@ -97,5 +103,27 @@ public static class LoadStreamingAsset
 			array[i] = RemoveQuotesWithRegex(array[i]);
 		}
 		return array;
+	}
+
+	/// <summary>
+	/// シーン名からYAMLファイル名を生成します
+	/// </summary>
+	/// <param name="sceneName">シーン名</param>
+	/// <returns>YAMLファイル名（拡張子付き）</returns>
+	public static string GetYamlFileName(string sceneName)
+	{
+		return Path.GetFileName(sceneName + YAML_FILE_EXTENSION);
+	}
+
+	/// <summary>
+	/// 指定されたシーン名に対応するYAMLファイルが存在するかチェックします
+	/// </summary>
+	/// <param name="sceneName">シーン名</param>
+	/// <returns>ファイルが存在する場合true</returns>
+	public static bool YamlFileExists(string sceneName)
+	{
+		string yamlFileName = GetYamlFileName(sceneName);
+		string yamlFilePath = StageFilePath(yamlFileName);
+		return File.Exists(yamlFilePath);
 	}
 }

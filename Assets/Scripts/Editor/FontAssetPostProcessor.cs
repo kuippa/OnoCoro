@@ -35,6 +35,8 @@ public class FontAssetPostProcessor : AssetPostprocessor
         string[] movedAssets, 
         string[] movedFromAssetPaths)
     {
+        bool hasChanges = false;
+        
         foreach (string path in importedAssets)
         {
             if (path.EndsWith(".asset"))
@@ -42,23 +44,34 @@ public class FontAssetPostProcessor : AssetPostprocessor
                 TMP_FontAsset fontAsset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
                 if (fontAsset != null)
                 {
+                    bool needsUpdate = false;
+                    
                     // Atlas Population Modeを確認・設定
                     if (AUTO_SET_DYNAMIC_MODE && fontAsset.atlasPopulationMode != AtlasPopulationMode.Dynamic)
                     {
                         fontAsset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
-                        EditorUtility.SetDirty(fontAsset);
+                        needsUpdate = true;
                         Debug.Log($"[FontAssetPostProcessor] Set Dynamic mode for: {fontAsset.name}");
                     }
                     
                     // Font Assetのキャッシュをクリア
                     fontAsset.ClearFontAssetData(true);
                     
-                    // アセットを保存
-                    AssetDatabase.SaveAssets();
+                    if (needsUpdate)
+                    {
+                        EditorUtility.SetDirty(fontAsset);
+                        hasChanges = true;
+                    }
                     
-                    Debug.Log($"[FontAssetPostProcessor] Cleared cache and updated: {fontAsset.name} (Mode: {fontAsset.atlasPopulationMode})");
+                    Debug.Log($"[FontAssetPostProcessor] Cleared cache for: {fontAsset.name} (Mode: {fontAsset.atlasPopulationMode})");
                 }
             }
+        }
+        
+        // 実際に変更があった場合のみ保存
+        if (hasChanges)
+        {
+            AssetDatabase.SaveAssets();
         }
     }
 }
