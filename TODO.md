@@ -1,5 +1,73 @@
 # TODO / 備忘録
 
+## 作業履歴
+
+### 2026-01-10: ユーティリティクラスへの大規模リファクタリング
+
+**実施内容**:
+
+1. **LoadStreamingAssetの拡張**
+   - YAML関連メソッド追加: `GetYamlFileName()`, `YamlFileExists()`
+   - ファイル名定数の追加: `YAML_FILE_EXTENSION`, `STAGE_LIST_FILE_NAME`, `ABOUT_GAME_FILE_NAME`, `NOTICE_FILE_NAME`
+   - StreamingAssets操作の完全な集約化
+
+2. **新規ユーティリティクラスの作成**
+   - **FileOperationUtility** (122行): プラットフォーム別エディタ起動、画像読み込み
+   - **UIHelper** (216行): GameObject検索、ボタン登録、スクロール制御、パネルセットアップ
+   - **LogUtility** (173行): レベル別ログ出力(Debug/Info/Warning/Error)、ファイル記録機能
+   - **SceneLoaderUtility** (44行): シーン遷移管理、遅延読み込み対応
+   - **StageDataManager** (137行): CSV読み込み、シーンデータ管理、重複処理
+
+3. **UIスクロール制御の改善**
+   - `UIHelper.ResetScrollbarInPanel()`: ScrollRect.normalizedPositionを使用
+   - アクティブ状態チェックを関数内に内包
+   - 変数格納不要、親パネルから自動検索
+   - GetComponentInChildren(true)で非アクティブな子も検索可能
+
+4. **TitleStartCtrlの大幅削減**
+   - **742行 → 約300行 (約60%削減)**
+   - 削除した要素:
+     - フィールド: `_StageScrollbar`, `_EditorScrollbar`
+     - 定数: `_CHILD_PATH_SCROLLVIEW_SCROLLBAR`, ファイル関連定数(4個)、エディタコマンド(4個)、メッセージ(8個)
+     - メソッド: 7個のUI操作、4個のデータ管理、LoadScene関係
+   - ユーティリティクラスへの移行完了
+
+5. **FontAssetPostProcessor修正**
+   - 無限ループ問題の解決: `hasChanges`フラグで条件付きSaveAssets実行
+
+6. **instructions.md規約追加**
+   - セクション8: ユーティリティクラスの設計原則
+   - セクション9: UIスクロールビューの取り扱い
+   - コード提案前のチェックリスト(11項目)
+   - 各ユーティリティクラスの使用例とパターン
+
+**技術詳細**:
+
+- **ScrollRect制御**: `Scrollbar.value`直接操作から`ScrollRect.normalizedPosition`に変更
+  - 理由: ScrollRectがScrollbarを制御するため直接値変更は無視される
+  - 実装: `normalizedPosition = new Vector2(0, 1)` でトップに移動
+  - タイミング: コンテンツ設定後(テキスト・アイテム追加後)にリセット
+
+- **LogUtility機能**:
+  - エディタ: 全レベル表示、ファイル出力なし
+  - ビルド: Warning以上のみ表示+ファイル出力
+  - ファイル: `Application.persistentDataPath/game.log`
+  - 条件付きコンパイル: `#if UNITY_EDITOR`
+
+- **CSV重複処理**: `ContainsKey`チェックでスキップ+警告ログ
+
+**コミット情報**:
+- コミット: `5239f1a3`
+- メッセージ: "refactor(ui): ユーティリティクラスへの機能集約とスクロール制御の改善"
+- 変更: 20ファイル, +1468行, -710行
+
+**次のステップ**:
+- Phase 2完了に向けたStageUIBuilder作成(オプション)
+- Phase 3: TitleStartConstants作成(オプション)
+- 目標: TitleStartCtrl 250-300行
+
+---
+
 ## UI関連
 
 ### WindowCloseCtrl - イベント重複登録の懸念
