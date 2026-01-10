@@ -18,22 +18,11 @@ public class TitleStartCtrl : MonoBehaviour
     private const float _STAGE_SELECTOR_HEIGHT = 100f;
     private const float _STAGE_SELECTOR_MARGIN = 5f;
 
-    // GameObject Names
-    private const string _OBJ_LOADING = "nowloading";
-    private const string _OBJ_BTN_GAME_CLOSE = "btnGameClose";
-    private const string _OBJ_BTN_ABOUT_GAME = "btnAboutGame";
-    private const string _OBJ_BTN_YAML_EDIT = "btnYamlEdit";
-    private const string _OBJ_BTN_SELECT_STAGE = "btnSelectStage";
-    private const string _OBJ_BTN_BUG_REPORT = "btnBugReport";
+    // GameObject Names (used multiple times)
     private const string _OBJ_PNL_STAGE_SELECTOR = "pnlStageSelector";
     private const string _OBJ_PNL_ABOUT_THIS_GAME = "pnlAboutThisGame";
     private const string _OBJ_PNL_BOTTOM_BAR = "pnlBottomBar";
     private const string _OBJ_PNL_STAGE_EDITOR = "pnlStageEditor";
-    private const string _OBJ_PNL_STAGE_EDITOR_BOTTOM = "pnlStageEditorBottom";
-    private const string _OBJ_TXT_VERSION_INFO = "txtVersionInfo";
-    private const string _OBJ_TMP_GAME_INFO = "tmpGameInfo";
-    private const string _OBJ_TMP_NOTICE = "tmpNotice";
-    private const string _OBJ_TMP_INPUT_FIELD = "tmpYAMLView";
     private const string _OBJ_TMP_YAML_PATH = "tmpYamlPath";
    
     // Prefab Child Element Names
@@ -47,7 +36,6 @@ public class TitleStartCtrl : MonoBehaviour
     
     // UI Child Paths (relative to parent)
     private const string _CHILD_PATH_SCROLLVIEW_CONTENT = "Scroll View/Viewport/Content";
-    private const string _UI_STAGE_INFO_BOX = "UIStageInfoBox";
     
     // UI Messages
     private const string _MSG_SCENE_PATH_NOT_FOUND = "Scene path not found: ";
@@ -107,7 +95,7 @@ public class TitleStartCtrl : MonoBehaviour
             return;
         }
         GameObject stageListItem = UnityEngine.Object.Instantiate(PrefabManager.UIStageInfoBoxPrefab, content.transform);
-        stageListItem.name = _UI_STAGE_INFO_BOX;
+        stageListItem.name = "UIStageInfoBox";
         stageListItem.transform.Find(_CHILD_TXT_STAGE_DISPLAY_NAME).GetComponent<TextMeshProUGUI>().text = stageinfo[0];
         
         // StreamingAssetsから画像を読み込み
@@ -181,7 +169,7 @@ public class TitleStartCtrl : MonoBehaviour
         }
         _pnlStageEditor.SetActive(value: true);
 
-        GameObject gameObject = GameObject.Find(_OBJ_TMP_INPUT_FIELD);
+        GameObject gameObject = GameObject.Find("tmpYAMLView");
         if (gameObject == null)
         {
             return;
@@ -232,7 +220,7 @@ public class TitleStartCtrl : MonoBehaviour
     private void OnClickAboutGame()
     {
         _pnlAboutThisGame.SetActive(value: true);
-        TextMeshProUGUI component = GameObject.Find(_OBJ_TMP_GAME_INFO).GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI component = GameObject.Find("tmpGameInfo").GetComponent<TextMeshProUGUI>();
         string text = LoadStreamingAsset.AllTextStream(LoadStreamingAsset.ABOUT_GAME_FILE_NAME, LoadStreamingAsset._PUBLIC_DOC_SUB_FOLDER);
         if (text == null)
         {
@@ -262,7 +250,7 @@ public class TitleStartCtrl : MonoBehaviour
 
     private bool OpenYamlByNotePad()
     {
-        GameObject yamlPathObject = GameObject.Find(_OBJ_TMP_YAML_PATH);
+        GameObject yamlPathObject = GameObject.Find("tmpYamlPath");
         if (yamlPathObject == null)
         {
             return false;
@@ -322,7 +310,7 @@ public class TitleStartCtrl : MonoBehaviour
 
     private void InitializeLoadingCanvas(List<string> missingObjects)
     {
-        _loading = UIHelper.FindOrInstantiatePrefab(_OBJ_LOADING, UIHelper.PREFAB_PATH_LOADING, missingObjects, setActiveFalse: true);
+        _loading = UIHelper.FindOrInstantiatePrefab("nowloading", UIHelper.PREFAB_PATH_LOADING, missingObjects, setActiveFalse: true);
     }
 
     private void InitializePanels(List<string> missingObjects)
@@ -333,17 +321,17 @@ public class TitleStartCtrl : MonoBehaviour
         _pnlBottomBar = UIHelper.FindAndSetupPanel(_OBJ_PNL_BOTTOM_BAR, missingObjects, true);
         if (_pnlStageEditor != null)
         {
-            _pnlStageEditorBottom = UIHelper.FindGameObject(_OBJ_PNL_STAGE_EDITOR_BOTTOM, missingObjects, "Panel", _pnlStageEditor);
+            _pnlStageEditorBottom = UIHelper.FindGameObject("pnlStageEditorBottom", missingObjects, "Panel", _pnlStageEditor);
         }
     }
 
     private void RegisterButtonListeners(List<string> missingObjects)
     {
-        UIHelper.RegisterButton(_OBJ_BTN_GAME_CLOSE, OnClickGameClose, missingObjects);
-        UIHelper.RegisterButton(_OBJ_BTN_ABOUT_GAME, OnClickAboutGame, missingObjects);
-        UIHelper.RegisterButton(_OBJ_BTN_SELECT_STAGE, OnClickStageSelect, missingObjects);
-        UIHelper.RegisterButton(_OBJ_BTN_BUG_REPORT, OnClickBugReport, missingObjects, _pnlBottomBar);
-        UIHelper.RegisterButton(_OBJ_BTN_YAML_EDIT, OnClickYamlEdit, missingObjects, _pnlStageEditorBottom);
+        UIHelper.RegisterButton("btnGameClose", OnClickGameClose, missingObjects);
+        UIHelper.RegisterButton("btnAboutGame", OnClickAboutGame, missingObjects);
+        UIHelper.RegisterButton("btnSelectStage", OnClickStageSelect, missingObjects);
+        UIHelper.RegisterButton("btnBugReport", OnClickBugReport, missingObjects, _pnlBottomBar);
+        UIHelper.RegisterButton("btnYamlEdit", OnClickYamlEdit, missingObjects, _pnlStageEditorBottom);
     }
 
     private void InitializeStageContents(List<string> missingObjects)
@@ -367,7 +355,7 @@ public class TitleStartCtrl : MonoBehaviour
 
     private void InitializeVersionInfo(List<string> missingObjects)
     {
-        TextMeshProUGUI textComponent = UIHelper.FindTextComponent(_OBJ_TXT_VERSION_INFO, missingObjects, "VersionInfo", _pnlBottomBar);
+        TextMeshProUGUI textComponent = UIHelper.FindTextComponent("txtVersionInfo", missingObjects, "VersionInfo", _pnlBottomBar);
         if (textComponent != null)
         {
             textComponent.SetText(GameObjectTreat.GetAppBuildDate());
@@ -376,7 +364,7 @@ public class TitleStartCtrl : MonoBehaviour
 
     private void InitializeNotice(List<string> missingObjects)
     {
-        TextMeshProUGUI textComponent = UIHelper.FindTextComponent(_OBJ_TMP_NOTICE, missingObjects, "NoticeText");
+        TextMeshProUGUI textComponent = UIHelper.FindTextComponent("tmpNotice", missingObjects, "NoticeText");
         InitializeTextFromFile(textComponent, LoadStreamingAsset.NOTICE_FILE_NAME, _MSG_NOTICE_NOT_FOUND, _MSG_NOTICE_ERROR, _MSG_NOTICE_LOADED);
     }
 

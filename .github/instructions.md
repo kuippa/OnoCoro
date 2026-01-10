@@ -661,6 +661,22 @@ Process.Start("notepad.exe");
 
 数値や文字列リテラルは、必ず名前付き定数として定義してください。
 
+**例外規定:**
+以下の場合は、可読性向上のため直値の使用を許可します：
+- **一度しか使われない値**で、その後の処理が成立しないような必須のオブジェクト名
+- 再利用や変更の予定がない値
+- 定数化することで逆にコードが読みにくくなる場合
+
+例: 初期化メソッド内でのみ使用されるGameObject名など
+```csharp
+// ✅ 一度しか使わない場合は直値でOK
+private void Initialize()
+{
+    _loading = UIHelper.FindOrInstantiatePrefab("nowloading", path, missingObjects);
+    UIHelper.RegisterButton("btnStart", OnClickStart, missingObjects);
+}
+```
+
 ❌ **悪い例:**
 ```csharp
 if (count > 10)

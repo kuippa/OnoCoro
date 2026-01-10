@@ -1,26 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using System;
-using System.IO;
+using System.Globalization;
+using UnityEngine;
 
 namespace CommonsUtility
 {
     public static class Utility
     {
-
-        // floatの場合はmaxまで
         internal static float fRandomRange(float min, float max)
         {
-            float num = UnityEngine.Random.Range(min, max);
-            return num;
+            return UnityEngine.Random.Range(min, max);
         }
 
         internal static int fRandomRange(int min, int max)
         {
-            int ret = UnityEngine.Random.Range(min, max+1);   // int 指定の場合は min - max-1
-            return ret;
+            return UnityEngine.Random.Range(min, max + 1);
         }
 
         internal static string GetAppVersion()
@@ -33,8 +26,7 @@ namespace CommonsUtility
 
             string app_versions = 
                 "Version: " + 
-                string.Join(".",versiontxt.text.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None));
-                // string.Join(".", versiontxt.text.Split(GlobalConst.LINE_FEEDS, StringSplitOptions.None));
+                string.Join(".", versiontxt.text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None));
             return app_versions;
         }
 
@@ -45,7 +37,14 @@ namespace CommonsUtility
             return dp;
         }
 
-
+        internal static Vector3 StringToVector3(string str)
+        {
+            string[] array = str.Trim('(', ')').Split(',');
+            float x = float.Parse(array[0], CultureInfo.InvariantCulture);
+            float y = float.Parse(array[1], CultureInfo.InvariantCulture);
+            float z = float.Parse(array[2], CultureInfo.InvariantCulture);
+            return new Vector3(x, y, z);
+        }
     }
 
 }

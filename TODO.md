@@ -2,6 +2,45 @@
 
 ## 作業履歴
 
+### 2026-01-11: CameraCtrlのリファクタリング
+
+**実施内容**:
+
+1. **カメラモードのenum化**
+   - `CameraMode`列挙型を追加（FPS, TPS, LongShot, BirdView）
+   - モード判定ロジックを`GetCameraModeFromZoomLevel()`に統一
+
+2. **責務の分離**
+   - 巨大だった`SetCameraDistance()`を各モード専用のメソッドに分割：
+     - `ApplyFPSMode()` - FPSモードの設定
+     - `ApplyTPSMode()` - TPSモードの設定
+     - `ApplyLongShotMode()` - ロングショットの設定
+     - `ApplyBirdViewMode()` - バードビューの設定
+
+3. **最小値・最大値の適切な処理**
+   - FPS/TPSモードで`Mathf.Clamp()`により範囲制限を明示化
+   - カメラ切り替え時の境界値処理を改善
+
+4. **カメラオブジェクトのキャッシュ**
+   - `CacheCamera()`メソッドで初回にオブジェクトをキャッシュ
+   - 毎フレーム`GameObject.Find()`を実行しないように最適化
+
+5. **補間処理の統一**
+   - `UpdateCameraDistanceSmooth()`メソッドで補間処理を一元化
+   - モード切替時の補間リセット処理を整理
+
+6. **不要コードの削除**
+   - 未使用の`EasingCameraOffset()`メソッドを削除
+   - 未使用の`GetPlayerCamera()`メソッドを削除
+
+**TODO**:
+- [ ] **ズームレベルの動作感の再調整**: 現在の実装では動作感が適切でないため、将来的にズーム速度や範囲の調整が必要
+
+**関連ファイル**:
+- `Assets/Scripts/View/CameraCtrl.cs`
+
+---
+
 ### 2026-01-10: ユーティリティクラスへの大規模リファクタリング
 
 **実施内容**:
