@@ -1,30 +1,17 @@
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using System;
+using UnityEngine;
 
 public class PlateauBuildingInteractor : MonoBehaviour
 {
-
     private Dictionary<string, Material[]> _buildingMaterials = new Dictionary<string, Material[]>();
-    internal List<GameObject> _doomedBuildings = new List<GameObject>();
-    // public event Action<GameObject> OnBuildingRebuilt;
-
-    // ... 他のフィールドと定数は前回のコードと同じ ...
-
-    // public void InitiateRebuildProcess(GameObject building, Action onComplete)
-    // {
-    //     CallCircularIndicator(building, () => {
-    //         RestoreBuildingMaterial(building);
-    //         // OnBuildingRebuilt?.Invoke(building);
-    //         onComplete?.Invoke();
-    //     });
-    // }    
+    internal List<GameObject> _doomedBuildings = new List<GameObject>();    
 
     internal void DeleteBuilding(GameObject building)
     {
         RestoreBuildingMaterial(building);
         _doomedBuildings.Remove(building);
-        Destroy(building);
+        Object.Destroy(building);
     }
 
     internal void SetBuildingToDoom(GameObject building)
@@ -41,11 +28,8 @@ public class PlateauBuildingInteractor : MonoBehaviour
     {
         SetMaterialToOriginal(building);
         _doomedBuildings.Remove(building);
-
-
         if (StageGoalCtrl.IsBuildingAllRepair())
         {
-            // すべての建物が修復済みか確認
             if (_doomedBuildings.Count == 0)
             {
                 Debug.Log("IsBuildingAllRepair");
@@ -56,7 +40,6 @@ public class PlateauBuildingInteractor : MonoBehaviour
                 Debug.Log("NotBuildingAllRepair" + _doomedBuildings.Count);
             }
         }
-
     }
 
     internal bool IsBuildingDoomed(GameObject building)
@@ -78,16 +61,23 @@ public class PlateauBuildingInteractor : MonoBehaviour
 
     private void ApplyDoomMaterial(GameObject building)
     {
-        Material doomMaterial = Resources.Load("Materials/PlateauGenericWood") as Material;
-        Renderer renderer = building.GetComponent<Renderer>();
-        if (renderer != null)
+        StartCoroutine(ApplyDoomMaterialCoroutine(building));
+    }
+
+    private IEnumerator ApplyDoomMaterialCoroutine(GameObject building)
+    {
+        Material source = Resources.Load("Materials/PlateauGenericWood") as Material;
+        Renderer component = building.GetComponent<Renderer>();
+        building.GetComponentsInChildren<Renderer>();
+        if (component != null)
         {
-            Material[] materials = new Material[renderer.materials.Length];
-            for (int i = 0; i < materials.Length; i++)
+            Material[] array = new Material[component.materials.Length];
+            for (int i = 0; i < array.Length; i++)
             {
-                materials[i] = doomMaterial;
+                array[i] = new Material(source);
             }
-            renderer.materials = materials;
+            component.materials = array;
+            yield return null;
         }
     }
 
@@ -103,41 +93,13 @@ public class PlateauBuildingInteractor : MonoBehaviour
         }
     }
 
-    // private void CallCircularIndicator(GameObject building, Action onComplete)
-    // {
-    //     // CircularIndicatorの実装はプロジェクトの仕様に応じて調整が必要です
-    //     GameObject indicator = Instantiate(Resources.Load("Prefabs/UI/UICircularIndicator")) as GameObject;
-    //     CircularIndicator circularIndicator = indicator.GetComponent<CircularIndicator>();
-        
-    //     GameObject indicatorObject = new GameObject("Indicator");
-    //     indicatorObject.transform.SetParent(building.transform);
-        
-    //     Renderer renderer = building.GetComponent<Renderer>();
-    //     Vector3 center = renderer.bounds.center;
-    //     center.y += 10f; // 適切な高さに調整
-    //     indicatorObject.transform.position = center;
-
-    //     circularIndicator.StartIndicator(5f, () => {
-    //         onComplete?.Invoke();
-    //         Destroy(indicator);
-    //         Destroy(indicatorObject);
-    //     }, indicatorObject);
-    // }
-
-    // private void OnBuildingRebuilt(GameObject rebuiltBuilding)
-    // {
-    //     Dictionary<string, string> updatedInfo = PlateauDataExtractor.ExtractBuildingInfo(rebuiltBuilding);
-    //     PlateauUIManager.Instance.UpdateBuildingInfo(updatedInfo);
-    //     // 他のシステムで必要な更新をトリガー
-    // }
-
     private void OnDestroy()
     {
-        foreach (var materials in _buildingMaterials.Values)
+        foreach (Material[] value in _buildingMaterials.Values)
         {
-            foreach (var material in materials)
+            for (int i = 0; i < value.Length; i++)
             {
-                Destroy(material);
+                Object.Destroy(value[i]);
             }
         }
         _buildingMaterials.Clear();

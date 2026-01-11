@@ -231,7 +231,17 @@ namespace CommonsUtility
             }
             if (tag_name != "")
             {
-                parent.tag = tag_name;
+                // タグが存在するか確認してから設定
+                try
+                {
+                    parent.tag = tag_name;
+                }
+                catch (UnityException ex)
+                {
+                    #if UNITY_EDITOR
+                    Debug.LogWarning($"[GameObjectTreat] タグ '{tag_name}' が定義されていません。Edit > Project Settings > Tags and Layers で追加してください。");
+                    #endif
+                }
             }
             return parent.transform;
         }

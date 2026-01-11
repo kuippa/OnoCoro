@@ -41,6 +41,55 @@
 
 ---
 
+### 2026-01-11: InitializationManagerの実装
+
+**実施内容**:
+
+1. **InitializationManagerクラスの作成**
+   - コンポーネント初期化の順序制御を行うマネージャー
+   - シングルトンパターンで実装
+   - 全てのAwakeメソッド完了後に順序制御された初期化を実行
+
+2. **主要機能**
+   - `IsInitialized`: 全体の初期化完了フラグ
+   - `IsStepInitialized(stepName)`: ステップごとの初期化完了確認
+   - `InitializeAllComponents()`: 段階的な初期化処理
+   - `ResetInitialization()`: シーン遷移時の初期化状態リセット
+
+3. **初期化ステップ**
+   - ステップ1: リソースローダーの初期化
+   - ステップ2: マネージャークラスの初期化
+   - ステップ3: UIコンポーネントの初期化
+   - 各ステップは拡張可能な設計
+
+4. **使用パターン**
+   - パターン1: 全体の初期化完了を待つ（シンプル）
+   - パターン2: 部品側に初期化完了フラグを実装
+   - パターン3: ステップごとの初期化制御（高度）
+   - パターン4: 非同期処理の完了待ち
+
+5. **詳細ドキュメント**
+   - `InitializationManager_Usage.md`: 使用ガイド
+   - 問題点の説明、セットアップ手順、使用方法
+   - ベストプラクティス、トラブルシューティング
+   - 完全な実装例とサンプルコード
+
+**推奨設定**:
+- Script Execution Order: `-100` (最優先実行)
+- シーンに空のGameObjectを作成してアタッチ
+- DontDestroyOnLoadでシーン遷移時も保持
+
+**TODO**:
+- [ ] **各Ctrlクラスへの適用**: FireCubeCtrl、GarbageCubeCtrl等に初期化完了フラグを実装
+- [ ] **UnitFireDisasterの修正**: InitializationManagerを使用した初期化待機処理に変更
+- [ ] **Script Execution Orderの設定**: Project Settingsで実行順序を設定
+
+**関連ファイル**:
+- `Assets/Scripts/Utility/InitializationManager.cs`
+- `Assets/Scripts/Utility/InitializationManager_Usage.md`
+
+---
+
 ### 2026-01-10: ユーティリティクラスへの大規模リファクタリング
 
 **実施内容**:

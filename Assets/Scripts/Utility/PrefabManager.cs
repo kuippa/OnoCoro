@@ -211,4 +211,54 @@ public class PrefabManager
 	internal static int StopPlateUID => _stopPlateUID++;
 
 	internal static int PowerCubeUID => _powerCubeUID++;
+
+	/// <summary>
+	/// プレハブが利用可能かチェックします（nullチェック）
+	/// </summary>
+	/// <param name="prefab">チェックするプレハブ</param>
+	/// <param name="prefabName">プレハブ名（ログ用）</param>
+	/// <returns>利用可能な場合true</returns>
+	public static bool IsAvailable(GameObject prefab, string prefabName)
+	{
+		if (prefab == null)
+		{
+			#if UNITY_EDITOR
+			Debug.LogWarning($"[PrefabManager] {prefabName} プレハブが見つかりません。プレハブを復元後に機能します。");
+			#endif
+			return false;
+		}
+		return true;
+	}
+
+	/// <summary>
+	/// プレハブを安全に取得します（nullの場合はエラーログ）
+	/// </summary>
+	/// <param name="prefab">取得するプレハブ</param>
+	/// <param name="prefabName">プレハブ名（ログ用）</param>
+	/// <param name="fallbackPath">フォールバック用のResourcesパス（オプション）</param>
+	/// <returns>プレハブ、またはnull</returns>
+	public static GameObject GetSafe(GameObject prefab, string prefabName, string fallbackPath = null)
+	{
+		if (prefab != null)
+		{
+			return prefab;
+		}
+
+		if (!string.IsNullOrEmpty(fallbackPath))
+		{
+			prefab = Resources.Load<GameObject>(fallbackPath);
+			if (prefab != null)
+			{
+				#if UNITY_EDITOR
+				Debug.Log($"[PrefabManager] {prefabName} をResourcesから読み込みました: {fallbackPath}");
+				#endif
+				return prefab;
+			}
+		}
+
+		#if UNITY_EDITOR
+		Debug.LogError($"[PrefabManager] {prefabName} プレハブが見つかりません。パス: {fallbackPath ?? "指定なし"}");
+		#endif
+		return null;
+	}
 }

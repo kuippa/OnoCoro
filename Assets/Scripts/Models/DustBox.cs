@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class StopPlate : MonoBehaviour, IItemStructProvider, IUnitStructProvider
+public class DustBox : MonoBehaviour, IItemStructProvider
 {
     internal ItemStruct _item_struct;
     internal UnitStruct _unit_struct;
@@ -10,7 +10,7 @@ public class StopPlate : MonoBehaviour, IItemStructProvider, IUnitStructProvider
 
     private void Awake()
     {
-        _item_struct = new ItemStruct("StopPlate", "StopPlateID", "Tips StopPlate", "StopPlate Info", 5, "BIT", 0.1f, 1, "imgs/icons/virus-covid-solid", "imgs/icons/virus-covid-solid", 10);
+        _item_struct = new ItemStruct("DustBox", "DustBoxID", "ゴミ箱", "ごみが入ると消える。近くにあればそこに捨てようかなぐらいのモラルを引き起こす。", 10, "BIT", 1f, 1, "imgs/icons/spaghetti-monster-flying-solid", "imgs/icons/spaghetti-monster-flying-solid", 2);
         _unit_struct = new UnitStruct(_item_struct.Name, _item_struct.ItemID, 1, _item_struct.Info, 0, _item_struct.CreateCost, 0, "CLK");
     }
 

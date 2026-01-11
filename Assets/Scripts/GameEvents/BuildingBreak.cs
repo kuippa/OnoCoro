@@ -1,13 +1,11 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using CommonsUtility;
+using UnityEngine.SceneManagement;
 
 public class BuildingBreak : MonoBehaviour
 {
     private List<GameObject> _buildingGameObject = new List<GameObject>();
-
 
     internal void EventBreakBuilding(string event_value)
     {
@@ -15,88 +13,59 @@ public class BuildingBreak : MonoBehaviour
         {
             return;
         }
-        GameObject _plateauInfo = null;
-        _plateauInfo = GameObject.Find(GlobalConst.PLATEAU_OBJ_NAME);
-        PlateauInfoManager plateauInfo = _plateauInfo.GetComponent<PlateauInfoManager>();
-        if (_plateauInfo == null || plateauInfo == null)
+        GameObject obj = GameObject.Find("Plateau");
+        PlateauInfoManager component = obj.GetComponent<PlateauInfoManager>();
+        if (obj == null || component == null)
         {
-            // Debug.Log("PlateauInfo is null");
             return;
         }
-
         if (event_value == "all")
         {
-            foreach (var obj in _buildingGameObject)
+            foreach (GameObject item in _buildingGameObject)
             {
-                if (obj == null || obj.activeSelf == false)
+                if (!(item == null) && item.activeSelf)
                 {
-                    continue;
+                    component.SetBuildingToDoom(item);
                 }
-                plateauInfo.SetBuildingToDoom(obj);
             }
             return;
         }
-        else
+        if (!int.TryParse(event_value, out var result))
         {
-            // event_value が 数字なら、その数の建物を破壊する
-            if (!Int32.TryParse(event_value, out int n))
-            {
-                Debug.Log("event_value is not number");
-                return;
-            }
-            int i = 0;
-            // TODO: random に選択する
-            foreach (var obj in _buildingGameObject)
-            {
-                if (i > n)
-                {
-                    return;
-                } 
-                plateauInfo.SetBuildingToDoom(obj);
-                i++;
-            }
+            Debug.Log("event_value is not number");
             return;
         }
-
-        // Debug.Log(_buildingGameObject[0].name);
-        // _plateauInfo.GetComponent<PlateauInfo>().SetMaterialToDoom(_buildingGameObject[0]);        
-
+        int num = 0;
+        foreach (GameObject item2 in _buildingGameObject)
+        {
+            if (num >= result)
+            {
+                break;
+            }
+            component.SetBuildingToDoom(item2);
+            num++;
+        }
     }
 
-
-
-    void Awake()
+    private void Awake()
     {
-        // .gml 以下、LOD2 以上
-        // マップ上に存在するオブジェクトから名前にbldg_が含まれるものを取得
-        var findAllObjects = Resources.FindObjectsOfTypeAll<GameObject>();
-        foreach (var obj in findAllObjects)
+        GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+        for (int i = 0; i < rootGameObjects.Length; i++)
         {
-            if (obj.transform.parent != null)
+            foreach (GameObject item in from t in rootGameObjects[i].GetComponentsInChildren<Transform>(includeInactive: false)
+                where t.gameObject.name.Contains("bldg_")
+                select t.gameObject)
             {
-                // if (obj.transform.parent.name.Contains("LOD2") && obj.name.Contains("bldg_"))
-                if (obj.name.Contains("_LOD2_") && obj.name.Contains("bldg_"))
+                Collider component = item.GetComponent<Collider>();
+                if (!(component == null) && PlateauUtility.IsPlateauBuilding(component))
                 {
-                    _buildingGameObject.Add(obj);
-                    Debug.Log("Awake: " + obj.transform.parent.name + ": " + obj.name);
+                    _buildingGameObject.Add(item);
                 }
             }
         }
-
     }
 
-    void Update()
+    private void Update()
     {
-        // if (_is_earthquake)
-        // {
-        //     _time += Time.deltaTime;
-        //     _time_duration += Time.deltaTime;
-        //     if (_time > _interval)
-        //     {
-        //         _time = 0.0f;
-        //         QualeP();
-        //         // QuakeS();
-        //     }
-        // }
     }
 }

@@ -6,10 +6,13 @@ using UnityEngine.TextCore.Text;
 
 public class GarbageCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
 {
-    public ItemStruct ItemStruct => _item_struct;
     internal ItemStruct _item_struct = new ItemStruct();
-    public UnitStruct UnitStruct => _unit_struct;
     internal UnitStruct _unit_struct = new UnitStruct();
+
+    private const int _BASE_SCORE = 10;
+
+    public ItemStruct ItemStruct => _item_struct;
+    public UnitStruct UnitStruct => _unit_struct;
 
 
     void Awake()
@@ -41,6 +44,11 @@ public class GarbageCube : MonoBehaviour, IItemStructProvider, IUnitStructProvid
             , 10  // BaseScore
             , GlobalConst.SHORT_SCORE1_SCALE    // ScoreType
         );
+    }
+
+    internal static int GetBaseScore()
+    {
+        return _BASE_SCORE;
     }
 
     internal ItemStruct GetItemStruct()

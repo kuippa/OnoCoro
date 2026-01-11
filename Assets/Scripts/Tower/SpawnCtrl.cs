@@ -6,6 +6,10 @@ using TMPro;
 using CommonsUtility;
 using System;
 
+/// <summary>
+/// ユニットスポーン管理クラス
+/// 各種ユニット（ゴミキューブ、炎キューブ、タワー等）の生成を制御します
+/// </summary>
 public class SpawnCtrl : MonoBehaviour 
 {
     public static SpawnCtrl _instance = null;
@@ -27,7 +31,7 @@ public class SpawnCtrl : MonoBehaviour
         }
     }
 
-    void Awake()
+    private void Awake()
     {
         if (_instance == null)
         {
@@ -35,7 +39,7 @@ public class SpawnCtrl : MonoBehaviour
         }
     }
 
-    void OnDestory()
+    private void OnDestory()
     {
         // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (_instance == this)
@@ -44,15 +48,9 @@ public class SpawnCtrl : MonoBehaviour
         }
     }
 
-    // private void SpawnEnemyLitter()
-    // {
-    //     // Vector3 setPoint = new Vector3(0.5f, 1.65f, -4);
-    //     Vector3 setPoint = GetSpawnPoint();
-    //     GameObject EnemyLitter = Instantiate(Resources.Load("Prefabs/EnemyLitter")) as GameObject;
-    //     EnemyLitter obj = EnemyLitter.GetComponent<EnemyLitter>();
-    //     obj.CreateLitterUnit(setPoint);
-    // }
-
+    /// <summary>
+    /// ユニット名でユニットを生成します
+    /// </summary>
     internal bool CallUnitByName(string unitName, Vector3 spawnPoint = default(Vector3))
     {
         bool ret = false;
@@ -74,7 +72,7 @@ public class SpawnCtrl : MonoBehaviour
         }
         else if (unitName == GameEnum.ModelsType.Sweeper.ToString())
         {
-            ret = SpawnTowerSweeper();
+            ret = SpawnTowerSweeper(0.25f, spawnPoint);
         }
         else if (unitName == GameEnum.ModelsType.PowerCube.ToString())
         {
@@ -88,27 +86,99 @@ public class SpawnCtrl : MonoBehaviour
         {
             ret = SpawnFireCube(spawnPoint);
         }
-        else if (unitName == GameEnum.ModelsType.Extinguishing.ToString())
+        else if (unitName == GameEnum.ModelsType.WaterTurret.ToString())
         {
-            ret = SpawnExtinguishing(spawnPoint);
+            ret = SpawnWaterTurret(spawnPoint);
+        }
+        else if (unitName == GameEnum.ModelsType.DustBox.ToString())
+        {
+            ret = SpawnDustBox(spawnPoint);
+        }
+        else if (unitName == GameEnum.ModelsType.SentryGuard.ToString())
+        {
+            ret = SpawnSentryGuard(spawnPoint);
         }
         else
         {
-            Debug.Log("default" + unitName);
+            Debug.Log("default CallUnitByName: " + unitName);
         }
         return ret;
     }
 
-    private bool SpawnExtinguishing(Vector3 spawnPoint = default(Vector3))
+    /// <summary>
+    /// 敵ユニット名で敵を生成します
+    /// </summary>
+    internal bool CallEnemyUnitByName(string unitName, string[] marker_names)
     {
-        float dropbuffer = 1.5f;        
         bool result = false;
-        spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
-        GameObject Extinguishing = Instantiate(Resources.Load("Prefabs/WorkUnit/Extinguishing")) as GameObject;
-        ExtinguishingCtrl obj = Extinguishing.GetComponent<ExtinguishingCtrl>();
-        obj.CreateExtinguishingUnit(spawnPoint);
-        result = true;
+        if (unitName == null || unitName == "")
+        {
+            return result;
+        }
+        if (unitName == GameEnum.ModelsType.Litter.ToString())
+        {
+            result = SpawnLitter(marker_names);
+        }
+        else
+        {
+            Debug.Log("default CallEnemyUnitByName: " + unitName);
+        }
         return result;
+    }
+
+    private bool SpawnSentryGuard(Vector3 spawnPoint = default(Vector3))
+    {
+        // float dropbuffer = 0.05f;
+        // spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        // Quaternion spawnRotateAngle = GetSpawnRotateAngle();
+        // GameObject gameObject = Instantiate(PrefabManager.SentryGuardPrefab, spawnPoint, spawnRotateAngle);
+        // int sentryGuardUID = PrefabManager.SentryGuardUID;
+        // gameObject.name = GameEnum.ModelsType.SentryGuard.ToString() + sentryGuardUID;
+        // SentryGuard orAddComponent = GameObjectTreat.GetOrAddComponent<SentryGuard>(gameObject);
+        // orAddComponent._item_struct.ItemID = gameObject.name;
+        // orAddComponent._unit_struct.UnitID = gameObject.name;
+        return true;
+    }
+
+    private bool SpawnDustBox(Vector3 spawnPoint = default(Vector3))
+    {
+        float dropbuffer = 0.05f;
+        Quaternion spawnRotateAngle = GetSpawnRotateAngle();
+        spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        GameObject gameObject = Instantiate(PrefabManager.DustBoxPrefab, spawnPoint, spawnRotateAngle);
+        int dustBoxUID = PrefabManager.DustBoxUID;
+        gameObject.name = GameEnum.ModelsType.DustBox.ToString() + dustBoxUID;
+        DustBox orAddComponent = GameObjectTreat.GetOrAddComponent<DustBox>(gameObject);
+        orAddComponent._item_struct.ItemID = gameObject.name;
+        orAddComponent._unit_struct.UnitID = gameObject.name;
+        return true;
+    }
+
+    private bool SpawnLitter(string[] marker_names)
+    {
+        // GameObject gameObject = Instantiate(PrefabManager.EnemyLitterPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
+        // EnemyLitter component = gameObject.GetComponent<EnemyLitter>();
+        // int idx = EnemyLitter._idx;
+        // gameObject.name = GameEnum.ModelsType.Litter.ToString() + idx;
+        // Litter orAddComponent = GameObjectTreat.GetOrAddComponent<Litter>(gameObject);
+        // orAddComponent._unit_struct.UnitID = gameObject.name;
+        // orAddComponent._item_struct.ItemID = gameObject.name;
+        // component.InitUnitSpawn(marker_names);
+        return true;
+    }
+
+    private bool SpawnWaterTurret(Vector3 spawnPoint = default(Vector3))
+    {
+// TODO:
+        // float dropbuffer = 1.5f;
+        // GameObject waterTurretPrefab = PrefabManager.WaterTurretPrefab;
+        // if (waterTurretPrefab == null)
+        // {
+        //     waterTurretPrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/WaterTurret");
+        // }
+        // spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        // Instantiate(waterTurretPrefab).GetComponent<WaterTurretCtrl>().CreateWaterTurretUnit(spawnPoint);
+        return true;
     }
 
     private bool SpawnFireCube(Vector3 spawnPoint = default(Vector3))
@@ -172,14 +242,19 @@ public class SpawnCtrl : MonoBehaviour
     private bool SpawnStopPlate(float dropbuffer = 0.05f)
     {
         bool ret = false;
-		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/StopPlate");
+        GameObject prefab = PrefabManager.StopPlatePrefab;
+        if (prefab == null)
+        {
+            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/StopPlate");
+        }
         Vector3 setPoint = GetSpawnPoint(dropbuffer);
         Quaternion setRotation = SpawnMarkerPointerCtrl.GetMarkerRotateAngle();
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
-        int idx = GameObjectTreat.IndexObjectByTag(GameEnum.TagType.StopPlate.ToString());
+        int idx = PrefabManager.StopPlateUID;
         unit.name = GameEnum.ModelsType.StopPlate.ToString() + idx.ToString();
-        unit.AddComponent<StopPlate>();
-        unit.GetComponent<StopPlate>()._item_struct.ItemID = unit.name;
+        StopPlate stopPlate = GameObjectTreat.GetOrAddComponent<StopPlate>(unit);
+        stopPlate._item_struct.ItemID = unit.name;
+        stopPlate._unit_struct.UnitID = unit.name;
 
         ret = true;
         return ret;
@@ -188,28 +263,38 @@ public class SpawnCtrl : MonoBehaviour
     private bool SpawnPowerCube(float dropbuffer = 0.25f, Vector3 setPoint = default(Vector3))
     {
         bool ret = false;
-		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/PowerCube");
+        GameObject prefab = PrefabManager.PowerCubePrefab;
+        if (prefab == null)
+        {
+            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/PowerCube");
+        }
         prefab.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
         setPoint = GetSpawnPoint(dropbuffer, setPoint);
         Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
 
-        int idx = GameObjectTreat.IndexObjectByTag(GameEnum.TagType.PowerCube.ToString());
+        int idx = PrefabManager.PowerCubeUID;
         unit.name = GameEnum.ModelsType.PowerCube.ToString() + idx.ToString();
-        unit.AddComponent<PowerCube>();
-        unit.GetComponent<PowerCube>()._item_struct.ItemID = unit.name;
-        unit.GetComponent<PowerCube>()._unit_struct.UnitID = unit.name;
+        PowerCube powerCube = GameObjectTreat.GetOrAddComponent<PowerCube>(unit);
+        powerCube._item_struct.ItemID = unit.name;
+        powerCube._unit_struct.UnitID = unit.name;
 
         ret = true;
         return ret;
     }
 
 
-    private bool SpawnTowerSweeper()
+    private bool SpawnTowerSweeper(float dropbuffer = 0.05f, Vector3 setPoint = default(Vector3))
     {
         bool ret = false;
-        Vector3 setPoint = GetSpawnPoint();
-        GameObject TowerSweeper = Instantiate(Resources.Load("Prefabs/WorkUnit/TowerSweeper")) as GameObject;
+        setPoint = GetSpawnPoint(dropbuffer, setPoint);
+        GameObject prefab = PrefabManager.TowerSweeperPrefab;
+        if (prefab == null)
+        {
+            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/TowerSweeper");
+        }
+        Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
+        GameObject TowerSweeper = Instantiate(prefab, setPoint, rotation);
         TowerSweeper obj = TowerSweeper.GetComponent<TowerSweeper>();
         obj.CreateSweeperUnit(setPoint);
         ret = true;
@@ -218,23 +303,32 @@ public class SpawnCtrl : MonoBehaviour
 
     private Vector3 GetSpawnPoint(float dropbuffer = 0.05f, Vector3 setPoint = default(Vector3))
     {
-        GameObject spawnMarker = GameObject.FindWithTag(GameEnum.UIType.SpawnMarker.ToString());
-        if (spawnMarker == null)
+        if (setPoint == default(Vector3))
         {
-            setPoint.y += dropbuffer;
-            return setPoint;
+            setPoint = SpawnMarkerPointerCtrl.GetMarkerPosition();
         }
-        SpawnMarkerPointerCtrl markerPointerCtrl = spawnMarker.GetComponent<SpawnMarkerPointerCtrl>();
-        setPoint = markerPointerCtrl.GetMarkerPosition();
         setPoint.y += dropbuffer;
         return setPoint;
+    }
+
+    private Quaternion GetSpawnRotateAngle()
+    {
+        return SpawnMarkerPointerCtrl.GetMarkerRotateAngle();
+    }
+
+    private SpawnMarkerPointerCtrl GetSpawnMarkerCtrl()
+    {
+        GameObject gameObject = GameObject.FindWithTag(GameEnum.UIType.SpawnMarker.ToString());
+        if (gameObject == null)
+        {
+            return null;
+        }
+        return gameObject.GetComponent<SpawnMarkerPointerCtrl>();
     }
 
     private float rdNum(float min, float max)
     {
         float num = Utility.fRandomRange(min, max);
-        // float num = Random.Range(min, max);
-        // int num = Random.Range(min, max);
         return num;
     }
 }

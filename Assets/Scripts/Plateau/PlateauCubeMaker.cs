@@ -1,34 +1,45 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
 using CommonsUtility;
+using UnityEngine;
 
 public class PlateauCubeMaker : MonoBehaviour
 {
-    const float _CENTER_Y_OFFSET = 5.0f;
-    const float _BUFFER_Y_OFFSET = 0.5f;
+    private const float _CENTER_Y_OFFSET = 5f;
+    private const float _BUFFER_Y_OFFSET = 0.5f;
+    private const int _MAX_GARBAGE = 200;
+    private const int _BURNING_BOOST = 10;
+
+    private static int GetAngleSpacing(int rebuildCost)
+    {
+        int num = 1;
+        if (rebuildCost < 100)
+        {
+            return 93;
+        }
+        if (rebuildCost < 200)
+        {
+            return 43;
+        }
+        return 23;
+    }
 
     internal void BreakUpBuildingCube(GameObject targetObj, int rebuildCost)
     {
-        // rebuildCost 分のゴミを生成
-        int total_score = 0;
-        int i = 0;
-        
-        // MeshFilter meshFilter = targetObj.GetComponent<MeshFilter>();
-        // if (meshFilter == null)
-        // {
-        //     return;
-        // }
-        Renderer renderer = targetObj.GetComponent<Renderer>();
-        Vector3 center = renderer.bounds.center;
-        Vector3 extents = renderer.bounds.extents;
-
-        while (total_score < rebuildCost)
+        int num = 0;
+        int num2 = 0;
+        int num3 = 1;
+        Renderer component = targetObj.GetComponent<Renderer>();
+        Vector3 center = component.bounds.center;
+        Vector3 extents = component.bounds.extents;
+        rebuildCost *= 10;
+        num3 = GetAngleSpacing(rebuildCost);
+        while (num < rebuildCost)
         {
-            total_score += CreateGarbageRoundByAngle(center, extents, 24, i);
-            i++;
-            if (i > 100)
+            num += CreateGarbageRoundByAngle(center, extents, num3, num2);
+            num2++;
+            if (num2 > 200)
             {
-                Debug.Log("i > 100");
                 break;
             }
         }
@@ -36,24 +47,38 @@ public class PlateauCubeMaker : MonoBehaviour
 
     private int CreateGarbageRoundByAngle(Vector3 center, Vector3 extents, int step, int i)
     {
-        int total_score = 0;
-        float r = GetRadius(extents);
-        float angle = 360.0f / step;
-        float radian = angle * Mathf.Deg2Rad;
-        // for (int i = 0; i < step; i++)
-        // {
-            float x1 = r * Mathf.Cos(radian * i);
-            float z1 = r * Mathf.Sin(radian * i);
-            Vector3 pos = new Vector3(center.x + x1, center.y + _BUFFER_Y_OFFSET, center.z + z1);
-            // GameObject garbage = GarbageCubeCtrl.SpawnGarbageCube(pos, GarbageCubeCtrl._SIZE_SMALL, true);
-            GameObject garbage = GarbageCubeCtrl.SpawnGarbageCube(pos, GarbageCubeCtrl._SIZE_NORMAL, false);
-            Collider collider = garbage.GetComponent<Collider>();
-            if (collider != null)
-            {
-                total_score += ScoreCtrl.GetTotalGarbageScore(collider);
-            }
-//         }
-        return total_score;
+        float radius = GetRadius(extents);
+        float num = (float)step * (MathF.PI / 180f);
+        float num2 = radius * Mathf.Cos(num * (float)i);
+        float num3 = radius * Mathf.Sin(num * (float)i);
+        float num4 = Mathf.PerlinNoise(num2 * 0.1f, num3 * 0.1f) * 0.5f;
+        num2 += num4;
+        num3 += num4;
+        Vector3 pos = new Vector3(center.x + num2, center.y + 0.5f, center.z + num3);
+        return CreateGarbageCubeSmall(pos);
+    }
+
+    private int CreateGarbageCubeNormal(Vector3 pos)
+    {
+        int num = 0;
+        Collider component = GarbageCubeCtrl.SpawnGarbageCube(pos).GetComponent<Collider>();
+        if (component != null)
+        {
+            num += ScoreCtrl.GetTotalGarbageScore(component);
+        }
+        return num;
+    }
+
+    private int CreateGarbageCubeSmall(Vector3 pos)
+    {
+        GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
+        GarbageCubeCtrl garbageCubeCtrl = gameManagerObject.GetComponent<GarbageCubeCtrl>();
+        if (garbageCubeCtrl == null)
+        {
+            garbageCubeCtrl = gameManagerObject.AddComponent<GarbageCubeCtrl>();
+        }
+        garbageCubeCtrl.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true);
+        return GarbageCube.GetBaseScore();
     }
 
     internal void DispCubeMarker(GameObject gameObject, Dictionary<string, string> dictInfo)
@@ -73,19 +98,17 @@ public class PlateauCubeMaker : MonoBehaviour
         return height;
     }
 
-    private void GetMeshrenderInfo(GameObject targetObj, float height = _CENTER_Y_OFFSET)
+    private void GetMeshrenderInfo(GameObject targetObj, float height = 5f)
     {
-        MeshFilter meshFilter = targetObj.GetComponent<MeshFilter>();
-        if (meshFilter != null)
+        if (targetObj.GetComponent<MeshFilter>() != null)
         {
-            Renderer renderer = targetObj.GetComponent<Renderer>();
-            SetCubeMark(renderer, height);
-            // CreateCubeRoundByAngle(renderer.bounds.center, renderer.bounds.extents, 16);
-            CreateCubeRoundByArc(renderer.bounds.center, renderer.bounds.extents, 4);
+            Renderer component = targetObj.GetComponent<Renderer>();
+            SetCubeMark(component, height);
+            CreateCubeRoundByArc(component.bounds.center, component.bounds.extents, 4);
         }
         else
         {
-            Debug.Log("MeshFilter not found"+ targetObj.name);
+            Debug.Log("MeshFilter not found" + targetObj.name);
         }
     }
 
@@ -99,10 +122,9 @@ public class PlateauCubeMaker : MonoBehaviour
     private void SetCubeAtCorner(Renderer renderer)
     {
         Vector3 center = renderer.bounds.center;
-        // 四隅をポイント
-        Vector3 extents1 = renderer.bounds.extents;
-        extents1 = center + extents1;
-        extents1.y = center.y;
+        Vector3 extents = renderer.bounds.extents;
+        extents = center + extents;
+        extents.y = center.y;
         Vector3 extents2 = renderer.bounds.extents;
         extents2 = center - extents2;
         extents2.y = center.y;
@@ -114,16 +136,15 @@ public class PlateauCubeMaker : MonoBehaviour
         extents4.x = center.x - extents4.x;
         extents4.z = center.z + extents4.z;
         extents4.y = center.y;
-
-        // SetCube(extents1, Color.black);
-        // SetCube(extents2, Color.cyan);
-        // SetCube(extents3, Color.magenta);
-        // SetCube(extents4, Color.yellow);
+        SetCube(extents, Color.black);
+        SetCube(extents2, Color.cyan);
+        SetCube(extents3, Color.magenta);
+        SetCube(extents4, Color.yellow);
     }
 
     private void SetCubeAtCenter(Vector3 center, Color color, float height)
     {
-        center.y += height  * 0.5f + _BUFFER_Y_OFFSET;
+        center.y += height * 0.5f + 0.5f;
         SetCube(center, color);
     }
 
@@ -138,51 +159,40 @@ public class PlateauCubeMaker : MonoBehaviour
 
     private void CreateCubeRoundByArc(Vector3 center, Vector3 extents, int interval)
     {
-        float r = GetRadius(extents);
-        float arc = 2.0f * Mathf.PI * r;
-        int step = Mathf.FloorToInt(arc / interval);
+        float radius = GetRadius(extents);
+        int step = Mathf.FloorToInt(MathF.PI * 2f * radius / (float)interval);
         CreateCubeRoundByAngle(center, extents, step);
     }
 
     private void CreateCubeRoundByAngle(Vector3 center, Vector3 extents, int step)
     {
-        float r = GetRadius(extents);
-        float angle = 360.0f / step;
-        float radian = angle * Mathf.Deg2Rad;
+        float radius = GetRadius(extents);
+        float num = 360f / (float)step * (MathF.PI / 180f);
         for (int i = 0; i < step; i++)
         {
-            float x1 = r * Mathf.Cos(radian * i);
-            float z1 = r * Mathf.Sin(radian * i);
-            Vector3 pos = new Vector3(center.x + x1, center.y + _BUFFER_Y_OFFSET, center.z + z1);
-            SetCube(pos, Color.white);
-            // SetBonFire(pos);
+            float num2 = radius * Mathf.Cos(num * (float)i);
+            float num3 = radius * Mathf.Sin(num * (float)i);
+            Vector3 setPosition = new Vector3(center.x + num2, center.y + 0.5f, center.z + num3);
+            SetCube(setPosition, Color.white);
         }
     }
 
     private void SetMaterialColor(GameObject targetObj, Color color)
     {
-        Renderer renderer = targetObj.GetComponent<Renderer>();
-        if (renderer == null)
+        Renderer component = targetObj.GetComponent<Renderer>();
+        if (!(component == null) && component.materials.Length <= 1)
         {
-            return;
+            component.material.color = color;
         }
-        if (renderer.materials.Length > 1)
-        {
-            // Debug.Log("material 複数パターン");
-            return;
-        }
-        renderer.material.color = color;
     }
 
     private void SetCube(Vector3 setPosition, Color color)
     {
-        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.position = setPosition;
-        SetMaterialColor(cube, color);
-        cube.AddComponent<Rigidbody>();
-        cube.GetComponent<Rigidbody>().useGravity = true;
-        cube.tag = GameEnum.TagType.Garbage.ToString();
+        GameObject gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        gameObject.transform.position = setPosition;
+        SetMaterialColor(gameObject, color);
+        gameObject.AddComponent<Rigidbody>();
+        gameObject.GetComponent<Rigidbody>().useGravity = true;
+        gameObject.tag = GameEnum.TagType.Garbage.ToString();
     }
-
-
 }
