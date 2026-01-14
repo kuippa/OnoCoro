@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 namespace CommonsUtility
 {
-    internal sealed class GameCtrl: MonoBehaviour
+    internal sealed class GameCtrl : MonoBehaviour
     {
 
         internal void GameClose()

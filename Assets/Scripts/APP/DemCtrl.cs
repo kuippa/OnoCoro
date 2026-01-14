@@ -5,16 +5,21 @@ public static class DemCtrl
 {
     private const float _POPUP_DISTANCE = 1f;   // 落ちたオブジェクトを上に持ち上げる距離
     private const float _MARGIN_DISTANCE = 3f;   // 内側によせる距離
+    private const float _RAYCAST_DISTANCE = 200f;   // Raycast の距離
     private static Vector3 _dem_center_pos = Vector3.zero;
     private static GameObject _dem = null;   // DEM(Digital Elevation Model) 航空レーザ測量 地形データ
 
     internal static Vector3 GetClosestPointOnBounds(Collider other)
     {
-        Vector3 pos = other.gameObject.transform.position;
+        Vector3 position = other.gameObject.transform.position;
         if (_dem == null)
         {
             _dem = GetDemObject();
             _dem_center_pos = GetDemPosition(_dem);
+        }
+        if (_dem == null)
+        {
+            return Vector3.zero;
         }
         Collider demcol = _dem.GetComponent<Collider>();
         if (demcol == null)
@@ -23,7 +28,7 @@ public static class DemCtrl
             return Vector3.zero;
         }
 
-        Vector3 closestPoint = demcol.ClosestPointOnBounds(pos);
+        Vector3 closestPoint = demcol.ClosestPointOnBounds(position);
         float objectHeight = other.bounds.size.y;
         for (int i = 0; i < 20; i++)
         {
@@ -44,7 +49,7 @@ public static class DemCtrl
         // ClosestPointOnBounds では直上の座標が取れないので、raycastで上書き取得する
         RaycastHit hit;
         int layerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
-        if (Physics.Raycast(closestPoint + Vector3.up * 200f, Vector3.down, out hit, Mathf.Infinity, layerMask))
+        if (Physics.Raycast(closestPoint + Vector3.up * _RAYCAST_DISTANCE, Vector3.down, out hit, Mathf.Infinity, layerMask))
         // 上向きにRayを飛ばしても地面との衝突判定がとれない。半透過？
         // if (Physics.Raycast(closestPoint + Vector3.up * 10f, Vector3.up, out hit, Mathf.Infinity, layerMask))
         {
@@ -108,10 +113,14 @@ public static class DemCtrl
 
     internal static float GetDemHeight(GameObject demObject)
     {
+        if (demObject == null)
+        {
+            return 0f;
+        }
         MeshFilter meshFilter = demObject.GetComponent<MeshFilter>();
         if (meshFilter == null)
         {
-            return 0;
+            return 0f;
         }
         Vector3 meshSize = meshFilter.mesh.bounds.size;
         float height = meshSize.y;
@@ -120,6 +129,10 @@ public static class DemCtrl
 
     private static Vector3 GetDemPosition(GameObject dem)
     {
+        if (dem == null)
+        {
+            return Vector3.zero;
+        }
         Vector3 setPos = Vector3.zero;
         setPos = dem.transform.localPosition;
 
@@ -139,7 +152,7 @@ public static class DemCtrl
 
     internal static GameObject GetDemObject()
     {
-        GameObject ret_dem = null;
+        GameObject result = null;
         GameObject[] dem = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Ground.ToString());
         if (dem == null || dem.Length < 1)
         {
@@ -174,12 +187,12 @@ public static class DemCtrl
         {
             dem[0].tag = GameEnum.TagType.Ground.ToString();
             dem[0].layer = LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
-            ret_dem = dem[0];
+            result = dem[0];
             // Debug.Log("GetDemObject " + "dem is null " + dem.Length);
             // return null;
         }
 
-        return ret_dem;
+        return result;
     }
 
 
@@ -209,7 +222,8 @@ public static class DemCtrl
             , _dem_center_pos.z + meshSize.z / 2 - _MARGIN_DISTANCE
             );
 
-        float groundHeight = _dem_center_pos.y + meshSize.y * 0.5f; // 地面の上面の高さ
+        float scaleY = _dem.transform.localScale.y;
+        float groundHeight = _dem_center_pos.y + meshSize.y * 0.5f * scaleY; // 地面の上面の高さ（スケール考慮）
         float minHeight = groundHeight + drop_distance;
         abovePos.y = minHeight;
 

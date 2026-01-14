@@ -68,14 +68,15 @@ public class InfoWindowCtrl : MonoBehaviour
             indicator_canvas.transform.rotation = Quaternion.Euler(0, 180, 0);
         }
 
+        // TODO: 子供クラスを持つオブジェクトか否かはif文分岐ではなくUnitStructのようなモデルで動的に判断するようにする
                 
         if (target.tag == GameEnum.TagType.TowerSweeper.ToString())
         {
             target.GetComponent<TowerSweeper>().StartDeleteUnitProcess();
         }
-        else if (target.tag == GameEnum.TagType.Extinguishing.ToString())
+        else if (target.tag == GameEnum.TagType.WaterTurret.ToString())
         {
-            target.GetComponent<ExtinguishingCtrl>().StartDeleteUnitProcess();
+            target.GetComponent<WaterTurretCtrl>().StartDeleteUnitProcess();
         }
         // TODO: 対象ごとに秒数調整
 
@@ -99,12 +100,12 @@ public class InfoWindowCtrl : MonoBehaviour
                 towerSweeper.DeleteUnitProcess();
             }
         }
-        else if (target.tag == GameEnum.TagType.Extinguishing.ToString())
+        else if (target.tag == GameEnum.TagType.WaterTurret.ToString())
         {
-            ExtinguishingCtrl extinguishing = target.GetComponent<ExtinguishingCtrl>();
-            if (extinguishing != null)
+            WaterTurretCtrl waterTurret = target.GetComponent<WaterTurretCtrl>();
+            if (waterTurret != null)
             {
-                extinguishing.DeleteUnitProcess();
+                waterTurret.DeleteUnitProcess();
             }
         }
 
@@ -121,7 +122,7 @@ public class InfoWindowCtrl : MonoBehaviour
         }
 
         if (target.tag == GameEnum.TagType.TowerSweeper.ToString()
-            || target.tag == GameEnum.TagType.Extinguishing.ToString())
+            || target.tag == GameEnum.TagType.WaterTurret.ToString())
         {
             CallCircularIndicator(target);
             ToggleInfoWindow(false);
@@ -248,9 +249,9 @@ public class InfoWindowCtrl : MonoBehaviour
         {
             unitStruct = collider.GetComponent<FireCube>().GetUnitStruct();
         }
-        else if (tag == GameEnum.TagType.Extinguishing.ToString())
+        else if (tag == GameEnum.TagType.WaterTurret.ToString())
         {
-            unitStruct = collider.GetComponent<Extinguishing>().GetUnitStruct();
+            unitStruct = collider.GetComponent<WaterTurret>().GetUnitStruct();
         }
         else
         {

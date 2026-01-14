@@ -30,10 +30,9 @@ namespace CommonsUtility
             GameObject score_board = GameObject.Find(score_field);
             if (score_board == null)
             {
-                Debug.Log("score_board is null");
                 return;
             }
-            string strScore = string.Format("{0:#,0}", intScore) + score_scale;
+            string strScore = $"{intScore:#,0}" + score_scale;
             score_board.GetComponent<TextMeshProUGUI>().SetText(strScore);
         }
 
@@ -60,12 +59,9 @@ namespace CommonsUtility
                     return false;
                 }
             }
-            else if (score_type == GlobalConst.SHORT_SCORE2_SCALE)
+            else if (score_type == GlobalConst.SHORT_SCORE2_SCALE && _intScoreCLK + intScore < 0)
             {
-                if (_intScoreCLK + intScore < 0)
-                {
-                    return false;
-                }
+                return false;
             }
             return true;
         }
@@ -81,25 +77,25 @@ namespace CommonsUtility
 
         internal static int GetSliceGarbageScore(Collider target)
         {
-            int score = 0;
+            int result = 0;
             if (target.tag != GameEnum.TagType.Garbage.ToString() )
             {
-                return score;
+                return result;
             }
 
             GarbageCube garbageCube = target.gameObject.GetComponent<GarbageCube>();
             UnitStruct UnitStruct =  garbageCube.GetUnitStruct();
-            score = UnitStruct.BaseScore;
-            return score;
+            result = UnitStruct.BaseScore;
+            return result;
         }
 
 
         internal static int GetTotalGarbageScore(Collider target)
         {
-            int score = 0;
+            int result = 0;
             if (target.tag != GameEnum.TagType.Garbage.ToString() )
             {
-                return score;
+                return result;
             }
 
             GarbageCube garbageCube = target.gameObject.GetComponent<GarbageCube>();
@@ -111,7 +107,7 @@ namespace CommonsUtility
             if (scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3)
             {
                 Debug.Log("scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3");
-                score = base_score;
+                result = base_score;
             }
             else
             {
@@ -121,9 +117,9 @@ namespace CommonsUtility
                 slice_cnts[1] = GetCountSliceGarbage(target.transform.localScale.y);
                 slice_cnts[2] = GetCountSliceGarbage(target.transform.localScale.z);
                 int slice_cnt = Mathf.Max(slice_cnts);
-                score = slice_cnt * base_score;
+                result = slice_cnt * base_score;
             }
-            return score;
+            return result;
         }
 
         private static int GetCountSliceGarbage(float size)
@@ -162,7 +158,7 @@ namespace CommonsUtility
             }
         }
 
-        void Awake()
+        private void Awake()
         {
             if (instance == null)
             {

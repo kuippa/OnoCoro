@@ -876,7 +876,140 @@ private void InitializePanels(List<string> missingObjects)
 - 関数名で処理内容が明確にわかるようにする
 - 引数と戻り値で依存関係を明確にする
 
-### 6. コメント規約
+### 6. リファクタリング・マージ時のルール
+
+**Recovery フォルダからのマージ作業時の注意事項**
+
+リバースエンジニアリングで復元したコードをマージする際は、以下のルールを厳守してください。
+
+#### 6.1. 変数の初期化を維持する
+
+デフォルト値であっても、明示的な初期化は**削除しない**でください。
+
+```csharp
+// ✅ 良い例: 初期化を維持
+public static GameTimerCtrl instance = null;
+public float _time = 0.0f;
+private bool _isPaused = false;
+
+// ❌ 悪い例: 初期化を削除
+public static GameTimerCtrl instance;  // null が暗黙的だが、意図が不明確
+public float _time;                     // 0 が暗黙的だが、意図が不明確
+private bool _isPaused;                 // false が暗黙的だが、意図が不明確
+```
+
+**理由**: 明示的な初期化は、コードの意図を明確にし、後からの変更時の混乱を防ぎます。
+
+#### 6.2. `this` を維持する（`base` を使わない）
+
+MonoBehaviour のメンバーアクセスには `this` を使用し、`base` への置き換えは**行わない**でください。
+
+```csharp
+// ✅ 良い例: this を使用
+void Awake()
+{
+    _text = this.gameObject.GetComponent<TextMeshProUGUI>();
+}
+
+// ❌ 悪い例: base に変更
+void Awake()
+{
+    _text = base.gameObject.GetComponent<TextMeshProUGUI>();
+}
+```
+
+**理由**: `this` の方が意図が明確で、Unity の標準的な記法です。
+
+#### 6.3. コメントを削除しない
+
+既存のコメント（コメントアウトされたコードを含む）は、マージ時に**削除しない**でください。
+
+```csharp
+// ✅ 良い例: コメントを維持
+void Awake()
+{
+    if (instance == null)
+    {
+        instance = this;
+        // DontDestroyOnLoad(this.gameObject);  // 将来的に必要になるかもしれない
+    }
+    // else
+    // {
+    //     // Destroy(this.gameObject);
+    // }
+}
+
+// ❌ 悪い例: コメントを削除
+void Awake()
+{
+    if (instance == null)
+    {
+        instance = this;
+    }
+}
+```
+
+**理由**: コメントアウトされたコードは、過去の実装履歴や今後の変更予定を示す重要な情報です。
+
+#### 6.4. 明確な差分がない場合はマージをパスする
+
+Recoveryフォルダからのリバースエンジニアリングで復元されたコードと比較する際、以下の場合はマージを**スキップ**してください。
+
+**マージをパスする基準:**
+- コード構造が実質的に同じで、差分が軽微な場合
+- リファクタリングによる改善効果が小さい場合
+- 機能追加や重要なバグ修正が含まれていない場合
+- 既存コードが十分に動作しており、変更リスクの方が高い場合
+
+```csharp
+// 例: 以下のような軽微な差分の場合はマージ不要
+
+// Recovery版
+GameObject gameObject2 = base.gameObject.transform.Find("menuWindow/txtBackToGame").gameObject;
+if (gameObject2 != null)
+{
+    gameObject2.GetComponent<Button>().onClick.AddListener(OnClickBackToGame);
+}
+
+// 現在版
+GameObject txtBackToGame = this.gameObject.transform.Find("menuWindow/txtBackToGame").gameObject;
+if (txtBackToGame != null)
+{
+    Button btn = txtBackToGame.GetComponent<Button>();
+    btn.onClick.AddListener(OnClickBackToGame);
+}
+// → 変数名の違いだけなのでマージ不要
+```
+
+**マージすべき重要な差分:**
+- 新しいメソッドや機能の追加
+- 重要なバグ修正（nullチェック、ロジック修正など）
+- パフォーマンス改善
+- 未実装機能の実装（TODOの解消）
+- 定数の追加や構造的な改善
+
+```csharp
+// 例: 以下のような重要な差分はマージが必要
+
+// Recovery版: Optionsボタンが有効になっている
+Button component = gameObject5.GetComponent<Button>();
+component.onClick.AddListener(OnClickOptions);
+
+// 現在版: 未実装のため無効化されていない（バグ）
+Button btn = txtOptions.GetComponent<Button>();
+btn.onClick.AddListener(OnClickOptions);
+// → 無効化処理が必要なので、Recovery版からマージすべき
+```
+
+**判断のポイント:**
+1. **機能的な差異があるか**: 動作が変わる変更か
+2. **可読性の大幅な改善か**: 単なるスタイルの違いか、理解しやすさが向上するか
+3. **保守性への影響**: 将来の変更が容易になるか
+4. **変更リスク**: 既存の動作を壊す可能性はないか
+
+**迷ったら**: マージをスキップし、ユーザーに判断を仰いでください。
+
+### 7. コメント規約
 
 **コメントは最小限に、コードで意図を表現すること**
 
@@ -897,7 +1030,7 @@ if (user.age >= ADULT_AGE_THRESHOLD)
 }
 ```
 
-### 7. 変数名の命名規則
+### 8. 変数名の命名規則
 
 **意味のある名前を使用し、一時的な名前を避ける**
 
@@ -942,7 +1075,7 @@ Text statusText;
 Image backgroundImage;
 ```
 
-### 8. ユーティリティクラスの設計原則
+### 9. ユーティリティクラスの設計原則
 
 **関連する機能は適切なユーティリティクラスに集約すること**
 

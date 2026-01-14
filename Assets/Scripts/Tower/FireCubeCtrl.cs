@@ -4,7 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using CommonsUtility;
 using System;
-
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 public class FireCubeCtrl : MonoBehaviour
 {
@@ -91,7 +92,8 @@ public class FireCubeCtrl : MonoBehaviour
         GameObject prefab = PrefabManager.FireCubePrefab;
         if (prefab == null)
         {
-            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/FireCube");
+            Debug.LogWarning("PrefabManager.FireCubePrefab is null, loading from Resources.");
+            // prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/FireCube");
         }
         prefab.transform.localScale = new Vector3(1f, 1f, 1f);
         Vector3 setPoint = spawnPoint;

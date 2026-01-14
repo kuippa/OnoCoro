@@ -1,18 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using CommonsUtility;
 
 public class OkbtnCtrl : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject _okBtn = null;
+    [SerializeField]
+    private GameObject _closeBtn = null;
+    [SerializeField]
+    private GameObject _closeWindow = null;
 
-    [SerializeField] private GameObject _okBtn;
-    [SerializeField] private GameObject _closeBtn;
-    [SerializeField] private GameObject _closeWindow;
 
-
-    void Awake()
+    private void Awake()
     {
         if (_okBtn == null || _closeWindow == null)
         {

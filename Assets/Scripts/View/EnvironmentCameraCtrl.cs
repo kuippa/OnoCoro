@@ -1,9 +1,8 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class EnvironmentCameraCtrl : MonoBehaviour
 {
-    void Awake()
+    private void Awake()
     {
         // Debug.Log("EnvironmentCameraCtrl Awake");
         // GameObject cameraObj = Camera.main.gameObject;
@@ -14,8 +13,6 @@ public class EnvironmentCameraCtrl : MonoBehaviour
         // Debug.Log("camera.far: " + camera.farClipPlane + ", camera.farClipPlane: " + camera.farClipPlane);
         // camera.farClipPlane = 2000.0f;
         // Debug.Log("camera.far: " + camera.farClipPlane + ", camera.farClipPlane: " + camera.farClipPlane);
-
-
     }
 
 

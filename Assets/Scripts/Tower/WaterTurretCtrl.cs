@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using CommonsUtility;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// 放水タレットの制御クラス
@@ -26,7 +28,7 @@ public class WaterTurretCtrl : MonoBehaviour
     /// </summary>
     private GameObject CreateWaterBullet()
     {
-        GameObject original = Resources.Load<GameObject>("Prefabs/WorkUnit/WaterSphere");
+        GameObject original = PrefabManager.WaterSpherePrefab;
         Vector3 position = _nozzle.transform.position;
         Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
         GameObject obj = UnityEngine.Object.Instantiate(original, position, rotation);
@@ -82,18 +84,18 @@ public class WaterTurretCtrl : MonoBehaviour
     {
         if (!(_target == null) && !(_target.transform == null))
         {
-            Vector3 forward = _target.transform.position - base.gameObject.transform.position;
+            Vector3 forward = _target.transform.position - this.gameObject.transform.position;
             forward.y = 0f;
             Quaternion b = Quaternion.LookRotation(forward);
             float t = 1f;
             
-            if (Quaternion.Angle(base.gameObject.transform.rotation, b) < 0.1f)
+            if (Quaternion.Angle(this.gameObject.transform.rotation, b) < 0.1f)
             {
                 WaterShoot();
             }
             else
             {
-                base.gameObject.transform.rotation = Quaternion.Slerp(base.gameObject.transform.rotation, b, t);
+                this.gameObject.transform.rotation = Quaternion.Slerp(this.gameObject.transform.rotation, b, t);
             }
         }
     }
@@ -121,7 +123,7 @@ public class WaterTurretCtrl : MonoBehaviour
         GameObject[] array2 = array;
         foreach (GameObject gameObject in array2)
         {
-            float num2 = Vector3.Distance(base.gameObject.transform.position, gameObject.transform.position);
+            float num2 = Vector3.Distance(this.gameObject.transform.position, gameObject.transform.position);
             if (num2 < num)
             {
                 num = num2;
@@ -139,18 +141,18 @@ public class WaterTurretCtrl : MonoBehaviour
     /// </summary>
     public void CreateWaterTurretUnit(Vector3 setPoint)
     {
-        base.gameObject.tag = GameEnum.TagType.WaterTurret.ToString();
-        int num = GameObjectTreat.IndexObjectByTag(base.gameObject.tag);
-        base.gameObject.name = GameEnum.ModelsType.WaterTurret.ToString() + num;
+        this.gameObject.tag = GameEnum.TagType.WaterTurret.ToString();
+        int num = GameObjectTreat.IndexObjectByTag(this.gameObject.tag);
+        this.gameObject.name = GameEnum.ModelsType.WaterTurret.ToString() + num;
         
-        WaterTurret waterTurret = base.gameObject.GetComponent<WaterTurret>();
+        WaterTurret waterTurret = this.gameObject.GetComponent<WaterTurret>();
         if (waterTurret == null)
         {
-            waterTurret = base.gameObject.AddComponent<WaterTurret>();
+            waterTurret = this.gameObject.AddComponent<WaterTurret>();
         }
-        waterTurret._item_struct.ItemID = base.name;
-        waterTurret._unit_struct.UnitID = base.name;
-        base.gameObject.transform.position = setPoint;
+        waterTurret._item_struct.ItemID = this.name;
+        waterTurret._unit_struct.UnitID = this.name;
+        this.gameObject.transform.position = setPoint;
     }
 
     /// <summary>
@@ -172,7 +174,7 @@ public class WaterTurretCtrl : MonoBehaviour
             UnitStruct unitStruct = waterTurret.GetUnitStruct();
             ScoreCtrl.UpdateAndDisplayScore(unitStruct.DeleteCost, unitStruct.ScoreType);
         }
-        GameObjectTreat.DestroyAll(base.gameObject);
+        GameObjectTreat.DestroyAll(this.gameObject);
     }
 
     /// <summary>
@@ -183,29 +185,31 @@ public class WaterTurretCtrl : MonoBehaviour
         bool num = ScoreCtrl.IsScorePositiveInt(0, GlobalConst.SHORT_SCORE2_SCALE);
         if (!num)
         {
-            SignPowerOutageCtrl.GetOrCreateCirclePowerOutage(base.gameObject);
-            return num;
+            SignPowerOutageCtrl.GetOrCreateCirclePowerOutage(this.gameObject);
         }
-        SignPowerOutageCtrl.UnSignPowerOutage(base.gameObject);
+        else
+        {
+            SignPowerOutageCtrl.UnSignPowerOutage(this.gameObject);
+        }
         return num;
     }
 
     private void OnDestroy()
     {
-        GameObjectTreat.DestroyAll(base.gameObject);
+        GameObjectTreat.DestroyAll(this.gameObject);
     }
 
     private void Awake()
     {
-        _nozzle = base.gameObject.transform.Find("ExtinguishingCylinder/nozzle").gameObject;
+        _nozzle = this.gameObject.transform.Find("ExtinguishingCylinder/nozzle").gameObject;
         
-        WaterTurret waterTurret = base.gameObject.GetComponent<WaterTurret>();
+        WaterTurret waterTurret = this.gameObject.GetComponent<WaterTurret>();
         if (waterTurret == null)
         {
-            waterTurret = base.gameObject.AddComponent<WaterTurret>();
+            waterTurret = this.gameObject.AddComponent<WaterTurret>();
         }
-        waterTurret._item_struct.ItemID = base.gameObject.name;
-        waterTurret._unit_struct.UnitID = base.gameObject.name;
+        waterTurret._item_struct.ItemID = this.gameObject.name;
+        waterTurret._unit_struct.UnitID = this.gameObject.name;
     }
 
     private void Update()

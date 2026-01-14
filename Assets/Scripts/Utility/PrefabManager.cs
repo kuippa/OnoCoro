@@ -1,216 +1,125 @@
 // Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // PrefabManager
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PrefabManager
 {
-	private static GameObject _garbageCubePrefab;
-
-	private static GameObject _fireCubePrefab;
-
-	private static GameObject _rainDropPrefab;
-
-	private static GameObject _dustBoxPrefab;
-
-	private static GameObject _sentryGuardPrefab;
-
-	private static GameObject _waterTurretPrefab;
-
-	private static GameObject _stopPlatePrefab;
-
-	private static GameObject _powerCubePrefab;
-
-	private static GameObject _towerSweeperPrefab;
-
-	private static GameObject _enemyLitterPrefab;
-
-	private static GameObject _pathMakerPrefab;
-
-	private static GameObject _pathBloomPrefab;
-
-	// private static GameObject _UIStageSelectorPrefab;
-	// private static GameObject _UIStageFileListPrefab;
-	private static GameObject _UIStageInfoBoxPrefab;
-
-	private static int _garbageCubeUID;
-
-	private static int _fireCubeUID;
-
-	private static int _dustBoxUID;
-
-	private static int _sentryGuardUID;
-
-	private static int _stopPlateUID;
-
-	private static int _powerCubeUID;
-
-	internal static GameObject UIStageInfoBoxPrefab
+	public enum PrefabType
 	{
-		get
-		{
-			if (_UIStageInfoBoxPrefab == null)
-			{
-				_UIStageInfoBoxPrefab = Resources.Load<GameObject>("Prefabs/UI/UIStageInfoBox");
-			}
-			return _UIStageInfoBoxPrefab;
-		}
+		// WorkUnit
+		GarbageCube,
+		FireCube,
+		DustBox,
+		SentryGuard,
+		WaterTurret,
+		StopPlate,
+		PowerCube,
+		TowerSweeper,
+		WaterSphere,
+		RainDrop,
+		EnemyLitter,
+		
+		// Marker
+		PathMaker,
+		PathBloom,
+		SignPowerOutage,
+		
+		// UI
+		UIStageInfoBox
 	}
 
-	internal static GameObject GarbageCubePrefab
+	private static readonly Dictionary<PrefabType, string> _paths = new Dictionary<PrefabType, string>
 	{
-		get
+		// WorkUnit
+		{ PrefabType.GarbageCube, "Prefabs/WorkUnit/GarbageCube" },
+		{ PrefabType.FireCube, "Prefabs/WorkUnit/FireCube" },
+		{ PrefabType.DustBox, "Prefabs/WorkUnit/DustBox" },
+		{ PrefabType.SentryGuard, "Prefabs/WorkUnit/SentryGuard" },
+		{ PrefabType.WaterTurret, "Prefabs/WorkUnit/WaterTurret" },
+		{ PrefabType.StopPlate, "Prefabs/WorkUnit/StopPlate" },
+		{ PrefabType.PowerCube, "Prefabs/WorkUnit/PowerCube" },
+		{ PrefabType.TowerSweeper, "Prefabs/WorkUnit/TowerSweeper" },
+		{ PrefabType.WaterSphere, "Prefabs/WorkUnit/WaterSphere" },
+		{ PrefabType.RainDrop, "Prefabs/WorkUnit/RainDrop" },
+		{ PrefabType.EnemyLitter, "Prefabs/EnemyUnit/EnemyLitter" },
+		
+		// Marker
+		{ PrefabType.PathMaker, "Prefabs/Marker/path_marker" },
+		{ PrefabType.PathBloom, "Prefabs/Marker/path_bloom" },
+		{ PrefabType.SignPowerOutage, "Prefabs/Marker/SignPowerOutage" },
+		
+		// UI
+		{ PrefabType.UIStageInfoBox, "Prefabs/UI/UIStageInfoBox" }
+	};
+
+	private static readonly Dictionary<PrefabType, GameObject> _cache = new Dictionary<PrefabType, GameObject>();
+	private static readonly Dictionary<PrefabType, int> _uidCounters = new Dictionary<PrefabType, int>();
+
+	/// <summary>
+	/// プレハブを取得します（キャッシュ機能付き）
+	/// </summary>
+	/// <param name="type">プレハブの種類</param>
+	/// <returns>プレハブ、またはnull</returns>
+	public static GameObject GetPrefab(PrefabType type)
+	{
+		if (!_cache.TryGetValue(type, out GameObject prefab) || prefab == null)
 		{
-			if (_garbageCubePrefab == null)
+			if (_paths.TryGetValue(type, out string path))
 			{
-				_garbageCubePrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/GarbageCube");
+				prefab = Resources.Load<GameObject>(path);
+				_cache[type] = prefab;
+				
+				#if UNITY_EDITOR
+				if (prefab == null)
+				{
+					Debug.LogWarning($"[PrefabManager] プレハブが見つかりません: {path}");
+				}
+				#endif
 			}
-			return _garbageCubePrefab;
 		}
+		return prefab;
 	}
 
-	internal static GameObject RainDropPrefab
+	/// <summary>
+	/// 指定されたプレハブタイプの次のUIDを取得します
+	/// </summary>
+	/// <param name="type">プレハブの種類</param>
+	/// <returns>ユニークID</returns>
+	public static int GetNextUID(PrefabType type)
 	{
-		get
+		if (!_uidCounters.ContainsKey(type))
 		{
-			if (_rainDropPrefab == null)
-			{
-				_rainDropPrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/RainDrop");
-			}
-			return _rainDropPrefab;
+			_uidCounters[type] = 0;
 		}
+		return _uidCounters[type]++;
 	}
 
-	internal static GameObject FireCubePrefab
-	{
-		get
-		{
-			if (_fireCubePrefab == null)
-			{
-				_fireCubePrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/FireCubeSimple");
-			}
-			return _fireCubePrefab;
-		}
-	}
+	// 後方互換性のためのプロパティ（既存コードとの互換性維持）
 
-	internal static GameObject PathMakerPrefab
-	{
-		get
-		{
-			if (_pathMakerPrefab == null)
-			{
-				_pathMakerPrefab = Resources.Load<GameObject>("Prefabs/Marker/path_marker");
-			}
-			return _pathMakerPrefab;
-		}
-	}
+	// 後方互換性のためのプロパティ（既存コードとの互換性維持）
+	internal static GameObject UIStageInfoBoxPrefab => GetPrefab(PrefabType.UIStageInfoBox);
+	internal static GameObject GarbageCubePrefab => GetPrefab(PrefabType.GarbageCube);
+	internal static GameObject RainDropPrefab => GetPrefab(PrefabType.RainDrop);
+	internal static GameObject FireCubePrefab => GetPrefab(PrefabType.FireCube);
+	internal static GameObject PathMakerPrefab => GetPrefab(PrefabType.PathMaker);
+	internal static GameObject PathBloomPrefab => GetPrefab(PrefabType.PathBloom);
+	internal static GameObject DustBoxPrefab => GetPrefab(PrefabType.DustBox);
+	internal static GameObject SentryGuardPrefab => GetPrefab(PrefabType.SentryGuard);
+	internal static GameObject EnemyLitterPrefab => GetPrefab(PrefabType.EnemyLitter);
+	internal static GameObject WaterTurretPrefab => GetPrefab(PrefabType.WaterTurret);
+	internal static GameObject StopPlatePrefab => GetPrefab(PrefabType.StopPlate);
+	internal static GameObject PowerCubePrefab => GetPrefab(PrefabType.PowerCube);
+	internal static GameObject TowerSweeperPrefab => GetPrefab(PrefabType.TowerSweeper);
+	internal static GameObject WaterSpherePrefab => GetPrefab(PrefabType.WaterSphere);
+	internal static GameObject SignPowerOutagePrefab => GetPrefab(PrefabType.SignPowerOutage);
 
-	internal static GameObject PathBloomPrefab
-	{
-		get
-		{
-			if (_pathBloomPrefab == null)
-			{
-				_pathBloomPrefab = Resources.Load<GameObject>("Prefabs/Marker/path_bloom");
-			}
-			return _pathBloomPrefab;
-		}
-	}
-
-	internal static GameObject DustBoxPrefab
-	{
-		get
-		{
-			if (_dustBoxPrefab == null)
-			{
-				_dustBoxPrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/DustBox");
-			}
-			return _dustBoxPrefab;
-		}
-	}
-
-	internal static GameObject SentryGuardPrefab
-	{
-		get
-		{
-			if (_sentryGuardPrefab == null)
-			{
-				_sentryGuardPrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/SentryGuard");
-			}
-			return _sentryGuardPrefab;
-		}
-	}
-
-	internal static GameObject EnemyLitterPrefab
-	{
-		get
-		{
-			if (_enemyLitterPrefab == null)
-			{
-				_enemyLitterPrefab = Resources.Load<GameObject>("Prefabs/EnemyUnit/EnemyLitter");
-			}
-			return _enemyLitterPrefab;
-		}
-	}
-
-	internal static GameObject WaterTurretPrefab
-	{
-		get
-		{
-			if (_waterTurretPrefab == null)
-			{
-				_waterTurretPrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/WaterTurret");
-			}
-			return _waterTurretPrefab;
-		}
-	}
-
-	internal static GameObject StopPlatePrefab
-	{
-		get
-		{
-			if (_stopPlatePrefab == null)
-			{
-				_stopPlatePrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/StopPlate");
-			}
-			return _stopPlatePrefab;
-		}
-	}
-
-	internal static GameObject PowerCubePrefab
-	{
-		get
-		{
-			if (_powerCubePrefab == null)
-			{
-				_powerCubePrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/PowerCube");
-			}
-			return _powerCubePrefab;
-		}
-	}
-
-	internal static GameObject TowerSweeperPrefab
-	{
-		get
-		{
-			if (_towerSweeperPrefab == null)
-			{
-				_towerSweeperPrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/TowerSweeper");
-			}
-			return _towerSweeperPrefab;
-		}
-	}
-
-	internal static int GarbageCubeUID => _garbageCubeUID++;
-
-	internal static int FireCubeUID => _fireCubeUID++;
-
-	internal static int DustBoxUID => _dustBoxUID++;
-
-	internal static int SentryGuardUID => _sentryGuardUID++;
-
-	internal static int StopPlateUID => _stopPlateUID++;
-
-	internal static int PowerCubeUID => _powerCubeUID++;
+	internal static int GarbageCubeUID => GetNextUID(PrefabType.GarbageCube);
+	internal static int FireCubeUID => GetNextUID(PrefabType.FireCube);
+	internal static int DustBoxUID => GetNextUID(PrefabType.DustBox);
+	internal static int SentryGuardUID => GetNextUID(PrefabType.SentryGuard);
+	internal static int StopPlateUID => GetNextUID(PrefabType.StopPlate);
+	internal static int PowerCubeUID => GetNextUID(PrefabType.PowerCube);
 
 	/// <summary>
 	/// プレハブが利用可能かチェックします（nullチェック）
@@ -228,37 +137,5 @@ public class PrefabManager
 			return false;
 		}
 		return true;
-	}
-
-	/// <summary>
-	/// プレハブを安全に取得します（nullの場合はエラーログ）
-	/// </summary>
-	/// <param name="prefab">取得するプレハブ</param>
-	/// <param name="prefabName">プレハブ名（ログ用）</param>
-	/// <param name="fallbackPath">フォールバック用のResourcesパス（オプション）</param>
-	/// <returns>プレハブ、またはnull</returns>
-	public static GameObject GetSafe(GameObject prefab, string prefabName, string fallbackPath = null)
-	{
-		if (prefab != null)
-		{
-			return prefab;
-		}
-
-		if (!string.IsNullOrEmpty(fallbackPath))
-		{
-			prefab = Resources.Load<GameObject>(fallbackPath);
-			if (prefab != null)
-			{
-				#if UNITY_EDITOR
-				Debug.Log($"[PrefabManager] {prefabName} をResourcesから読み込みました: {fallbackPath}");
-				#endif
-				return prefab;
-			}
-		}
-
-		#if UNITY_EDITOR
-		Debug.LogError($"[PrefabManager] {prefabName} プレハブが見つかりません。パス: {fallbackPath ?? "指定なし"}");
-		#endif
-		return null;
 	}
 }

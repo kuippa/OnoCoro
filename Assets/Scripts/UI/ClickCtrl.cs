@@ -1,11 +1,9 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.InputSystem;
-using UnityEngine.EventSystems;
-using CommonsUtility;
-using UnityEditor;
-using Unity.VisualScripting;
 using System.Collections;   // IEnumerator を使うために追加
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using CommonsUtility;
 
 public class ClickCtrl : MonoBehaviour
 {
@@ -30,7 +28,7 @@ public class ClickCtrl : MonoBehaviour
         }
     }
 
-    void Awake()
+    private void Awake()
     {
         if (_instance != null && _instance != this)
         {
@@ -61,6 +59,11 @@ public class ClickCtrl : MonoBehaviour
             Instance._isProcessingClick = false;
             yield break; // コルーチンを終了            
         }
+        if (IsPointerOverUIObject())
+        {
+            Instance._isProcessingClick = false;
+            yield break; // コルーチンを終了
+        }
         LoupeCtrl.ActLoupe();
         Instance._isProcessingClick = false;
     }
@@ -84,21 +87,43 @@ public class ClickCtrl : MonoBehaviour
             Instance._isProcessingClick = false;
             yield break; // コルーチンを終了            
         }
-
-        if (LoupeCtrl.IsLoupe())
+        if (IsPointerOverUIObject())
         {
-            LoupeCtrl.ActLoupe();
+            Debug.Log("UI上でのクリック");
             Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
+            yield break; // コルーチンを終了
+        }
+
+        if (LoupeCtrl.IsLoupe(ItemAction.GetSelectedItemName()))
+        {
+            Debug.Log("ルーペモード中のクリック");
+            LoupeCtrl.ActLoupe();
         }
         else if (SpawnMarkerPointerCtrl.IsMarkerActive())
         {
+            Debug.Log("マーカーアクティブ中のクリック");
             ItemAction.ActItemUse();
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
         }
-        ItemAction.GetSelectedItem();
+        else
+        {
+            Debug.Log("マーカー非アクティブ中のクリック");
+        }
         Instance._isProcessingClick = false;
+    }
+
+    private bool IsPointerOverUIObject()
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current)
+        {
+            position = Mouse.current.position.ReadValue()
+        };
+        List<RaycastResult> list = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, list);
+        if (list.Count > 0)
+        {
+            Debug.Log("raycastResults.Count:" + list.Count + list[0].gameObject.name);
+        }
+        return list.Count > 0;
     }
 
     private static bool CheckAndCloseNoticeWindow()

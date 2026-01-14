@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Profiling;    // Profiler
+using UnityEngine.SceneManagement;
 using CommonsUtility;
-using System.Net.Http.Headers;
 
 public class DebugInfoCtrl : MonoBehaviour
 {
@@ -20,8 +18,8 @@ public class DebugInfoCtrl : MonoBehaviour
         {
             return _app_version;
         }
-        string app_versions = "BuildDate: " + Utility.GetAppVersion();
-        app_versions += " Application: " + Application.version;
+        string app_versions = "BuildDate: " + GameObjectTreat.GetAppBuildDate() + Environment.NewLine;
+        app_versions += "Application: " + GameObjectTreat.GetAppVersion();
         _app_version = app_versions;
         return _app_version;
     }
@@ -37,6 +35,16 @@ public class DebugInfoCtrl : MonoBehaviour
     private string GetAppDPI()
     {
         return "DP:"+Utility.GetScreenDp() + " DPI:" + Screen.dpi;
+    }
+
+    private string GetGameSpeed()
+    {
+        return "SIM SPEED:" + GameSpeedCtrl.GetGameSpeed();
+    }
+
+    private string GetWind()
+    {
+        return " Wind:" + WindCtrl.GetDirectionText() + " " + WindCtrl.GetWindSpeed() + "m/s";
     }
 
     private string GetAppMemory()
@@ -104,7 +112,7 @@ public class DebugInfoCtrl : MonoBehaviour
 
     private string GetSceneName()
     {
-        return "Scene:"+UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        return "Scene:" + SceneManager.GetActiveScene().name;
     }
 
 
@@ -126,12 +134,14 @@ public class DebugInfoCtrl : MonoBehaviour
         {
             // Debug.Log("DebugWindow is found");
             debug_info = GetSceneName();
-            debug_info += "\n" + GetAppVer();
-            debug_info += "\n" + GetAppFPS();
-            debug_info += "\n" + GetAppDPI();
-            debug_info += "\n" + GetAppMemory();
-            debug_info += "\n" + GetBatteryStatusInfo();
-            debug_info += "\n" + GetReachabilityInfo();
+            debug_info += Environment.NewLine + GetAppVer();
+            debug_info += Environment.NewLine + GetAppFPS();
+            debug_info += Environment.NewLine + GetAppDPI();
+            debug_info += Environment.NewLine + GetAppMemory();
+            debug_info += Environment.NewLine + GetBatteryStatusInfo();
+            debug_info += Environment.NewLine + GetReachabilityInfo();
+            debug_info += Environment.NewLine + GetGameSpeed();
+            debug_info += " " + GetWind();
             debugWindow.GetComponentInChildren<Text>().text = debug_info;
 
         }
@@ -142,14 +152,14 @@ public class DebugInfoCtrl : MonoBehaviour
     }
 
 
-    void Awake()
+    private void Awake()
     {
         GameConfig.InitGameConfig();
         InitDebugWindow();
         // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
     }
 
-    void Update()
+    private void Update()
     {
         // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         _time += Time.deltaTime;

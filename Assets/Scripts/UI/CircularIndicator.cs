@@ -1,10 +1,10 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 using System.Collections;
 // using System.Collections.Generic;
 using System;
 using CommonsUtility;
+using TMPro;
 
 public class CircularIndicator : MonoBehaviour
 {
@@ -18,7 +18,7 @@ public class CircularIndicator : MonoBehaviour
     private bool _isRunning = false;
     private MeshRenderer _meshRenderer;
     // private Text _timeText;
-    private TextMesh _textMesh;
+    private TextMeshPro _textMesh;
     private Action _onCompleteCallback;  // コールバック関数を保持する変数
 
 
@@ -29,9 +29,9 @@ public class CircularIndicator : MonoBehaviour
         // _timeText = txtTime.GetComponent<Text>();
         // _timeText.text = _duration.ToString("F1");
 
-        GameObject cvsTime = this.gameObject.transform.Find("txtMesh").gameObject;        
+        GameObject cvsTime = this.gameObject.transform.Find("tmpMesh").gameObject;        
         cvsTime.SetActive(false);
-        _textMesh = cvsTime.GetComponent<TextMesh>();
+        _textMesh = cvsTime.GetComponent<TextMeshPro>();
         _textMesh.text = _duration.ToString("F1");
 
         _mesh = new Mesh();

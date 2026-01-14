@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace CommonsUtility
 {
     // ゲームコンフィグ用のシングルトン
-    internal sealed class GameConfig: MonoBehaviour
+    internal sealed class GameConfig : MonoBehaviour
     {
 
         private static GameConfig instance = null;
@@ -16,6 +16,7 @@ namespace CommonsUtility
         internal static string _APP_LANG = GlobalConst.LANG_JP;
 
         internal static bool _STAGE_PADDLE_MODE = false;    // 水たまりモード 雨が降ったときに水たまりを生成する
+        internal static bool _STAGE_RAIN_ABSORB_MODE = true;    // 雨吸収モード
 
         // public static bool eventWholeAction = false;   // 全体イベント実行中
         // public static bool AdsInAction = false;   // 広告実行中
@@ -27,7 +28,7 @@ namespace CommonsUtility
             Application.targetFrameRate = GlobalConst.APP_FPS;
         }
 
-        void Awake()
+        private void Awake()
         {
             #if UNITY_EDITOR
                 Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);

@@ -1,9 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-
+/// <summary>
+/// 地震イベントを管理するクラス
+/// 地面(DEM)を振動させることで地震を表現する
+/// </summary>
 public class Earthquake : MonoBehaviour
 {
     private GameObject _dem = null;
@@ -19,7 +20,13 @@ public class Earthquake : MonoBehaviour
     private const float _DURATION = 4.5f;
     private const float _INTERVAL = 0.02f;
 
-    internal void EventEarthQuake(float magnitude, float duration = _DURATION ,float interval = _INTERVAL)
+    /// <summary>
+    /// 地震イベントを開始する
+    /// </summary>
+    /// <param name="magnitude">マグニチュード(振幅の大きさ)</param>
+    /// <param name="duration">地震の継続時間(秒)</param>
+    /// <param name="interval">振動の更新間隔(秒)</param>
+    internal void EventEarthQuake(float magnitude, float duration = _DURATION, float interval = _INTERVAL)
     {
         _is_earthquake = true;
         _interval = interval;
@@ -29,7 +36,10 @@ public class Earthquake : MonoBehaviour
         // Debug.Log("EventEarthQuake " + _degree);
     }
 
-    // P波
+    /// <summary>
+    /// P波(縦波)による振動を計算
+    /// 上下方向に地面を振動させる
+    /// </summary>
     private void QualeP()
     {
         float val = CalcSin();
@@ -70,6 +80,10 @@ public class Earthquake : MonoBehaviour
     // }
 
 
+    /// <summary>
+    /// Sin波を計算して振幅を返す
+    /// </summary>
+    /// <returns>減衰を考慮した振幅値</returns>
     private float CalcSin()
     {
         float ret = 0.0f;
@@ -81,6 +95,11 @@ public class Earthquake : MonoBehaviour
         return ret;
     }
 
+    /// <summary>
+    /// 振幅の減衰を計算
+    /// 地震開始時と終了時で振幅が小さくなるように計算
+    /// </summary>
+    /// <returns>減衰係数</returns>
     private float CalcAmpDecay()
     {
         float ret = 0.0f;
@@ -98,7 +117,7 @@ public class Earthquake : MonoBehaviour
     }
 
 
-    void Awake()
+    private void Awake()
     {
         // TODO:Naraku の demのところを別クラス化
 
@@ -106,13 +125,13 @@ public class Earthquake : MonoBehaviour
         if (ground != null)
         {
             _dem = ground.gameObject;
+            _org_stage_vector = _dem.transform.position;
         }
         else
         {
             Debug.Log("Earthquake Awake ground is null");
             return;
         }
-        _org_stage_vector = _dem.transform.position;
 
         // Debug.Log(
         //   " 0:" + Math.Sin(0 * Math.PI / 180.0f) 
@@ -130,10 +149,9 @@ public class Earthquake : MonoBehaviour
 
     internal void OnTriggerEnter(Collider other)
     {
-
         if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
         {
-            Debug.Log("OnTriggerEnter " + other.name + " object:" + other.gameObject.name);
+            Debug.Log($"OnTriggerEnter {other.name} object:{other.gameObject.name}");
 
             // TODO:
             // マグニチュード2.5以上で、キャラなどが床抜けする
@@ -141,23 +159,18 @@ public class Earthquake : MonoBehaviour
             // EventEarthQuake(0.6f);
             EventEarthQuake(1.8f);
             // EventEarthQuake(2.8f);
-
-
-
-            return;
         }
-
     }
 
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (_is_earthquake)
         {

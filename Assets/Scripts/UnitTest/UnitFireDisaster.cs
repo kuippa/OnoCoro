@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using CommonsUtility;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class UnitFireDisaster : MonoBehaviour
 {
@@ -64,7 +66,7 @@ public class UnitFireDisaster : MonoBehaviour
 	{
 		int num = max / 2;
 		int num2 = max / 2;
-		GameObject original = Resources.Load<GameObject>("Prefabs/WorkUnit/StopPlate");
+		GameObject original = PrefabManager.StopPlatePrefab;
 		for (int i = 0; i < num; i++)
 		{
 			Vector3 position = new Vector3((float)num + (float)i * distance + distance / 2f, 0f, (float)num2 - (float)i * distance - distance / 2f);
@@ -80,13 +82,7 @@ public class UnitFireDisaster : MonoBehaviour
 
 	private void SettingWaterTurret(int max, float distance)
 	{
-		// PrefabManagerでプレハブの可用性をチェック
-		GameObject waterTurretPrefab = PrefabManager.GetSafe(
-			PrefabManager.WaterTurretPrefab,
-			"WaterTurret",
-			"Prefabs/WorkUnit/WaterTurret"
-		);
-
+		GameObject waterTurretPrefab = PrefabManager.WaterTurretPrefab;
 		if (waterTurretPrefab == null)
 		{
 			#if UNITY_EDITOR
@@ -99,13 +95,16 @@ public class UnitFireDisaster : MonoBehaviour
 		int num2 = max / 2;
 		for (int i = 0; i < num; i++)
 		{
-			Vector3 setPoint = new Vector3((float)num + (float)i * distance, 0f, (float)num2 - (float)i * distance);
+			Vector3 setPoint = new Vector3((float)num + (float)i * distance + 2/1.4f*distance, 0f, (float)num2 - (float)i * distance + distance/2f);
 			if (!((float)num + (float)i * distance > (float)max) && !((float)num2 - (float)i * distance < 0f))
 			{
 				GameObject instance = Object.Instantiate(waterTurretPrefab);
 				WaterTurretCtrl component = instance.GetComponent<WaterTurretCtrl>();
 				if (component != null)
 				{
+					#if UNITY_EDITOR
+					Debug.Log("[UnitFireDisaster] Creating WaterTurret at " + setPoint);
+					#endif
 					component.CreateWaterTurretUnit(setPoint);
 				}
 				else
@@ -144,7 +143,7 @@ public class UnitFireDisaster : MonoBehaviour
 		float distance = 1f;
 		float distance2 = 6f / Mathf.Sqrt(2f);
 		SettingWalls(num, distance2);
-		SettingWaterTurret(num - 1, distance);
+		SettingWaterTurret(num - 1, distance2);
 		SettingCubes(num, distance);
 		FireCubeCtrl.SpawnFireCube(new Vector3(0f, 1f, 0f));
 	}

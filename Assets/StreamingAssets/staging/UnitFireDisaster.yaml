@@ -9,7 +9,7 @@ stages:
   - name: UnitFireDisaster
     note: "火災延焼"
     BIT: 5000
-    CLK: -100
+    CLK: 100
 itemlists:
   - item: FireCube  # 火事
   - item: Sweeper
@@ -51,9 +51,9 @@ events:
     value: PowerCube, 4, 2, 4
 
 
-  - time: 3
-    event: spawn_unit
-    value: Sweeper, 6, 0, 6
+  # - time: 3
+  #   event: spawn_unit
+  #   value: Sweeper, 6, 0, 6
 
 
   # - time: 0.5

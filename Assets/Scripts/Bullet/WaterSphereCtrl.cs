@@ -1,8 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using CommonsUtility;
+using UnityEngine;
 
 
 public class WaterSphereCtrl : MonoBehaviour
@@ -21,12 +19,9 @@ public class WaterSphereCtrl : MonoBehaviour
         GameObjectTreat.DestroyAll(target);
     }
 
-    void Start()
+    private void Start()
     {
         // x秒後を消去
         StartCoroutine(InvokeWithGameObject(this.gameObject, _FLOWING_TIME));
-
-
     }
-
 }

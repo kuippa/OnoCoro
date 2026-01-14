@@ -7,7 +7,6 @@ using UnityEngine;
 /// </summary>
 public static class SignPowerOutageCtrl
 {
-    private static GameObject _prefab;
 
     /// <summary>
     /// 電力不足サインを削除します
@@ -50,29 +49,10 @@ public static class SignPowerOutageCtrl
     /// <param name="target">対象のGameObject</param>
     private static void SignPowerOutage(GameObject target)
     {
-        GameObject gameObject = Object.Instantiate(GetPrefab());
+        GameObject gameObject = Object.Instantiate(PrefabManager.SignPowerOutagePrefab);
         gameObject.name = "SignPowerOutage";
         gameObject.transform.SetParent(target.transform);
         gameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
     }
 
-    /// <summary>
-    /// プレハブを取得します（キャッシュ機能付き）
-    /// </summary>
-    /// <returns>SignPowerOutageのプレハブ</returns>
-    private static GameObject GetPrefab()
-    {
-        if (_prefab == null)
-        {
-            _prefab = Resources.Load<GameObject>("Prefabs/Marker/SignPowerOutage");
-            
-            #if UNITY_EDITOR
-            if (_prefab == null)
-            {
-                Debug.LogWarning("[SignPowerOutageCtrl] プレハブが見つかりません: Prefabs/Marker/SignPowerOutage");
-            }
-            #endif
-        }
-        return _prefab;
-    }
 }

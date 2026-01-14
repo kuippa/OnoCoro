@@ -1,15 +1,17 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using CommonsUtility;
+using UnityEngine.UI;
 
-public class ItemHolderCtrl : MonoBehaviour , IDragHandler, IEndDragHandler, IDropHandler
+/// <summary>
+/// アイテムホルダーの制御クラス
+/// ドラッグ&ドロップ、アイテム選択、スタック管理を行う
+/// </summary>
+public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDropHandler
 {
-    const string _PLACEMENT_NAME = "Item_";
-    ItemStruct _item = new ItemStruct();
+    private const string _PLACEMENT_NAME = "Item_";
+    private ItemStruct _item = new ItemStruct();
 
     private Vector2 _prevPos;
 
@@ -56,12 +58,19 @@ public class ItemHolderCtrl : MonoBehaviour , IDragHandler, IEndDragHandler, IDr
     }
 
 
-    void Awake()
+    private void Awake()
     {
-		Button btn1 = GameObject.Find(this.name).GetComponent<Button>();
-		// btn1.onClick.AddListener(OnTestClick);
-        // ボタンのセレクトが解除されたら
-        // btn1.OnDeselect.AddListener(OnTestClick);
+        // EventTriggerを使ってSelectイベントを登録
+        EventTrigger eventTrigger = this.gameObject.AddComponent<EventTrigger>();
+        EventTrigger.Entry entry = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.Select
+        };
+        entry.callback.AddListener(delegate
+        {
+            OnClickItemHolder();
+        });
+        eventTrigger.triggers.Add(entry);
     }
 
     private void ChangeIcon(Sprite sprite)
@@ -129,6 +138,7 @@ public class ItemHolderCtrl : MonoBehaviour , IDragHandler, IEndDragHandler, IDr
                 _item = new ItemStruct();
                 ChangeIcon(null);
                 SetAltText(_item);
+                SetActiveImageFlag(false);
                 return;
             }
         }
@@ -171,15 +181,90 @@ public class ItemHolderCtrl : MonoBehaviour , IDragHandler, IEndDragHandler, IDr
         }
     }
 
-
-    public void OnTestClick()
+    /// <summary>
+    /// アイテムホルダーがクリックされた時の処理
+    /// </summary>
+    private void OnClickItemHolder()
     {
-        // Debug.Log("click " + this.name + " :" + this.transform.GetSiblingIndex());
-        // Debug.Log("click " + this.name + " :" + this.transform.GetSiblingIndex() + " :" + _item.Name + " " + _item.Stack);
-        // Debug.Log(_item.ItemID + " " + _item.Name + " " + _item.ToolTip + " " + _item.Info + " " + _item.CreateCost + " " + _item.CostType + " " + _item.CostTime + " " + _item.Stack + " " + _item.ItemIconPath + " " + _item.ItemImagePath + " " + _item.HolderIndex);
-
-        // SpawnMarkerPointerCtrl.SetMarkerActive(true);
+        int siblingIndex = this.transform.GetSiblingIndex();
+        Debug.Log($"SelectItemByClick: {this.name} :{siblingIndex}");
+        ItemAction.SelectItem(siblingIndex + 1);
     }
 
+    /// <summary>
+    /// アイテムを選択状態にします
+    /// </summary>
+    /// <returns>選択されたアイテム</returns>
+    internal ItemStruct SelectItem()
+    {
+        ItemStruct item = GetItem();
+        Button component = GetComponent<Button>();
+        if (component == null)
+        {
+            return item;
+        }
 
+        if (item.Name != null)
+        {
+            if (!LoupeCtrl.IsLoupe(item.Name))
+            {
+                SpawnMarkerPointerCtrl.SetMarkerActive(true);
+            }
+            component.Select();
+            SetActiveImageFlag(true);
+        }
+        else
+        {
+            SpawnMarkerPointerCtrl.SetMarkerActive(false);
+            component.Select();
+            component.OnDeselect(null);
+            SetActiveImageFlag(false);
+        }
+        return item;
+    }
+
+    /// <summary>
+    /// アクティブ画像フラグを設定します
+    /// 選択されたアイテムのみactive_Imageを表示
+    /// </summary>
+    /// <param name="active">表示する場合true</param>
+    private void SetActiveImageFlag(bool active)
+    {
+        GameObject[] allActiveImageObjects = GetAllActiveImageObjects();
+        GameObject activeImage = this.transform.Find("pnlHolder").Find("active_Image").gameObject;
+
+        foreach (GameObject obj in allActiveImageObjects)
+        {
+            if (obj == null)
+            {
+                continue;
+            }
+
+            Image component = obj.GetComponent<Image>();
+            if (component == null)
+            {
+                continue;
+            }
+
+            if (activeImage == obj)
+            {
+                component.enabled = active;
+            }
+            else
+            {
+                component.enabled = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// すべてのactive_Imageオブジェクトを取得します
+    /// </summary>
+    /// <returns>active_Imageオブジェクトの配列</returns>
+    private GameObject[] GetAllActiveImageObjects()
+    {
+        return (from t in Object.FindObjectsOfType<Transform>()
+                where t.name == "active_Image"
+                select t.gameObject).ToArray();
+    }
 }

@@ -19,7 +19,8 @@ SubstancePainter
 テクスチャ作成ツール
 
 
-
+Resources.Load でPrefabManager つかっていないものをすべてチェック
+Bonfire は削除予定か確認ののち削除
 
 
 
