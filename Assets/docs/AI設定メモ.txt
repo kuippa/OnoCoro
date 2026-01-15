@@ -1,0 +1,21 @@
+https://zenn.dev/microsoft/articles/github_copilot_advanced
+ファイル名	役割	効果
+AGENTS.md	AI（Copilot/Agent）の最上位ルール	技術スタック固定・Copilot 暴走防止
+instructions.md	実装・設計・UI・セキュリティの共通ルール	実装品質の安定・判断ブレ防止
+docs/introduction.md	アプリの概要・目的・非目的を定義	要件誤解の防止・AI の文脈理解向上
+docs/architecture.md	全体アーキテクチャ定義（Client/Backend/Data）	構成の一貫性維持・勝手な設計変更防止
+docs/api/README.md	API 全体の方針・共通仕様	API 設計の統一・破壊的変更防止
+docs/api/xxx.md	xxx API の契約定義	フロント/バックの連携安定
+docs/decisions/README.md	ADR（設計判断）一覧	設計理由の可視化・将来の迷走防止
+
+
+Unity ゲームプロジェクト向け推奨構成
+ファイル	役割	目的
+AGENTS.md	AI（Copilot/Agent）の最上位ルール	技術スタック固定・暴走防止
+instructions.md	プロジェクト固有の運用ルール	Git運用・復旧手順・環境構築
+docs/coding-standards.md	C#実装・Unity設計の共通ルール	実装品質の安定
+docs/introduction.md	ゲームの概要・目的・非目的	要件誤解の防止
+docs/architecture.md	ゲーム全体アーキテクチャ	システム構成の一貫性維持
+docs/components/	Unity コンポーネント仕様	フロント/バックの連携安定
+docs/decisions/	ADR（設計判断）一覧	設計理由の可視化
+

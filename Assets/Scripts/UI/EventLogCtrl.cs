@@ -1,9 +1,8 @@
-using System.Reflection;
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System;
 using System.Linq;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class EventLogCtrl : MonoBehaviour
 {
@@ -14,6 +13,7 @@ public class EventLogCtrl : MonoBehaviour
     private const float _DEFAULT_ALPHA = 0.9f;
     private const int _MAX_LOG_LINES = 12;
     private const int _MAX_LOG_LINE_LENGTH = 20;
+    
     private float _start_time = 0f;
     private float _window_alpha = 0.5f;
     private GameObject _eventLog;
@@ -27,12 +27,12 @@ public class EventLogCtrl : MonoBehaviour
         _window_alpha = alpha;
         if (_window_alpha <= _FADE_OUT_ALPHA)
         {
-            ToggleWindow(false);
+            ToggleWindow(isOn: false);
             // _i++;
             // ShowEventLog(_i  + "Log");
         }
-        _eventLog.GetComponent<Image>().color = new Color(0, 0, 0, _window_alpha);
-        _txtLog.GetComponent<TextMeshProUGUI>().color = new Color(1, 1, 1, _window_alpha);
+        _eventLog.GetComponent<Image>().color = new Color(0f, 0f, 0f, _window_alpha);
+        _txtLog.GetComponent<TextMeshProUGUI>().color = new Color(1f, 1f, 1f, _window_alpha);
         return true;
     }
 
@@ -43,7 +43,9 @@ public class EventLogCtrl : MonoBehaviour
 
     internal void ShowEventLog(string message)
     {
+        ToggleWindow(isOn: false);
         TextMeshProUGUI txtMpro = _txtLog.GetComponent<TextMeshProUGUI>();
+        
         // message の長さ調節
         if (message.Length > _MAX_LOG_LINE_LENGTH)
         {
@@ -59,7 +61,7 @@ public class EventLogCtrl : MonoBehaviour
         }
 
         SetWindowAlpha(_DEFAULT_ALPHA);
-        ToggleWindow(true);
+        ToggleWindow();
     }
 
     void Awake()
@@ -74,7 +76,7 @@ public class EventLogCtrl : MonoBehaviour
         TextMeshProUGUI txtMpro = _txtLog.GetComponent<TextMeshProUGUI>();
         txtMpro.text = "";
         SetWindowAlpha(_DEFAULT_ALPHA);
-        ToggleWindow(false);
+        ToggleWindow(isOn: false);
     }
 
     void Start()

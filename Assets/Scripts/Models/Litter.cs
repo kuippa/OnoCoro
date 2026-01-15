@@ -1,33 +1,39 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using CommonsUtility;
 
-public class Litter : MonoBehaviour, IItemStructProvider
+public class Litter : MonoBehaviour, IItemStructProvider, IUnitStructProvider
 {
-    public ItemStruct ItemStruct => _item_struct;
-    internal ItemStruct _item_struct = new ItemStruct();
+    internal ItemStruct _item_struct;
 
-    void Awake()
-    // void Start()
+    internal UnitStruct _unit_struct;
+
+    public ItemStruct ItemStruct => _item_struct;
+
+    public UnitStruct UnitStruct => _unit_struct;
+
+    private void Awake()
     {
-        #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-        #endif
         _item_struct = new ItemStruct(
             "Litter"
             , "LitterID"
-            , "Tips Litter"
-            , "Litter Info"
+            , "ほかしもん Tips Litter"
+            , "ほかしもん ごみを巻き散らかす、まくゴミには数に限りがある Litter Info"
             , -200
-            , GlobalConst.SHORT_SCORE2_SCALE
-            , 3.0f
+            , "CLK"
+            , 3f
             , 1
             , "imgs/icons/spaghetti-monster-flying-solid"
             , "imgs/icons/spaghetti-monster-flying-solid"
             , 2);
 
-        // Debug.Log("Litter.Awake() _item_struct.Name: " + _item_struct.Name);
+        _unit_struct = new UnitStruct(
+            _item_struct.Name
+            , _item_struct.ItemID
+            , 1
+            , _item_struct.Info
+            , 0
+            , _item_struct.CreateCost
+            , 0
+            , "CLK");
     }
 
     internal ItemStruct GetItemStruct()
@@ -35,4 +41,8 @@ public class Litter : MonoBehaviour, IItemStructProvider
         return _item_struct;
     }
 
+    internal UnitStruct GetUnitStruct()
+    {
+        return _unit_struct;
+    }
 }

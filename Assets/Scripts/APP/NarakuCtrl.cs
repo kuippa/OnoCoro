@@ -20,6 +20,8 @@ public class NarakuCtrl : MonoBehaviour
     private static readonly Vector2 _NARAKU_BASIC_SIZE = new Vector2(1500f, 15f);   // ナラクの基本サイズ
     private Vector3 _dem_center_pos = Vector3.zero;
     private GameObject _dem = null;   // DEM(Digital Elevation Model) 航空レーザ測量 地形データ
+    private WaterSurfaceCtrl _waterSurface = null;
+    private GameObject _eventSystem = null;
 
     internal void OnTriggerEnter(Collider other)
     {
@@ -53,12 +55,20 @@ public class NarakuCtrl : MonoBehaviour
         {
             GameObjectTreat.DestroyAll(other.gameObject);            
         }
-        else if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString()
-            || other.gameObject.tag == GameEnum.TagType.Water.ToString())
+        else if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString())
         {
             // Debug.Log("OnTriggerEnter Naraku:RainDrop;  " + other.gameObject.name);
             // 雨/水がナラクに入った
             // Debug.Log("OnTriggerEnter RainDrop " + other.gameObject.name);
+            _eventSystem = GameObjectTreat.GetEventSystem(_eventSystem);
+            _waterSurface = GameObjectTreat.GetOrAddComponent<WaterSurfaceCtrl>(_eventSystem);
+            _waterSurface.RainDropIntoNaraku(other.gameObject);
+            GameObjectTreat.DestroyAll(other.gameObject);
+        }
+        else if (other.gameObject.tag == GameEnum.TagType.Water.ToString())
+        {
+            // Debug.Log("OnTriggerEnter Naraku:Water;  " + other.gameObject.name);
+            // 水がナラクに入った
             GameObjectTreat.DestroyAll(other.gameObject);
         }
         else

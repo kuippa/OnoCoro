@@ -1,7 +1,8 @@
-using UnityEngine;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
-using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 #endif
+using UnityEngine;
+using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 using AppCamera;
 using UnityEngine.AI;
@@ -96,6 +97,10 @@ namespace StarterAssets
 
 		public void MoveInput(Vector2 newMoveDirection)
 		{
+			if (!_TabMenuOpen && EventSystem.current.currentSelectedGameObject != null)
+			{
+				EventSystem.current.SetSelectedGameObject(null);
+			}
 			_move = newMoveDirection;
 		} 
 
@@ -213,16 +218,29 @@ namespace StarterAssets
 			}
 		}
 
+		public void OnFunctionMenu(InputValue value)
+		{
+			Keyboard current = Keyboard.current;
+			if (current != null)
+			{
+				if (current[Key.F3].wasPressedThisFrame)
+				{
+					GameSpeedCtrl.SetGameSpeed(1f);
+				}
+				else if (current[Key.F4].wasPressedThisFrame)
+				{
+					GameSpeedCtrl.SetGameSpeed(2f);
+				}
+				else if (current[Key.F5].wasPressedThisFrame)
+				{
+					GameSpeedCtrl.SetGameSpeed(20f);
+				}
+			}
+		}
+
 		private void HandleMenuShortcut(int number)
 		{
-            GameObject ItemList = GameObject.Find("ItemList");
-			if (ItemList == null)
-			{
-				return;
-			}
-            ItemListCtrl itemListCtrl = ItemList.GetComponent<ItemListCtrl>();
-			itemListCtrl.SelectItem(number);
-			ItemAction.GetSelectedItem();
+			ItemAction.SelectItem(number);
 		}
 
 #endif

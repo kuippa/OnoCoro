@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using CommonsUtility;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using CommonsUtility;
-
 
 public class InfoWindowCtrl : MonoBehaviour
 {
@@ -16,12 +13,13 @@ public class InfoWindowCtrl : MonoBehaviour
     public Button _btnClose;
     public Button _btnOK;
     public Button _btnDelete;
+    
     private UnitStruct? _unitStruct = null;
 
 
     internal void OnClickClose()
     {
-        ToggleInfoWindow(false);
+        ToggleInfoWindow(isActive: false);
     }
 
     private void InitWindow()
@@ -44,45 +42,24 @@ public class InfoWindowCtrl : MonoBehaviour
             _btnDelete.onClick.AddListener(OnClickDelete);
         }
 
-        ToggleInfoWindow(false);
+        ToggleInfoWindow(isActive: false);
     }
 
     private void CallCircularIndicator(GameObject target)
     {
-        GameObject UICircularIndicator = Instantiate(Resources.Load("Prefabs/UI/UICircularIndicator")) as GameObject;
-        CircularIndicator indicator = UICircularIndicator.GetComponent<CircularIndicator>();
-        Transform indicatorTransform = target.transform.Find("Indicator"); 
-        GameObject indicator_canvas = null;
-        if (indicatorTransform != null)
-        {
-            indicator_canvas = target.transform.Find("Indicator").gameObject; 
-        }
-        else
-        {
-            GameObject indicator_object = new GameObject("Indicator");
-            indicator_object.transform.SetParent(target.transform);
-            Canvas canvas = indicator_object.AddComponent<Canvas>();
-            indicator_canvas = canvas.gameObject;
-            indicator_canvas.transform.position = target.transform.position + new Vector3(0, 1.5f, 0);
-            // 裏表ひっくり返す
-            indicator_canvas.transform.rotation = Quaternion.Euler(0, 180, 0);
-        }
+        Vector3 delIndicatorPosition = GetDelIndicatorPosition(target);
+        MarkerIndicatorCtrl.CreateCircularIndicator(target, 5f, DeleteUnitProcess, delIndicatorPosition);
+    }
 
-        // TODO: 子供クラスを持つオブジェクトか否かはif文分岐ではなくUnitStructのようなモデルで動的に判断するようにする
-                
-        if (target.tag == GameEnum.TagType.TowerSweeper.ToString())
+    private Vector3 GetDelIndicatorPosition(GameObject target)
+    {
+        Vector3 position = target.transform.position;
+        Transform transform = target.transform.Find("dispposi");
+        if (transform != null)
         {
-            target.GetComponent<TowerSweeper>().StartDeleteUnitProcess();
+            position = transform.position;
         }
-        else if (target.tag == GameEnum.TagType.WaterTurret.ToString())
-        {
-            target.GetComponent<WaterTurretCtrl>().StartDeleteUnitProcess();
-        }
-        // TODO: 対象ごとに秒数調整
-
-        indicator.StartIndicator(5f, () => {
-                    DeleteUnitProcess(target);
-                    }, indicator_canvas);
+        return position;
     }
 
     private void DeleteUnitProcess(GameObject target)
@@ -94,56 +71,77 @@ public class InfoWindowCtrl : MonoBehaviour
 
         if (target.tag == GameEnum.TagType.TowerSweeper.ToString())
         {
-            TowerSweeper towerSweeper = target.GetComponent<TowerSweeper>();
-            if (towerSweeper != null)
+            TowerSweeper component = target.GetComponent<TowerSweeper>();
+            if (component != null)
             {
-                towerSweeper.DeleteUnitProcess();
+                component.DeleteUnitProcess();
             }
         }
         else if (target.tag == GameEnum.TagType.WaterTurret.ToString())
         {
-            WaterTurretCtrl waterTurret = target.GetComponent<WaterTurretCtrl>();
-            if (waterTurret != null)
+            WaterTurretCtrl component2 = target.GetComponent<WaterTurretCtrl>();
+            if (component2 != null)
             {
-                waterTurret.DeleteUnitProcess();
+                component2.DeleteUnitProcess();
             }
         }
-
+        else
+        {
+            Debug.Log("DeleteUnitProcess " + target.name + " " + target.tag);
+            int intScore = _unitStruct?.DeleteCost ?? 0;
+            string score_type = _unitStruct?.ScoreType;
+            ScoreCtrl.UpdateAndDisplayScore(intScore, score_type);
+            GameObjectTreat.DestroyAll(target);
+        }
     }
 
     private void OnClickDelete()
     {
-
         // Debug.Log("OnClickDelete" + _unitStruct?.Name + " " + _unitStruct?.UnitID);
-        GameObject target = GameObject.Find(_unitStruct?.UnitID);
-        if (target == null)
+        GameObject gameObject = GameObject.Find(_unitStruct?.UnitID);
+        
+        if (gameObject == null)
         {
             return;
         }
+        
+        if (IsDeleteAbleUnit(_unitStruct))
+        {
+            CallCircularIndicator(gameObject);
+            ToggleInfoWindow(isActive: false);
+        }
+    }
 
-        if (target.tag == GameEnum.TagType.TowerSweeper.ToString()
-            || target.tag == GameEnum.TagType.WaterTurret.ToString())
+    private bool IsDeleteAbleUnit(UnitStruct? unitStruct)
+    {
+        if (GameObject.Find(unitStruct?.UnitID) == null)
         {
-            CallCircularIndicator(target);
-            ToggleInfoWindow(false);
-            return;
+            return false;
         }
+        
+        if (unitStruct.HasValue || (unitStruct.HasValue && unitStruct.GetValueOrDefault().DeleteCost > 0))
+        {
+            return true;
+        }
+        
+        return false;
     }
 
     internal void GetTargetUnit()
     {
-        RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out hit))
+        int layerMask = ~LayerMask.GetMask(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
+        
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, float.PositiveInfinity, layerMask))
         {
             UnitStruct? unitStruct = GetUnitStruct(hit.collider.gameObject);
-
             int total_score = ScoreCtrl.GetTotalGarbageScore(hit.collider);
             // Debug.Log("total_score " + total_score + unitStruct?.Name ?? " no name");
 
             if (SetInfo(unitStruct, total_score))
             {
-                ToggleInfoWindow(true);
+                ToggleInfoWindow(isActive: true);
             }
             // マウスがヒットした地面の座標を取得
             // if (hit.collider.gameObject.layer != LayerMask.NameToLayer(EnemyEnum.LayerType.Ground.ToString()))
@@ -153,33 +151,37 @@ public class InfoWindowCtrl : MonoBehaviour
             // }
             // // マーカーの座標をマウスの座標にする
             // transform.position = hit.point;
-            
         }
     }
 
     internal bool SetInfo(UnitStruct? unitStruct, int get_score = 0)
     {
-        if (unitStruct == null || unitStruct?.Name == "")
+        if (!unitStruct.HasValue || unitStruct?.Name == "")
         {
             return false;
         }
 
         TextMeshProUGUI txtName = this.transform.Find("InfoWindow/title/tmpUnitName").GetComponent<TextMeshProUGUI>();
         txtName.text = unitStruct?.Name ?? "-";
+        
         TextMeshProUGUI txtID = this.transform.Find("InfoWindow/info/tmpUnitID").GetComponent<TextMeshProUGUI>();
-        txtID.text = GlobalConst.UI_UNIT_ID + unitStruct?.UnitID ?? "";
+        txtID.text = "UnitID : " + (unitStruct?.UnitID ?? "");
+        
         TextMeshProUGUI txtLv = this.transform.Find("InfoWindow/info/tmpUnitLv").GetComponent<TextMeshProUGUI>();
         // txtLv.text = GlobalConst.UI_LV + unitStruct?.Lv.ToString() ?? "-";
         txtLv.text = "";
+        
         TextMeshProUGUI txtInfo = this.transform.Find("InfoWindow/info/tmpUnitInfo").GetComponent<TextMeshProUGUI>();
-        txtInfo.text = GlobalConst.UI_INFO + unitStruct?.Info ?? "";
+        txtInfo.text = "INFO : " + (unitStruct?.Info ?? "");
 
         if (get_score != 0)
         {
-            txtInfo.text += Environment.NewLine + get_score.ToString() + unitStruct?.ScoreType?? "";
+            txtInfo.text += Environment.NewLine + get_score.ToString() + (unitStruct?.ScoreType ?? "");
         }
+        
         // TextMeshProUGUI txtUpdate = this.transform.Find("InfoWindow/update/tmpUpdateCost").GetComponent<TextMeshProUGUI>();
         // txtUpdate.text = unitStruct.UpdateCost.ToString() + GlobalConst.SHORT_SCORE1_SCALE;
+        
         SetDeleteCost(unitStruct);
         return true;
     }
@@ -188,16 +190,19 @@ public class InfoWindowCtrl : MonoBehaviour
     {
         TextMeshProUGUI tmpDeleteCost = this.transform.Find("InfoWindow/delete/tmpDeleteCost").GetComponent<TextMeshProUGUI>();
         Button btnDelete = this.transform.Find("InfoWindow/delete/btnDelete").GetComponent<Button>();
-        int deleteCost = unitStruct?.DeleteCost ?? 0;
-        string signedScore = SignedScore(deleteCost);
-        if (unitStruct == null || deleteCost == 0 || signedScore == "")
+        
+        string signedScore = SignedScore(unitStruct?.DeleteCost ?? 0);
+        
+        if (!unitStruct.HasValue || signedScore == "" || !IsDeleteAbleUnit(unitStruct))
         {
             tmpDeleteCost.text = "";
-            btnDelete.gameObject.SetActive(false);
-            return;
+            btnDelete.gameObject.SetActive(value: false);
         }
-        tmpDeleteCost.text = signedScore + unitStruct?.ScoreType ?? "type";
-        btnDelete.gameObject.SetActive(true);
+        else
+        {
+            tmpDeleteCost.text = signedScore + (unitStruct?.ScoreType ?? "type");
+            btnDelete.gameObject.SetActive(value: true);
+        }
     }
 
     // 与えられたスコアが正の整数だった場合、＋文字列をつける
@@ -207,13 +212,14 @@ public class InfoWindowCtrl : MonoBehaviour
         {
             return "+ " + score;
         }
-        else if (score < 0)
+        
+        if (score < 0)
         {
-            return "- " +  Mathf.Abs(score);
+            return "- " + Mathf.Abs(score);
         }
+        
         return "";
     }
-    
 
     internal void ToggleInfoWindow(bool isActive)
     {
@@ -224,10 +230,31 @@ public class InfoWindowCtrl : MonoBehaviour
         _infoWindow.SetActive(isActive);
     }
 
+    private GameObject GetParentObject(GameObject collider)
+    {
+        Transform parent = collider.transform.parent;
+        
+        if (parent == null)
+        {
+            return collider;
+        }
+        
+        if (collider.tag == GameEnum.TagType.Garbage.ToString() 
+            || collider.tag == GameEnum.TagType.PowerCube.ToString() 
+            || collider.tag == GameEnum.TagType.FireCube.ToString())
+        {
+            return collider;
+        }
+        
+        return parent.gameObject;
+    }
+
     private UnitStruct? GetUnitStruct(GameObject collider)
     {
         UnitStruct? unitStruct = null;
+        collider = GetParentObject(collider);
         string tag = collider.tag;
+        
         // Debug.Log("collider.tag " + tag);
         // TODO : タグを持っているオブジェクトがGetUnitStructを持っている前提になっている。
         // 子どもオブジェクトにtagをもたせたらIndexObjectByTagの命名部分も破綻するし、rootしかもたないGetUnitStructも破綻する
@@ -253,10 +280,27 @@ public class InfoWindowCtrl : MonoBehaviour
         {
             unitStruct = collider.GetComponent<WaterTurret>().GetUnitStruct();
         }
+        else if (tag == GameEnum.TagType.EnemyLitters.ToString())
+        {
+            unitStruct = collider.GetComponent<Litter>().GetUnitStruct();
+        }
+        else if (tag == GameEnum.TagType.DustBox.ToString())
+        {
+            unitStruct = collider.GetComponent<DustBox>().GetUnitStruct();
+        }
+        else if (tag == GameEnum.TagType.StopPlate.ToString())
+        {
+            unitStruct = collider.GetComponent<StopPlate>().GetUnitStruct();
+        }
+        else if (tag == GameEnum.TagType.SentryGuard.ToString())
+        {
+            unitStruct = collider.GetComponent<SentryGuard>().GetUnitStruct();
+        }
         else
         {
-            Debug.Log("GetUnitStruct default " + tag);
+            Debug.Log("GetUnitStruct default " + tag + " " + collider.name);
         }
+        
         _unitStruct = unitStruct;
         return unitStruct;
     }
@@ -269,5 +313,4 @@ public class InfoWindowCtrl : MonoBehaviour
         // debugPreview();
         #endif
     }
-
 }

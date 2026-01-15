@@ -87,7 +87,7 @@ public class RainDropsCtrl : MonoBehaviour
     private void OnTriggerCheck()
     {
         _check_count++;
-        if (_check_count > MAX_CHECK_COUNT)
+        if ((float)_check_count > MAX_CHECK_COUNT * GameSpeedCtrl.GetGameSpeed())
         {
             _is_rain = false;
             GameObjectTreat.DestroyAll(this.gameObject);
@@ -100,26 +100,31 @@ public class RainDropsCtrl : MonoBehaviour
             return;
         }
 
-        if (_rainDropPosition != Vector3.zero)
+        if (_rainDropPosition != Vector3.zero && Vector3.Distance(_rainDropPosition, this.gameObject.transform.position) <= STATIONARY_DISTANCE)
         {
-            if (Vector3.Distance(_rainDropPosition, this.gameObject.transform.position) > STATIONARY_DISTANCE)
+            if (GameConfig._STAGE_PADDLE_MODE && CheckExistRainsInRadius())
             {
-                // 雨が集まっていたら水たまりを生成
-                if (GameConfig._STAGE_PADDLE_MODE && CheckExistRainsInRadius())
+                // Debug.Log("同じ場所に一定時間停止" + this.name);
+                if (MakePuddle())
                 {
-                    // Debug.Log("同じ場所に一定時間停止" + this.name);
-                    if (MakePuddle())
-                    {
-                        _is_rain = false;
-                        GameObjectTreat.DestroyAll(this.gameObject);
-                    }
-                    return;
+                    _is_rain = false;
+                    GameObjectTreat.DestroyAll(this.gameObject);
                 }
+                return;
+            }
+            if (GameConfig._STAGE_RAIN_ABSORB_MODE)
+            {
+                ChangeColliderSize();
             }
         }
 
         _rainDropPosition = this.gameObject.transform.position;
         // Debug.Log("OnTriggerCheck" + this.name);
+    }
+
+    private void ChangeColliderSize()
+    {
+        this.gameObject.transform.Find("absorbcollider").gameObject.GetComponent<RainAbsorbCtrl>().ChangeColliderSize(0.7f);
     }
 
     IEnumerator RainDrops()

@@ -12,17 +12,41 @@ public class Raining : MonoBehaviour
     // TODO: ステージ内で一意の状態であるようにする
     private bool _is_rain = false; 
 
+    private float _time = 0.0f;
+
+    private GameObject _eventSystem = null;
+
+    private static GameObject _parent_holder = null;
+
+    private const string _RAIN_PARENT_NAME = "Rains";
+
+    internal const float INTERVAL_RAIN = 0.02f;
+
+    internal const float ABOVE_POSITION = 280f;
+
     private const float RAINY_STRENGTH = 0.65f;    // 雨の強さ
     private const float RAINY_CLOUD_STRENGTH = 0.75f;    // 雨のときの雲の強さ
     private const float SUNNY_CLOUD_STRENGTH = 0.25f;    // 晴れのときの雲の強さ
     private const float RAINY_FOG_STRENGTH = 200f;   // 雨のときの霧の強さ
     // private const float RAINY_FOG_STRENGTH = 40f;   // 雨のときの霧の強さ
     private const float SUNNY_FOG_STRENGTH = 500f;
-    private const float INTERVAL_RAIN = 0.01f;  // 雨粒が落ちてくる間隔
+    // private const float INTERVAL_RAIN = 0.01f;  // 雨粒が落ちてくる間隔
     // private const float INTERVAL_RAIN = 0.05f;  // 雨粒が落ちてくる間隔
     // private const float INTERVAL_RAIN = 1.00f;  // 雨粒が落ちてくる間隔
-    private float _time = 0.0f;
     private GameObject _rain_holder = null;
+
+
+    internal void SetRainMode(bool isRain)
+    {
+        if (isRain)
+        {
+            _is_rain = true;
+            return;
+        }
+        _is_rain = false;
+        DeleteAllRain();
+        DeleteAllPuddle();
+    }
 
 
     internal void ToggleRain()
@@ -68,72 +92,44 @@ public class Raining : MonoBehaviour
 
     private void RainDrops()
     {
-		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/RainDrop");
-        // prefab.transform.localScale = GetRandomSize(_LitterSizeMin, _LitterSizeMax);
-        // Vector3 setPoint = this.transform.position;
-        Vector3 setPoint = DemCtrl.GetDemRndAbovePosition(50f);
-        // Vector3 setPoint = new UnityEngine.Vector3(-251, 48, -71);
-
-        // Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
-        Quaternion setRotation = Quaternion.Euler(0, 0, 0);
-        GameObject unit = Instantiate(prefab, setPoint, setRotation);
-        unit.tag = GameEnum.TagType.RainDrop.ToString();
-        unit.name = GameEnum.TagType.RainDrop.ToString() + Time.time.ToString();
-
-        // Rigidbody rigidbody = unit.GetComponent<Rigidbody>();
-        // rigidbody.useGravity = true;
-        // Rigidbody rb        = GetComponent<Rigidbody>();
-        // Rigidbody rigidbody = unit.AddComponent<Rigidbody>();
-        // rigidbody.AddForce(transform.forward * _LitteringPow);
-
-        unit.transform.SetParent(GetRainHolder().transform);
-    }
-
-    private GameObject GetRainHolder()
-    {
-        if (_rain_holder == null)
-        {
-            _rain_holder = GameObject.Find("rains");
-            if (_rain_holder == null)
-            {
-                // gameObject rains を追加する
-                _rain_holder = new GameObject("rains");
-            }
-        }
-        return _rain_holder;
+        GameObject rainDropPrefab = PrefabManager.RainDropPrefab;
+        Vector3 demRndAbovePosition = DemCtrl.GetDemRndAbovePosition(ABOVE_POSITION);
+        Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
+        GameObject obj = Object.Instantiate(rainDropPrefab, demRndAbovePosition, rotation);
+        obj.tag = GameEnum.TagType.RainDrop.ToString();
+        obj.name = GameEnum.TagType.RainDrop.ToString() + Time.time;
+        Transform holderParentTransform = GameObjectTreat.GetHolderParentTransform(ref _parent_holder, _RAIN_PARENT_NAME);
+        obj.transform.SetParent(holderParentTransform);
     }
 
 
     internal void OnTriggerEnter(Collider other)
     {
-
         if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
         {
-            // Debug.Log("OnTriggerEnter " + other.name + " object:" + other.gameObject.name);
-            ToggleRain();
-            return;
+            _eventSystem = GameObjectTreat.GetEventSystem(_eventSystem);
+            WeatherCtrl orAddComponent = GameObjectTreat.GetOrAddComponent<WeatherCtrl>(_eventSystem);
+            float toggleRainStrength = orAddComponent.GetToggleRainStrength();
+            orAddComponent.ChangeWeather(toggleRainStrength);
         }
     }
 
-    void Awake()
+    private void Awake()
     {
-        // _rain = GameObject.Find("Environment/Rain").gameObject;
     }
 
-    void Update()
+    private void Update()
     {
-        if (!_is_rain)
+        if (_is_rain)
         {
-            return;
+            float num = INTERVAL_RAIN / GameSpeedCtrl.GetGameSpeed();
+            _time += Time.deltaTime;
+            if (_time > num)
+            {
+                _time = 0f;
+                RainDrops();
+            }
         }
-
-        _time += Time.deltaTime;
-        if (_time > INTERVAL_RAIN)
-        {
-            _time = 0.0f;
-            RainDrops();
-        }
-
     }
 
 }
