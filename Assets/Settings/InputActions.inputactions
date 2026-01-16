@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "InputActions",
     "maps": [
         {
@@ -90,6 +91,15 @@
                     "name": "MenuShortCut",
                     "type": "Button",
                     "id": "32e79f58-29f0-459a-8671-d92af4980a32",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "FunctionMenu",
+                    "type": "Button",
+                    "id": "9627b7ba-ec78-4bf8-acd7-652016b7b478",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -380,6 +390,50 @@
                     "processors": "",
                     "groups": ";KeyboardMouse",
                     "action": "MenuShortCut",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fec8628f-0bc7-4f1f-be87-c26fd0d4d0e9",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FunctionMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ae2f610c-1519-40b0-972c-aab372fc97d1",
+                    "path": "<Keyboard>/f3",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";KeyboardMouse",
+                    "action": "FunctionMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "34d0218a-e6dd-4279-a6c8-14ee64875477",
+                    "path": "<Keyboard>/f4",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";KeyboardMouse",
+                    "action": "FunctionMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7e8a5e86-40cd-426a-951a-e9086e0afff8",
+                    "path": "<Keyboard>/f5",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";KeyboardMouse",
+                    "action": "FunctionMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

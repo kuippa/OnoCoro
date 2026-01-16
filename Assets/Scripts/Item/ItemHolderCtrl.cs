@@ -10,9 +10,16 @@ using UnityEngine.UI;
 /// </summary>
 public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDropHandler
 {
+    // Constants - UI Object Names
     private const string _PLACEMENT_NAME = "Item_";
-    private ItemStruct _item = new ItemStruct();
+    private const string _PNL_HOLDER = "pnlHolder";
+    private const string _ITEM_ICON = "Item_icon";
+    private const string _ACTIVE_IMAGE = "active_Image";
+    private const string _TXT_STACK = "txtStack";
+    private const string _TXT_INDEX = "txtIndex";
+    private const string _TXT_ALT = "txtAlt";
 
+    private ItemStruct _item = new ItemStruct();
     private Vector2 _prevPos;
 
     public void OnDrag(PointerEventData eventData)
@@ -71,27 +78,70 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
             OnClickItemHolder();
         });
         eventTrigger.triggers.Add(entry);
+
+        // UI復元: active_Imageが存在しない場合は動的に生成
+        EnsureActiveImageExists();
+    }
+
+    /// <summary>
+    /// active_Imageオブジェクトが存在することを確認。存在しなければ生成
+    /// </summary>
+    private void EnsureActiveImageExists()
+    {
+        Transform pnlHolder = SafeFindChild(_PNL_HOLDER);
+        if (pnlHolder == null)
+        {
+            return;
+        }
+
+        GameObject activeImageObj = pnlHolder.Find(_ACTIVE_IMAGE).gameObject;
+        if (activeImageObj == null)
+        {
+            return;
+        }
+
+        Image image = activeImageObj.GetComponent<Image>();
+        image.enabled = false; // 初期状態: 非表示（選択されていない）
+    }
+
+    /// <summary>
+    /// Transform.Find で null をチェックする補助メソッド
+    /// </summary>
+    private Transform SafeFindChild(string childName)
+    {
+        return this.transform.Find(childName);
+    }
+
+    /// <summary>
+    /// 指定した Transform の子要素を Find する補助メソッド
+    /// </summary>
+    private Transform SafeFindChild(Transform parent, string childName)
+    {
+        if (parent == null)
+        {
+            return null;
+        }
+        return parent.Find(childName);
     }
 
     private void ChangeIcon(Sprite sprite)
     {
-        Image icon = this.transform.Find("pnlHolder").Find("Item_icon").GetComponentInChildren<Image>();
-        icon.sprite = sprite;
-        // 子要素のpnlHolderに画像が設定されていた場合アルファ値を255にする
-        if (icon.sprite != null)
+        Transform pnlHolder = SafeFindChild(_PNL_HOLDER);
+        if (pnlHolder == null)
         {
-            // 画像が設定されていた場合透過度を0にする
-            Color color = icon.color;
-            color.a = 1.0f;
-            icon.color = color;
+            return;
         }
-        else
-        {
-            Color color = icon.color;
-            color.a = 0.0f;
-            icon.color = color;
 
+        Image icon = SafeFindChild(pnlHolder, _ITEM_ICON)?.GetComponentInChildren<Image>();
+        if (icon == null)
+        {
+            return;
         }
+
+        icon.sprite = sprite;
+        Color color = icon.color;
+        color.a = (icon.sprite != null) ? 1f : 0f;
+        icon.color = color;
     }
 
     private int GetFreeItemIndex()
@@ -119,11 +169,16 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
 
     private void SetAltText(ItemStruct item)
     {
-        Transform unit = this.transform.Find("pnlHolder").Find("Item_icon").Find("txtAlt");
-        if (unit != null)
+        Transform pnlHolder = SafeFindChild(_PNL_HOLDER);
+        Transform txtAlt = SafeFindChild(SafeFindChild(pnlHolder, _ITEM_ICON), _TXT_ALT);
+        
+        if (txtAlt != null)
         {
-            Text text1 = unit.gameObject.GetComponent<Text>();
-            text1.text = item.Info;
+            Text text = txtAlt.GetComponent<Text>();
+            if (text != null)
+            {
+                text.text = item.Info;
+            }
         }
     }
 
@@ -145,7 +200,7 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
         else
         {
             _item = item;
-            Sprite sprite = Resources.Load<Sprite>(item.ItemIconPath);
+            Sprite sprite = SpriteResourceLoader.LoadSprite(item.ItemIconPath);
             ChangeIcon(sprite);
             SetAltText(item);
         }
@@ -160,25 +215,25 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
     {
         this.transform.SetSiblingIndex(index);
         this.name = _PLACEMENT_NAME + (this.transform.GetSiblingIndex()).ToString();
-        this.transform.Find("txtIndex").GetComponentInChildren<Text>().text = (index+1).ToString();
+        
+        Text indexText = SafeFindChild(_TXT_INDEX)?.GetComponentInChildren<Text>();
+        if (indexText != null)
+        {
+            indexText.text = (index + 1).ToString();
+        }
+
         SetStackText();
-
-        // TODO: デバッグのためにランダムで色を変える
-        // this.GetComponentInChildren<Image>().color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f, 0.25f, 0.25f);
-        // this.GetComponentInChildren<Image>().color = UnityEngine.Random.ColorHSV(0.5f, 1f, 0.5f, 1f, 0.5f, 1f, 0.85f, 0.85f);
-
     }
 
     private void SetStackText()
     {
-        if (_item.Stack > 1)
+        Text stackText = SafeFindChild(_TXT_STACK)?.GetComponentInChildren<Text>();
+        if (stackText == null)
         {
-            this.transform.Find("txtStack").GetComponentInChildren<Text>().text = _item.Stack.ToString();
+            return;
         }
-        else
-        {
-            this.transform.Find("txtStack").GetComponentInChildren<Text>().text = "";
-        }
+
+        stackText.text = (_item.Stack > 1) ? _item.Stack.ToString() : "";
     }
 
     /// <summary>
@@ -230,8 +285,16 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
     /// <param name="active">表示する場合true</param>
     private void SetActiveImageFlag(bool active)
     {
+        Transform pnlHolder = SafeFindChild(_PNL_HOLDER);
+        Transform activeImageTransform = SafeFindChild(pnlHolder, _ACTIVE_IMAGE);
+        
+        if (activeImageTransform == null)
+        {
+            return;
+        }
+
+        GameObject activeImage = activeImageTransform.gameObject;
         GameObject[] allActiveImageObjects = GetAllActiveImageObjects();
-        GameObject activeImage = this.transform.Find("pnlHolder").Find("active_Image").gameObject;
 
         foreach (GameObject obj in allActiveImageObjects)
         {
@@ -246,14 +309,7 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
                 continue;
             }
 
-            if (activeImage == obj)
-            {
-                component.enabled = active;
-            }
-            else
-            {
-                component.enabled = false;
-            }
+            component.enabled = (activeImage == obj) && active;
         }
     }
 
@@ -264,7 +320,7 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
     private GameObject[] GetAllActiveImageObjects()
     {
         return (from t in Object.FindObjectsOfType<Transform>()
-                where t.name == "active_Image"
+                where t.name == _ACTIVE_IMAGE
                 select t.gameObject).ToArray();
     }
 }

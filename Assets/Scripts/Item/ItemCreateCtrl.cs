@@ -208,7 +208,8 @@ public class ItemCreateCtrl : MonoBehaviour
         gameObject.transform.Find("txtCost").gameObject.GetComponent<TextMeshProUGUI>().text = itemStruct.CreateCost + itemStruct.CostType + "/" + itemStruct.CostTime + "s";
         _timeLimit = itemStruct.CostTime;
         GameObject obj = gameObject.transform.Find("imgIcon").gameObject;
-        obj.GetComponent<Image>().sprite = Resources.Load<Sprite>(itemStruct.ItemImagePath);
+        Image imageComponent = obj.GetComponent<Image>();
+        SpriteResourceLoader.SetSpriteToImage(imageComponent, itemStruct.ItemImagePath);
         obj.transform.Find("txtAlt").gameObject.GetComponent<Text>().text = itemStruct.Info;
         SetCreateButtonInteractable(itemStruct);
     }

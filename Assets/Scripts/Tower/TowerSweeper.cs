@@ -436,6 +436,18 @@ public class TowerSweeper : MonoBehaviour
 
     }
 
+    private bool IsPowerState()
+    {
+        bool hasPower = ScoreCtrl.IsScorePositiveInt(0, "CLK");
+        if (!hasPower)
+        {
+            SignPowerOutageCtrl.GetOrCreateCirclePowerOutage(this.gameObject);
+            return hasPower;
+        }
+        SignPowerOutageCtrl.UnSignPowerOutage(this.gameObject);
+        return hasPower;
+    }
+
     internal void StartDeleteUnitProcess()
     {
         _isDelete = true;
@@ -461,7 +473,7 @@ public class TowerSweeper : MonoBehaviour
     void Update()
     {
         _time += Time.deltaTime;
-        if (_time > _LOOP_TIME && !_isDelete)
+        if (_time > (double)(_LOOP_TIME / GameSpeedCtrl.GetGameSpeed()) && !_isDelete && IsPowerState())
         {
             _time = 0;
             MoveControl();

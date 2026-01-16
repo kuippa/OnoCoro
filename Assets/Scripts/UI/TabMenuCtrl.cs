@@ -71,6 +71,26 @@ public class TabMenuCtrl : MonoBehaviour
         }
         _item_create_window.SwitchActive(isOn);
 
+        // UIBG_maskの制御
+        GameObject bgMask = GameObject.Find("UIBG_mask");
+        if (bgMask != null)
+        {
+            CanvasGroup canvasGroup = bgMask.transform.GetComponent<CanvasGroup>();
+            if (canvasGroup != null)
+            {
+                if (isOn)
+                {
+                    canvasGroup.alpha = 0.8f;
+                    canvasGroup.blocksRaycasts = true;
+                }
+                else
+                {
+                    canvasGroup.alpha = 0f;
+                    canvasGroup.blocksRaycasts = false;
+                }
+            }
+        }
+
         // tooltipも消す
         GameObject[] tooltips = GameObject.FindGameObjectsWithTag("UIToolTips");
         foreach (GameObject tooltip in tooltips)
