@@ -128,9 +128,9 @@ public class WaterTurretCtrl : MonoBehaviour
             {
                 num = num2;
                 _target = gameObject;
-                #if UNITY_EDITOR
-                    Debug.Log("target: " + _target.name);
-                #endif
+                // #if UNITY_EDITOR
+                //     Debug.Log("target: " + _target.name);
+                // #endif
             }
         }
         return true;

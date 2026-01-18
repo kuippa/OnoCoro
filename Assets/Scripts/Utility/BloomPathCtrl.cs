@@ -4,154 +4,250 @@ using CommonsUtility;
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// Bloom Path システム（NavMesh ベースの動的パス表示）を管理
+/// </summary>
 public static class BloomPathCtrl
 {
     internal static Dictionary<string, Vector3> _pathMakerDict = new Dictionary<string, Vector3>();
-    internal static Dictionary<string, Vector3> _all_pathMakerDict = new Dictionary<string, Vector3>();
-    private static GameObject _parent_holder = null;
+    internal static Dictionary<string, Vector3> _allPathMakerDict = new Dictionary<string, Vector3>();
+    private static GameObject _parentHolder = null;
+    
     private const string _PARENT_HOLDER_NAME = "nav_agents";
+    private const float _NAVMESH_SEARCH_DISTANCE = 50f;
+    private const int _AVOIDANCE_PRIORITY = 99;
+    private const int _MAX_PATH_WAIT_FRAMES = 100;
 
     private static GameObject GetBloomPrefab()
     {
         return PrefabManager.PathBloomPrefab;
     }
 
-    private static Dictionary<string, Vector3> AddPathMakerDict(string[] values)
+    private static void AddPathMakerDictEntry(string markerName, Dictionary<string, Vector3> pathMakerDict)
+    {
+        if (pathMakerDict.ContainsKey(markerName))
+        {
+            return;
+        }
+
+        if (_allPathMakerDict.ContainsKey(markerName))
+        {
+            pathMakerDict.Add(markerName, _allPathMakerDict[markerName]);
+            return;
+        }
+
+        GameObject markerObject = GameObject.Find(markerName);
+        if (markerObject == null)
+        {
+            return;
+        }
+
+        Vector3 position = markerObject.transform.position;
+        pathMakerDict.Add(markerName, position);
+        PathMakerCtrl._pathMakerDict.Add(markerName, position);
+    }
+
+    private static Dictionary<string, Vector3> BuildPathMakerDict(string[] markerNames)
     {
         _pathMakerDict.Clear();
-        for (int i = 0; i < values.Length; i++)
+        for (int i = 0; i < markerNames.Length; i++)
         {
-            string text = values[i].Trim();
-            if (_pathMakerDict.ContainsKey(text))
-            {
-                continue;
-            }
-            if (_all_pathMakerDict.ContainsKey(text))
-            {
-                _pathMakerDict.Add(text, _all_pathMakerDict[text]);
-                continue;
-            }
-            GameObject gameObject = GameObject.Find(text);
-            if (gameObject != null)
-            {
-                Vector3 position = gameObject.transform.position;
-                _pathMakerDict.Add(text, position);
-                PathMakerCtrl._pathMakerDict.Add(text, position);
-            }
-            else
-            {
-                Debug.LogWarning("SetPathMakerDict: " + text + "は存在しません。");
-            }
+            string markerName = markerNames[i].Trim();
+            AddPathMakerDictEntry(markerName, _pathMakerDict);
         }
         return _pathMakerDict;
     }
 
-    private static GameObject AddNavAgent(Vector3 setPosition)
+    private static GameObject AddNavAgent(Vector3 position)
     {
-        GameObject gameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        gameObject.transform.position = setPosition;
-        gameObject.layer = LayerMask.NameToLayer(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
-        MeshRenderer component = gameObject.GetComponent<MeshRenderer>();
-        if (component != null)
-        {
-            component.enabled = false;
-        }
-        gameObject.name = "NavAgent_" + setPosition.x + "_" + setPosition.y + "_" + setPosition.z;
-        BoxCollider component2 = gameObject.GetComponent<BoxCollider>();
-        if (component2 != null)
-        {
-            component2.isTrigger = true;
-            component2.enabled = false;
-        }
-        Transform holderParentTransform = GameObjectTreat.GetHolderParentTransform(ref _parent_holder, "nav_agents");
-        gameObject.transform.SetParent(holderParentTransform);
-        return gameObject;
+        GameObject navAgent = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        navAgent.transform.position = position;
+        navAgent.layer = LayerMask.NameToLayer(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
+        navAgent.name = $"NavAgent_{position.x}_{position.y}_{position.z}";
+
+        HideNavAgentVisuals(navAgent);
+        RemoveNavAgentCollider(navAgent);
+
+        Transform parentTransform = GameObjectTreat.GetHolderParentTransform(ref _parentHolder, _PARENT_HOLDER_NAME);
+        navAgent.transform.SetParent(parentTransform);
+        
+        return navAgent;
     }
 
-    private static NavMeshAgent AddNavMeshAgent(GameObject nav_agent)
+    private static void HideNavAgentVisuals(GameObject navAgent)
     {
-        NavMeshAgent navMeshAgent = nav_agent.AddComponent<NavMeshAgent>();
-        if (NavMesh.SamplePosition(navMeshAgent.transform.position, out var hit, 10f, -1))
+        MeshRenderer renderer = navAgent.GetComponent<MeshRenderer>();
+        if (renderer != null)
         {
-            navMeshAgent.Warp(hit.position);
-        }
-        return navMeshAgent;
-    }
-
-    internal static void KickCoroutine(int idx, string[] values)
-    {
-        if (_pathMakerDict.Count > idx + 1 && _pathMakerDict.TryGetValue(values[idx].Trim(), out var value))
-        {
-            NavMeshAgent navMeshAgent = AddNavMeshAgent(AddNavAgent(value));
-            if (_pathMakerDict.TryGetValue(values[idx + 1].Trim(), out value) && navMeshAgent.isOnNavMesh)
-            {
-                navMeshAgent.SetDestination(value);
-            }
-            if (navMeshAgent != null)
-            {
-                navMeshAgent.avoidancePriority = 99;
-            }
-            string pathName = GetPathName(values, idx);
-            GameObject bloomPrefab = GetBloomPrefab();
-            CoroutineRunner.Instance.StartCoroutine(PlaceMarkersAfterPathCalculation(navMeshAgent, bloomPrefab, pathName));
+            renderer.enabled = false;
         }
     }
 
-    private static string GetPathName(string[] values, int idx)
+    private static void RemoveNavAgentCollider(GameObject navAgent)
     {
-        string text = values[idx].Trim() + "-";
-        if (values.Length > idx + 1)
+        BoxCollider boxCollider = navAgent.GetComponent<BoxCollider>();
+        if (boxCollider != null)
         {
-            text += values[idx + 1].Trim();
+            Object.Destroy(boxCollider);
         }
-        return text;
     }
 
-    internal static void EventOffBloomPath(string event_value)
+    private static NavMeshAgent AddNavMeshAgent(GameObject navAgentObject)
     {
-        string[] array = event_value.Split(',');
-        if (array.Length == 0 || array[0].Trim() == "all")
+        Vector3 sampledPosition = SampleNavMeshPosition(navAgentObject.transform.position);
+        if (sampledPosition == Vector3.zero)
         {
-            _pathMakerDict.Clear();
-            _all_pathMakerDict.Clear();
-            PathMakerCtrl.ResetPathMakerDict();
-            PathMakerCtrl.DeleteAllPathMarkers();
+            return null;
+        }
+
+        navAgentObject.transform.position = sampledPosition;
+        NavMeshAgent agent = navAgentObject.AddComponent<NavMeshAgent>();
+        
+        if (agent == null)
+        {
+            return null;
+        }
+
+        agent.Warp(sampledPosition);
+        return agent;
+    }
+
+    private static Vector3 SampleNavMeshPosition(Vector3 position)
+    {
+        if (NavMesh.SamplePosition(position, out var hit, _NAVMESH_SEARCH_DISTANCE, NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+
+        return Vector3.zero;
+    }
+
+    internal static void KickCoroutine(int pathIndex, string[] markerNames)
+    {
+        if (pathIndex >= _pathMakerDict.Count - 1)
+        {
             return;
         }
-        _all_pathMakerDict = PathMakerCtrl.GetPathMakerDict();
-        for (int i = 0; i < array.Length; i++)
+
+        string currentMarkerName = markerNames[pathIndex].Trim();
+        if (!_pathMakerDict.TryGetValue(currentMarkerName, out Vector3 startPosition))
         {
-            string text = array[i].Trim();
-            if (_all_pathMakerDict.ContainsKey(text))
+            return;
+        }
+
+        NavMeshAgent navAgent = AddNavMeshAgent(AddNavAgent(startPosition));
+        if (navAgent == null)
+        {
+            return;
+        }
+
+        SetNavAgentDestination(navAgent, markerNames, pathIndex);
+        navAgent.avoidancePriority = _AVOIDANCE_PRIORITY;
+
+        string pathName = BuildPathName(markerNames, pathIndex);
+        GameObject bloomPrefab = GetBloomPrefab();
+        CoroutineRunner.Instance.StartCoroutine(PlaceMarkersAfterPathCalculation(navAgent, bloomPrefab, pathName));
+    }
+
+    private static void SetNavAgentDestination(NavMeshAgent navAgent, string[] markerNames, int pathIndex)
+    {
+        if (!navAgent.isOnNavMesh)
+        {
+            return;
+        }
+
+        string nextMarkerName = markerNames[pathIndex + 1].Trim();
+        if (!_pathMakerDict.TryGetValue(nextMarkerName, out Vector3 destination))
+        {
+            return;
+        }
+
+        navAgent.SetDestination(destination);
+    }
+
+    private static string BuildPathName(string[] markerNames, int pathIndex)
+    {
+        string currentName = markerNames[pathIndex].Trim();
+        string nextName = (pathIndex + 1 < markerNames.Length) ? markerNames[pathIndex + 1].Trim() : string.Empty;
+        return $"{currentName}-{nextName}";
+    }
+
+    internal static void EventOffBloomPath(string eventValue)
+    {
+        string[] markerNames = eventValue.Split(',');
+        
+        if (markerNames.Length == 0 || markerNames[0].Trim() == "all")
+        {
+            ClearAllBloomPaths();
+            return;
+        }
+
+        _allPathMakerDict = PathMakerCtrl.GetPathMakerDict();
+        for (int i = 0; i < markerNames.Length; i++)
+        {
+            string markerName = markerNames[i].Trim();
+            if (_allPathMakerDict.ContainsKey(markerName))
             {
-                PathMakerCtrl.DeletePathMarker(GetPathName(array, i));
-            }
-            else
-            {
-                Debug.LogWarning("EventOffBloomPath: " + text + "は存在しません。");
+                string pathName = BuildPathName(markerNames, i);
+                PathMakerCtrl.DeletePathMarker(pathName);
             }
         }
     }
 
-    internal static void EventBloomPath(string event_value)
+    private static void ClearAllBloomPaths()
     {
-        string[] array = event_value.Split(',');
-        _all_pathMakerDict = PathMakerCtrl.GetPathMakerDict();
-        _pathMakerDict = AddPathMakerDict(array);
+        _pathMakerDict.Clear();
+        _allPathMakerDict.Clear();
+        PathMakerCtrl.ResetPathMakerDict();
+        PathMakerCtrl.DeleteAllPathMarkers();
+    }
+
+    internal static void EventBloomPath(string eventValue)
+    {
+        string[] markerNames = eventValue.Split(',');
+        _allPathMakerDict = PathMakerCtrl.GetPathMakerDict();
+        BuildPathMakerDict(markerNames);
         PathMakerCtrl.GetOrAddParentHolder();
-        for (int i = 0; i < array.Length; i++)
+
+        for (int i = 0; i < markerNames.Length; i++)
         {
-            KickCoroutine(i, array);
+            KickCoroutine(i, markerNames);
         }
     }
 
     private static IEnumerator PlaceMarkersAfterPathCalculation(NavMeshAgent agent, GameObject markerPrefab, string pathName)
     {
-        while (agent.pathPending)
+        if (agent == null)
         {
-            yield return null;
+            yield break;
         }
+
+        yield return WaitForPathCalculationCoroutine(agent, pathName);
+
+        if (!agent.isOnNavMesh)
+        {
+            // Debug.LogWarning($"Agent is not on NavMesh for path {pathName}");
+            yield break;
+        }
+
         agent.isStopped = true;
         PathMakerCtrl.PlacePathMarkers(agent, markerPrefab, pathName);
     }
+
+    private static IEnumerator WaitForPathCalculationCoroutine(NavMeshAgent agent, string pathName)
+    {
+        int waitCount = 0;
+        while (agent.pathPending && waitCount < _MAX_PATH_WAIT_FRAMES)
+        {
+            yield return null;
+            waitCount++;
+        }
+
+        if (waitCount >= _MAX_PATH_WAIT_FRAMES)
+        {
+            yield break;
+        }
+    }
+
+    /// <summary>削除: WaitForPathCalculation (IEnumerator 版に統合)</summary>
 }

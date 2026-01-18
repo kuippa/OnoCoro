@@ -1,30 +1,53 @@
 using TMPro;
+using System;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
+using Debug = UnityEngine.Debug;
 
 public class SpawnMarkerPointerCtrl : MonoBehaviour
 {
     public static SpawnMarkerPointerCtrl instance;
     private static GameObject _marker;
+    private TMP_Text _tmpText;
     private float _time;
+    
+    // Time Constants
     private const float _TIME_INTERVAL = 0.05f;
+    
+    // Transform Constants
     private const float _MARKER_Y_OFFSET = 0.08f;
     private const float _MAX_RAYCAST_DISTANCE = 20f;
+    
+    // GameObject/Component Names
+    private const string _CHILD_TMP_POSI = "tmp_posi";
+    private const string _CHILD_CANVAS = "Canvas";
+    
+    // Log Constants
+    private const string _LOG_PREFIX = "[SpawnMarker]";
 
     private void SetPositionTMP(Vector3 pos)
     {
-        GameObject tmpObject = transform.Find("tmp_posi")?.gameObject;
-        if (tmpObject == null)
+        _tmpText = GetTmpTextComponent(_tmpText);
+        if (_tmpText == null)
         {
             return;
         }
+        _tmpText.text = $"{pos.x:F1}, {pos.y:F1}, {pos.z:F1}";
+    }
 
-        TextMeshPro textComponent = tmpObject.GetComponent<TextMeshPro>();
-        if (textComponent != null)
+    private TMP_Text GetTmpTextComponent(TMP_Text tmpText)
+    {
+        if (tmpText == null)
         {
-            textComponent.text = $"{pos.x:F1}, {pos.y:F1}, {pos.z:F1}";
+            Transform underCanvas = transform.Find($"{_CHILD_CANVAS}/{_CHILD_TMP_POSI}");
+            if (underCanvas != null)
+            {
+                tmpText = underCanvas.GetComponent<TMP_Text>();
+            }
         }
+        return tmpText;
     }
 
     private Quaternion GetMarkerRotation()
@@ -79,7 +102,12 @@ public class SpawnMarkerPointerCtrl : MonoBehaviour
 
     private static Vector3 GetPlayerPosition()
     {
-        return GameObject.FindWithTag(GameEnum.UnitType.Player.ToString()).transform.position;
+        GameObject player = GameObject.FindWithTag(GameEnum.UnitType.Player.ToString());
+        if (player == null)
+        {
+            return Vector3.zero;
+        }
+        return player.transform.position;
     }
 
     internal static Vector3 GetMarkerPosition()

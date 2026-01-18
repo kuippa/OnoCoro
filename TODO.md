@@ -326,3 +326,83 @@ void Start()
   - 標準的な C# 命名慣例に従い複数形に統一
   - 参考: System.Collections, System.IO など
   - 実施時期: プロジェクト安定化後、全体リファクタリング時
+
+---
+
+### 2026-01-19: Path Marker名前の定数化と YAML バリデーション機能
+
+**実施内容**:
+
+1. **GameEnum に PathMarkerNameParts クラスを追加**
+   - `GameEnum.PathMarkerNameParts.START = "start"`
+   - `GameEnum.PathMarkerNameParts.GOAL = "goal"`
+   - YAML での命名規則（`path_marker_start`, `path_marker_goal`）に対応
+
+2. **PathMakerCtrl.GetMarkerColorByName() の更新**
+   - ハードコード文字列から定数参照に変更
+   - `markerName.Contains(GameEnum.PathMarkerNameParts.START)` 使用
+
+**関連ファイル**:
+- `Assets/Scripts/APP/GameEnum.cs`
+- `Assets/Scripts/GameEvents/PathMakerCtrl.cs`
+
+**TODO**:
+- [ ] **YAML ファイルフォーマット検証クラスの実装（YamlValidatorクラス）**
+  - **目的**: ユーザーが編集する YAML 設定ファイルが期待されるスキーマに準拠しているか検証
+  - **検証対象**:
+    - `pathmakers` セクション: `name`, `pos` フィールドが存在
+    - `itemlists` セクション: 項目が GameEnum.ModelsType に定義されているか
+    - `stages` セクション: スコア関連の値が有効な数値か
+    - `goals`, `gameovers` セクション: 条件文の形式が正しいか
+    - `boards` セクション: board_code と対応するデータが対応しているか
+    - マーカー名の形式検証: `path_marker_` で始まるか確認
+    - マーカー座標の形式検証: `x,y,z` の数値パースが成功するか
+  - **機能**:
+    - YAML 読み込み前のバリデーション
+    - エラー詳細の収集と返却（複数エラー報告）
+    - 警告レベルの情報（推奨値チェック）
+    - Editor スクリプトでの事前チェック機能
+  - **実装方法**: 
+    - `StagingYamlCtrl.cs` に統合、または `YamlValidator.cs` として新規作成
+    - `YamlValidationResult` クラスで検証結果をまとめる
+    - 検証失敗時はログと UI でユーザーに通知
+  - **推奨実装タイミング**: 複数ユーザーが YAML 編集を開始する前段階
+
+**注記**:
+- YAML 読み込み時点では `StagingYamlCtrl.SetPathMakerList()` 等で format-dependent な処理を実施している
+- バリデーション機能により、ユーザー編集による形式エラーを事前に防止できる
+
+---
+
+### 2026-01-18: SpawnMarkerPointerCtrl 復旧と不使用アセット整理
+
+**実施内容**:
+
+1. **SpawnMarkerPointerCtrl 復旧**
+   - Awake内で tmp_posi の TextMeshPro キャッシング機能を実装
+   - Canvas 配下の階層対応で柔軟な配置に対応
+   - TMP_Text 統一で TextMeshPro/TextMeshProUGUI 両対応
+   - ItemHolderCtrl で IsLoupe チェック時のマーカーOFF処理を追加
+
+2. **マーカー表示ロジックの完成**
+   - マーカーは正常に動作、マウス操作での座標表示も機能
+   - LoupeCtrl.IsLoupe が true になるとマーカーが自動的に非表示
+
+3. **不使用アセット削除**
+   - `Assets/GameEvents/GroundPhysicMaterial.physicMaterial` を削除（未使用確認済み）
+
+4. **不使用アセット精査中**
+   - `Assets/Resources/New Physic Material.physicMaterial` について
+   - PlayerArmature の現在オフのカプセルコライダーから参照されている
+   - 使用可能性は低いが、現在は削除しない（復旧完了後に精査）
+
+**関連ファイル**:
+- `Assets/Scripts/UI/SpawnMarkerPointerCtrl.cs`
+- `Assets/Scripts/Item/ItemHolderCtrl.cs`
+
+**TODO**:
+- [ ] **不使用フィジックマテリアルの削除**
+  - 対象: `Assets/Resources/New Physic Material.physicMaterial`
+  - 確認事項: PlayerArmature のカプセルコライダーで参照（現在オフ状態）
+  - 実施時期: 復旧作業一段落後、全体アセット精査時
+  - 削除前に PlayerArmature が完全に使用されていないことを確認すること

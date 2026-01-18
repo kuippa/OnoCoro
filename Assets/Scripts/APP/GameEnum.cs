@@ -60,4 +60,14 @@ public class GameEnum
         SpawnMarker,
     }
 
+    /// <summary>
+    /// Path Marker の名前に含まれる識別文字列定数
+    /// YAML で定義される path_marker_start, path_marker_goal の命名規則に対応
+    /// </summary>
+    internal static class PathMarkerNameParts
+    {
+        internal const string START = "start";
+        internal const string GOAL = "goal";
+    }
+
 }

@@ -1,5 +1,7 @@
 using UnityEngine;
 using Unity.Cinemachine;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace AppCamera
 {
@@ -26,11 +28,11 @@ namespace AppCamera
         const float CAMERA_DIST_MAX = 20f;
         const float CAMERA_DIST_LONG_MIN = 10f;
         const float CAMERA_DIST_LONG_MAX = 250f;
-        const float CAMERA_DIST_BIRD_MIN = 240f;
+        const float CAMERA_DIST_BIRD_MIN = 30f;
         const float CAMERA_DIST_BIRD_MAX = 2048f;
 
         // カメラベース距離
-        const float CAMERA_BASE_BIRD = 150f;
+        const float CAMERA_BASE_BIRD = 25f;
         const float CAMERA_BASE_FPS = 0.8f;
         const float CAMERA_BASE_TPS = 1.6f;
         const float CAMERA_BASE_LONG = 12f;
@@ -39,8 +41,8 @@ namespace AppCamera
         const float CAMERA_ZOOM_MIN = -2f;
         const float CAMERA_ZOOM_MAX = 8f;
         const float CAMERA_ZOOM_LONG = 14f;
-        const float CAMERA_ZOOM_BIRD = 20f;
-        const float BIRDCAM_BASEMENT_Y = 200f;
+        const float CAMERA_ZOOM_BIRD = 25f;
+        const float BIRDCAM_BASEMENT_Y = 20f;
 
         // 状態変数
         private static float _zoom_lv = 5f;
@@ -332,7 +334,7 @@ namespace AppCamera
         {
             if (_birdCameraRoot == null) return;
             
-            float heightValue = BIRDCAM_BASEMENT_Y + CAMERA_BASE_BIRD * (_zoom_lv - CAMERA_ZOOM_LONG);
+            float heightValue = BIRDCAM_BASEMENT_Y + CAMERA_BASE_BIRD * (_zoom_lv - CAMERA_ZOOM_LONG - 1);
             heightValue = Mathf.Clamp(heightValue, CAMERA_DIST_BIRD_MIN, CAMERA_DIST_BIRD_MAX);
             
             _birdCameraRoot.localPosition = new Vector3(
@@ -340,6 +342,8 @@ namespace AppCamera
                 heightValue,
                 _birdCameraRoot.localPosition.z
             );
+
+            // Debug.Log($"[CameraCtrl] BirdView Height Set: {_birdCameraRoot.localPosition.y:F2}");
         }
 
         /// <summary>

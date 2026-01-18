@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// アイテムホルダーの制御クラス
@@ -261,7 +263,12 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
 
         if (item.Name != null)
         {
-            if (!LoupeCtrl.IsLoupe(item.Name))
+            bool isLoupe = LoupeCtrl.IsLoupe(item.Name);
+            if (isLoupe)
+            {
+                SpawnMarkerPointerCtrl.SetMarkerActive(false);
+            }
+            else
             {
                 SpawnMarkerPointerCtrl.SetMarkerActive(true);
             }

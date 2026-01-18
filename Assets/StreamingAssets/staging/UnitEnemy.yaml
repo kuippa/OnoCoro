@@ -24,13 +24,13 @@ itemlists:
 
 pathmakers:
   # 同名のオブジェクトがステージに配置済の場合は位置のみ更新される
-  - name: path_marker_start2  # nameに start|goal の文字列を含むものは色が変わる
+  - name: path_marker_start  # nameに start|goal の文字列を含むものは色が変わる
     pos: 5, 0, 5
   - name: path_marker_03
     pos: 8, 0, 8
   - name: path_marker_04
     pos: 11, 0, 2
-  - name: path_marker_goal2
+  - name: path_marker_goal
     pos: 15, 0, 5
 
   # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
@@ -61,44 +61,44 @@ events:
 
   - time: 0   # 定義されていないので光らせられないが、エラーにはならない
     event: bloom_path
-    value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+    value: path_marker_start, path_marker_03, path_marker_04, path_marker_goal
 
   # path1 の 攻撃軍
 
-  - time: 3
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  # - time: 3
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
 
-  - time: 5
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  # - time: 5
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
 
-  - time: 7
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  # - time: 7
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
 
-  - time: 28 # 特定のパスマーカー経路だけを消す
-    event: off_bloom_path
-    value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  # - time: 28 # 特定のパスマーカー経路だけを消す
+  #   event: off_bloom_path
+  #   value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
 
 
-  # path2 の 攻撃軍
+  # # path2 の 攻撃軍
 
-  - time: 17
-    event: bloom_path
-    value: path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  # - time: 17
+  #   event: bloom_path
+  #   value: path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
-  - time: 20
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  # - time: 20
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
-  - time: 25
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  # - time: 25
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
-  - time: 36  # 全てのパスマーカーを消す
-    event: off_bloom_path
-    value: all
+  # - time: 36  # 全てのパスマーカーを消す
+  #   event: off_bloom_path
+  #   value: all
 
   # - time: 10
   #   event: off_bloom_path
