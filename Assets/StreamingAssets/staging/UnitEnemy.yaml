@@ -12,7 +12,7 @@ stages:
     CLK: 6100
 itemlists:
   # - item: FireCube  # 火事
-  # - item: Litter  # フココロえもん ごみを巻き散らかす   アイテムではない敵ユニイットなので呼び出せない
+  - item: Litter  # フココロえもん ごみを巻き散らかす   アイテムではない敵ユニイットなので呼び出せない
   - item: DustBox  # ごみ箱
   - item: SentryGuard  # 監視員
   - item: Sweeper
@@ -65,9 +65,10 @@ events:
 
   # path1 の 攻撃軍
 
-  # - time: 3
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  - time: 3
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start, path_marker_03, path_marker_04, path_marker_goal
+    # value: Litter, path_marker_start, path_marker_goal
 
   # - time: 5
   #   event: spawn_enemy_unit

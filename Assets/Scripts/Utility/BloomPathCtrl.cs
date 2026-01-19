@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using CommonsUtility;
 using UnityEngine;
 using UnityEngine.AI;
+using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// Bloom Path システム（NavMesh ベースの動的パス表示）を管理
@@ -60,36 +62,15 @@ public static class BloomPathCtrl
 
     private static GameObject AddNavAgent(Vector3 position)
     {
-        GameObject navAgent = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        navAgent.transform.position = position;
+        GameObject navAgent = new GameObject();
         navAgent.layer = LayerMask.NameToLayer(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
         navAgent.name = $"NavAgent_{position.x}_{position.y}_{position.z}";
-
-        HideNavAgentVisuals(navAgent);
-        RemoveNavAgentCollider(navAgent);
-
+        navAgent.transform.position = position;
+        navAgent.transform.rotation = Quaternion.identity;
         Transform parentTransform = GameObjectTreat.GetHolderParentTransform(ref _parentHolder, _PARENT_HOLDER_NAME);
         navAgent.transform.SetParent(parentTransform);
         
         return navAgent;
-    }
-
-    private static void HideNavAgentVisuals(GameObject navAgent)
-    {
-        MeshRenderer renderer = navAgent.GetComponent<MeshRenderer>();
-        if (renderer != null)
-        {
-            renderer.enabled = false;
-        }
-    }
-
-    private static void RemoveNavAgentCollider(GameObject navAgent)
-    {
-        BoxCollider boxCollider = navAgent.GetComponent<BoxCollider>();
-        if (boxCollider != null)
-        {
-            Object.Destroy(boxCollider);
-        }
     }
 
     private static NavMeshAgent AddNavMeshAgent(GameObject navAgentObject)
@@ -97,18 +78,24 @@ public static class BloomPathCtrl
         Vector3 sampledPosition = SampleNavMeshPosition(navAgentObject.transform.position);
         if (sampledPosition == Vector3.zero)
         {
+            // Debug.LogError($"Failed to sample NavMesh for {navAgentObject.name}");
             return null;
         }
-
         navAgentObject.transform.position = sampledPosition;
-        NavMeshAgent agent = navAgentObject.AddComponent<NavMeshAgent>();
-        
+        NavMeshAgent agent = navAgentObject.GetComponent<NavMeshAgent>();
+        if (agent == null)
+        {
+            agent = navAgentObject.AddComponent<NavMeshAgent>();
+        }
         if (agent == null)
         {
             return null;
         }
-
         agent.Warp(sampledPosition);
+        if (agent.isOnNavMesh == false)
+        {
+            return null;
+        }
         return agent;
     }
 
@@ -138,12 +125,12 @@ public static class BloomPathCtrl
         NavMeshAgent navAgent = AddNavMeshAgent(AddNavAgent(startPosition));
         if (navAgent == null)
         {
+            // Debug.Log($" Failed to add NavMeshAgent for marker: {currentMarkerName}");
             return;
         }
 
         SetNavAgentDestination(navAgent, markerNames, pathIndex);
         navAgent.avoidancePriority = _AVOIDANCE_PRIORITY;
-
         string pathName = BuildPathName(markerNames, pathIndex);
         GameObject bloomPrefab = GetBloomPrefab();
         CoroutineRunner.Instance.StartCoroutine(PlaceMarkersAfterPathCalculation(navAgent, bloomPrefab, pathName));
@@ -176,7 +163,7 @@ public static class BloomPathCtrl
     {
         string[] markerNames = eventValue.Split(',');
         
-        if (markerNames.Length == 0 || markerNames[0].Trim() == "all")
+        if (markerNames.Length == 0 || markerNames[0].Trim() == GameEnum.PathMarkerNameParts.ALL)
         {
             ClearAllBloomPaths();
             return;
@@ -248,6 +235,4 @@ public static class BloomPathCtrl
             yield break;
         }
     }
-
-    /// <summary>削除: WaitForPathCalculation (IEnumerator 版に統合)</summary>
 }

@@ -34,7 +34,7 @@ public class PrefabManager
 		// WorkUnit
 		{ PrefabType.GarbageCube, "Prefabs/WorkUnit/GarbageCube" },
 		{ PrefabType.FireCube, "Prefabs/WorkUnit/FireCube" },
-		{ PrefabType.DustBox, "Prefabs/WorkUnit/DustBox" },
+		{ PrefabType.DustBox, "Prefabs/WorkUnit/TowerDustBox" },
 		{ PrefabType.SentryGuard, "Prefabs/WorkUnit/SentryGuard" },
 		{ PrefabType.WaterTurret, "Prefabs/WorkUnit/WaterTurret" },
 		{ PrefabType.StopPlate, "Prefabs/WorkUnit/StopPlate" },

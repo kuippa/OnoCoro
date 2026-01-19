@@ -68,6 +68,8 @@ public class GameEnum
     {
         internal const string START = "start";
         internal const string GOAL = "goal";
+
+        internal const string ALL = "all";
     }
 
 }

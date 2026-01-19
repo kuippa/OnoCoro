@@ -96,8 +96,17 @@ public static class NavMeshCtrl
 
     internal static void SetAgentSpeed(NavMeshAgent NavMeshAgent)
     {
+        // TODO: 固定値をキャラクター別にもつ
+
         NavMeshAgent.speed = 2.6f * GameSpeedCtrl.GetGameSpeed();
         NavMeshAgent.acceleration = 6f * GameSpeedCtrl.GetGameSpeed();
+    }
+
+    // TODO: キャラクターごとの移動スピードの制御
+    internal static void ChangeAgentSpeed(NavMeshAgent NavMeshAgent, float speed, float acceleration)
+    {
+        NavMeshAgent.speed = speed * GameSpeedCtrl.GetGameSpeed();
+        NavMeshAgent.acceleration = acceleration * GameSpeedCtrl.GetGameSpeed();
     }
 
     internal static bool IsSameDestination(NavMeshAgent NavMeshAgent, Vector3 destination)

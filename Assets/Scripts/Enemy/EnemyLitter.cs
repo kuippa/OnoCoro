@@ -4,37 +4,50 @@ using System.Collections.Generic;
 using CommonsUtility;
 using UnityEngine;
 using UnityEngine.AI;
+using Debug = UnityEngine.Debug;
 
 public class EnemyLitter : MonoBehaviour
 {
-    private NavMeshAgent _NavMeshAgent;
+    private NavMeshAgent _navMeshAgent;
     private EnemyStatus _myStatus;
-    private int _child_count;
+    private int _childCount;
     private Vector3[] _myPaths;
 
-    private const float LITTER_CHECK = 1f;
-    private const float THROW_ANGLE = 65f;
-    private const float MOVING_CHECK = 1.5f;
+    // Timing Constants
+    private const float _LITTER_CHECK_INTERVAL = 2.5f;  // デバッグ: 間隔を広げてゴミの軌跡を確認しやすく
+    private const float _MOVING_CHECK_INTERVAL = 1.5f;
+    private const float _THROW_ANGLE_DEG = 65f;
 
-    private Vector3 _undefine_pos = new Vector3(-99f, -99f, -99f);
+    // Numeric Constants
+    private const int _MAX_LITTERS = 20;
+    private const float _UNDEFINED_POSITION_VALUE = -99f;
+    private const float _THROW_SPEED_DEFAULT = 4.43f;
+    private const float _GRAVITY_ACCELERATION = 9.8f;
+    private const float _ZERO_THRESHOLD = 0f;
+    
+    // GameObject Names
+    private const string _CHILD_NAME_CAPSULE_HEAD = "CapsuleHead";
+    private const string _CHILD_NAME_HAND = "Hand";
+    
+    // Internal State
+    private Vector3 _undefinedPosition = new Vector3(_UNDEFINED_POSITION_VALUE, _UNDEFINED_POSITION_VALUE, _UNDEFINED_POSITION_VALUE);
+    private Vector3 _targetPosition = Vector3.zero;
+    private float _targetRadius;
+    private int _numberOfMonitoring;
+    private bool _littingMode = true;
+    private bool _movingMode = true;
+
     internal static int _idx;
-
-    private Vector3 _throw_direction = new Vector3(0f, 0f, 0f);
-    private Vector3 _target_position = new Vector3(0f, 0f, 0f);
-    private float _target_radius;
-    private int _num_of_monitoring;
-
-    private int _MaxLitters = 20;
-    private bool _LittingMode = true;
-    private bool _MovingMode = true;
 
     internal void CreateLitterUnit(Vector3 position)
     {
-        int num = GameObjectTreat.IndexObjectByTag(base.tag);
-        base.name = base.tag + num;
+        int indexByTag = GameObjectTreat.IndexObjectByTag(tag);
+        name = tag + indexByTag;
+        
         _myStatus = GetEnemyStatus();
-        _myStatus.SetEnemyName(base.name);
-        base.transform.position = position;
+        _myStatus.SetEnemyName(name);
+        
+        transform.position = position;
     }
 
     private EnemyStatus GetEnemyStatus()
@@ -50,141 +63,214 @@ public class EnemyLitter : MonoBehaviour
     {
         if (targetObj == null)
         {
-            _target_position = new Vector3(0f, 0f, 0f);
-            _target_radius = 0f;
-            ChangeHeadColor(-1);
+            _targetPosition = Vector3.zero;
+            _targetRadius = _ZERO_THRESHOLD;
+            ChangeHeadColor(false);
+            return;
         }
-        else
-        {
-            _target_position = targetObj.transform.position;
-            _target_radius = targetObj.GetComponent<DustBoxCtrl>().GetRadius();
-            ChangeHeadColor(1);
-        }
+
+        _targetPosition = targetObj.transform.position;
+        _targetRadius = targetObj.GetComponent<TowerDustBoxCtrl>().GetRadius();
+        ChangeHeadColor(true);
     }
 
-    internal void ChangeHeadColor(int monit)
+    internal void ChangeHeadColor(bool isMonitoring)
     {
-        _num_of_monitoring += monit;
-        Renderer component = base.transform.Find("CapsuleHead").GetComponent<Renderer>();
-        if (_num_of_monitoring > 0)
+        Transform capsuleHeadTransform = transform.Find(_CHILD_NAME_CAPSULE_HEAD);
+        if (capsuleHeadTransform == null)
         {
-            component.material = MaterialManager.Material_BG_Green;
+            // Debug.LogWarning($"CapsuleHead not found in {name}");
+            return;
+        }
+        Renderer headRenderer = capsuleHeadTransform.GetComponent<Renderer>();
+        if (headRenderer == null)
+        {
+            // Debug.LogWarning($"Renderer not found on CapsuleHead in {name}");
+            return;
+        }
+
+        if (!isMonitoring)
+        {
+            headRenderer.material = MaterialManager.Material_BG_Green;
         }
         else
         {
-            component.material = MaterialManager.Material_BG_RED;
+            headRenderer.material = MaterialManager.Material_BG_RED;
         }
     }
 
     private Vector3 GetThrowOutDirection()
     {
-        if (_target_position != new Vector3(0f, 0f, 0f))
+        if (_targetPosition != Vector3.zero)
         {
-            return (_target_position - base.transform.position).normalized;
+            return (_targetPosition - transform.position).normalized;
         }
-        return base.transform.forward;
+        return transform.forward;
     }
 
     private float GetTargetDistance()
     {
-        float result = 0f;
-        if (_target_position != new Vector3(0f, 0f, 0f))
+        if (_targetPosition == Vector3.zero)
         {
-            result = Vector3.Distance(base.transform.position, _target_position);
+            return _ZERO_THRESHOLD;
         }
-        return result;
+
+        return Vector3.Distance(transform.position, _targetPosition);
     }
 
     private float GetThrowOutSpeed()
     {
-        if (_target_position != new Vector3(0f, 0f, 0f))
+        if (_targetPosition == Vector3.zero)
         {
-            float targetDistance = GetTargetDistance();
-            float num = MathF.PI * 13f / 36f;
-            float num2 = 9.8f;
-            return Mathf.Sqrt(targetDistance * num2 / Mathf.Sin(2f * num));
+            return _THROW_SPEED_DEFAULT;
         }
-        return 4.43f;
+
+        float targetDistance = GetTargetDistance();
+        float angleRad = Mathf.PI * _THROW_ANGLE_DEG / 180f;
+        float sinTwoAngle = Mathf.Sin(2f * angleRad);
+        
+        if (Mathf.Approximately(sinTwoAngle, 0))
+        {
+            return _THROW_SPEED_DEFAULT;
+        }
+
+        float speedSquared = targetDistance * _GRAVITY_ACCELERATION / sinTwoAngle;
+        
+        if (speedSquared < 0)
+        {
+            return _THROW_SPEED_DEFAULT;
+        }
+
+        return Mathf.Sqrt(speedSquared);
     }
 
     private bool MakeChildLitter()
     {
-        if (_child_count >= _MaxLitters)
+        if (_childCount >= _MAX_LITTERS)
         {
-            _child_count = 0;
-            _LittingMode = false;
+            _childCount = 0;
+            _littingMode = false;
             return false;
         }
+
         float targetDistance = GetTargetDistance();
-        if ((targetDistance > _target_radius || targetDistance == 0f) && _num_of_monitoring > 0)
+        if (ShouldSkipLitterGeneration(targetDistance))
         {
             return false;
         }
-        GameObject gameObject = GarbageCubeCtrl.SpawnGarbageCube(base.transform.Find("Hand").position, 1);
-        if (gameObject == null)
+
+        return SpawnAndConfigureGarbageCube();
+    }
+
+    private bool ShouldSkipLitterGeneration(float targetDistance)
+    {
+        bool isOutsideTargetRadius = targetDistance > _targetRadius || Mathf.Approximately(targetDistance, _ZERO_THRESHOLD);
+        return isOutsideTargetRadius && _numberOfMonitoring > 0;
+    }
+
+    private bool SpawnAndConfigureGarbageCube()
+    {
+        Transform handTransform = transform.Find(_CHILD_NAME_HAND);
+        if (handTransform == null)
         {
+            Debug.LogWarning($"Hand not found in {name}");
             return false;
         }
-        Rigidbody component = gameObject.GetComponent<Rigidbody>();
-        float throwOutSpeed = GetThrowOutSpeed();
-        Vector3 throwOutDirection = GetThrowOutDirection();
-        Vector3 linearVelocity = throwOutDirection * throwOutSpeed;
-        linearVelocity.y = throwOutSpeed * Mathf.Sin(MathF.PI * 13f / 36f);
-        linearVelocity.x = throwOutSpeed * Mathf.Cos(MathF.PI * 13f / 36f) * throwOutDirection.x;
-        linearVelocity.z = throwOutSpeed * Mathf.Cos(MathF.PI * 13f / 36f) * throwOutDirection.z;
-        component.linearVelocity = linearVelocity;
-        _child_count++;
+
+        GameObject garbageCube = GarbageCubeCtrl.SpawnGarbageCube(handTransform.position, 1);
+        if (garbageCube == null)
+        {
+            Debug.LogWarning($"Failed to spawn garbage cube");
+            return false;
+        }
+
+        Rigidbody rigidbody = garbageCube.GetComponent<Rigidbody>();
+        if (rigidbody == null)
+        {
+            Debug.LogWarning($"Rigidbody not found in spawned garbage cube");
+            return false;
+        }
+
+        Vector3 velocity = CalculateThrowVelocity();
+        rigidbody.linearVelocity = velocity;
+        
+        _childCount++;
+        
         return true;
+    }
+
+    private Vector3 CalculateThrowVelocity()
+    {
+        float throwOutSpeed = GetThrowOutSpeed();
+        Vector3 throwDirection = GetThrowOutDirection();
+        float angleRad = Mathf.PI * _THROW_ANGLE_DEG / 180f;
+
+        Vector3 velocity = Vector3.zero;
+        velocity.y = throwOutSpeed * Mathf.Sin(angleRad);
+        velocity.x = throwOutSpeed * Mathf.Cos(angleRad) * throwDirection.x;
+        velocity.z = throwOutSpeed * Mathf.Cos(angleRad) * throwDirection.z;
+
+        return velocity;
     }
 
     private Vector3 GetRandomSize(float min, float max)
     {
-        return new Vector3(rdNum(min, max), rdNum(min, max), rdNum(min, max));
+        return new Vector3(RandomRange(min, max), RandomRange(min, max), RandomRange(min, max));
     }
 
     private IEnumerator LitterDrops()
     {
-        while (_LittingMode)
+        while (_littingMode)
         {
-            yield return new WaitForSeconds(LITTER_CHECK);
+            yield return new WaitForSeconds(_LITTER_CHECK_INTERVAL);
             MakeChildLitter();
         }
     }
 
     private IEnumerator MoveAgent()
     {
-        while (_MovingMode)
+        while (_movingMode)
         {
-            yield return new WaitForSeconds(MOVING_CHECK);
-            if (NavMeshCtrl.HasReachedDestination(_NavMeshAgent) && !SetNextPath(_myPaths))
+            yield return new WaitForSeconds(_MOVING_CHECK_INTERVAL);
+            
+            if (NavMeshCtrl.HasReachedDestination(_navMeshAgent) && !SetNextPath(_myPaths))
             {
-                _MovingMode = false;
+                _movingMode = false;
             }
         }
     }
 
-    private void AgentWasGoal()
+    private void AgentReachedGoal()
     {
-        GameObjectTreat.DestroyAll(base.gameObject);
+        GameObjectTreat.DestroyAll(gameObject);
     }
 
     private void AgentJumpToStartPosition()
     {
-        base.gameObject.transform.position = _myPaths[0];
+        if (_myPaths == null || _myPaths.Length == 0)
+        {
+            Debug.LogWarning($"No paths available for {name}");
+            return;
+        }
+
+        transform.position = _myPaths[0];
     }
 
     private bool SetNextPath(Vector3[] paths)
     {
         if (paths == null || paths.Length == 0)
         {
-            AgentWasGoal();
+            AgentReachedGoal();
             return false;
         }
+
         Vector3 destination = paths[0];
         SetDestination(destination);
-        List<Vector3> list = new List<Vector3>(paths);
-        list.RemoveAt(0);
-        _myPaths = list.ToArray();
+        
+        List<Vector3> remainingPaths = new List<Vector3>(paths);
+        remainingPaths.RemoveAt(0);
+        _myPaths = remainingPaths.ToArray();
+        
         return true;
     }
 
@@ -195,84 +281,128 @@ public class EnemyLitter : MonoBehaviour
 
     internal void AddPathAndInterrupt(Vector3 path)
     {
-        List<Vector3> list = new List<Vector3>(_myPaths);
-        if ((list.Count <= 0 || !(list[0] == path)) && !NavMeshCtrl.IsSameDestination(_NavMeshAgent, path))
+        if (_myPaths == null)
         {
-            list.Insert(0, path);
-            _myPaths = list.ToArray();
-            Vector3 vector = path;
-            Debug.Log("AddPathAndInterrupt:" + vector.ToString());
-            SetNextPath(_myPaths);
+            return;
         }
+
+        List<Vector3> pathList = new List<Vector3>(_myPaths);
+        
+        // Early Return: skip if path already exists
+        if (pathList.Count > 0 && pathList[0] == path)
+        {
+            return;
+        }
+
+        if (NavMeshCtrl.IsSameDestination(_navMeshAgent, path))
+        {
+            return;
+        }
+
+        pathList.Insert(0, path);
+        _myPaths = pathList.ToArray();
+        
+        Debug.Log("AddPathAndInterrupt:" + path.ToString());
+        SetNextPath(_myPaths);
     }
 
-    internal void SetPaths(string[] marker_names = null)
+    internal void SetPaths(string[] markerNames = null)
     {
-        Vector3[] myPaths = _myPaths;
-        if (marker_names == null || marker_names.Length == 0)
+        Vector3[] paths;
+        
+        if (markerNames == null || markerNames.Length == 0)
         {
-            myPaths = new Vector3[4]
-            {
-                GetMarkerPositionByName("path_marker_start"),
-                GetMarkerPositionByName("path_marker_01"),
-                GetMarkerPositionByName("path_marker_02"),
-                GetMarkerPositionByName("path_marker_goal")
-            };
+            paths = GetDefaultPaths();
         }
         else
         {
-            myPaths = new Vector3[marker_names.Length];
-            int num = 0;
-            foreach (string text in marker_names)
-            {
-                Vector3 markerPositionByName = GetMarkerPositionByName(text.Trim());
-                if (markerPositionByName == _undefine_pos)
-                {
-                    Array.Resize(ref myPaths, myPaths.Length - 1);
-                    continue;
-                }
-                myPaths[num] = markerPositionByName;
-                num++;
-            }
+            paths = GetCustomPaths(markerNames);
         }
-        _myPaths = myPaths;
+
+        _myPaths = paths;
+    }
+
+    private Vector3[] GetDefaultPaths()
+    {
+        return new Vector3[1] {new Vector3(0f, 0f, 0f) };
+        // return new Vector3[4]
+        // {
+        //     GetMarkerPositionByName("path_marker_start"),
+        //     GetMarkerPositionByName("path_marker_01"),
+        //     GetMarkerPositionByName("path_marker_02"),
+        //     GetMarkerPositionByName("path_marker_goal")
+        // };
+    }
+
+    private Vector3[] GetCustomPaths(string[] markerNames)
+    {
+        List<Vector3> validPaths = new List<Vector3>();
+
+        foreach (string markerName in markerNames)
+        {
+            Vector3 markerPosition = GetMarkerPositionByName(markerName.Trim());
+            
+            if (markerPosition == _undefinedPosition)
+            {
+                continue;
+            }
+
+            validPaths.Add(markerPosition);
+        }
+
+        return validPaths.ToArray();
     }
 
     private void SetDestination(Vector3 destination)
     {
-        NavMeshCtrl.SetAgentSpeed(_NavMeshAgent);
-        if (!NavMeshCtrl.IsSameDestination(_NavMeshAgent, destination) && !NavMeshCtrl.SetNavMeshDestination(_NavMeshAgent, destination, base.transform))
+        // TODO: キャラクターごとの移動スピードの制御
+        // NavMeshCtrl.SetAgentSpeed(_navMeshAgent);
+        NavMeshCtrl.ChangeAgentSpeed(_navMeshAgent, 1.2f, 6f);  
+        
+        if (NavMeshCtrl.IsSameDestination(_navMeshAgent, destination))
         {
-            Vector3 vector = destination;
-            Debug.Log("SetNavMeshDestination false:" + vector.ToString());
+            return;
+        }
+
+        bool isDestinationSet = NavMeshCtrl.SetNavMeshDestination(_navMeshAgent, destination, transform);
+        if (!isDestinationSet)
+        {
+            Debug.Log("SetNavMeshDestination failed:" + destination.ToString());
         }
     }
 
     private Vector3 GetMarkerPositionByName(string markerName)
     {
-        GameObject gameObject = GameObject.Find(markerName);
-        if (gameObject == null)
+        if (string.IsNullOrEmpty(markerName))
         {
-            Debug.Log("GetMarkerPositionByName cannot find :" + markerName);
-            return _undefine_pos;
+            Debug.LogWarning("Marker name is null or empty");
+            return _undefinedPosition;
         }
-        return gameObject.transform.position;
+
+        GameObject markerObject = GameObject.Find(markerName);
+        if (markerObject == null)
+        {
+            Debug.LogWarning("GetMarkerPositionByName cannot find:" + markerName);
+            return _undefinedPosition;
+        }
+
+        return markerObject.transform.position;
     }
 
-    private static float rdNum(float min, float max)
+    private static float RandomRange(float min, float max)
     {
         return Utility.fRandomRange(min, max);
     }
 
     private void Awake()
     {
-        _NavMeshAgent = NavMeshCtrl.GetNavMeshAgent(base.gameObject);
+        _navMeshAgent = NavMeshCtrl.GetNavMeshAgent(gameObject);
         _idx++;
     }
 
-    internal void InitUnitSpawn(string[] marker_names = null)
+    internal void InitUnitSpawn(string[] markerNames = null)
     {
-        SetPaths(marker_names);
+        SetPaths(markerNames);
         AgentJumpToStartPosition();
         SetNextPath(_myPaths);
         StartCoroutine(LitterDrops());
@@ -290,5 +420,4 @@ public class EnemyLitter : MonoBehaviour
     private void OnDestroy()
     {
     }
-
 }

@@ -16,8 +16,12 @@ public static class PathMakerCtrl
     private const string _PARENT_MAKER_HOLDER_NAME = "path_markers";
     private const string _PARENT_BLOOM_HOLDER_NAME = "path_blooms";
     private const float _MARKER_Y_OFFSET = 0.06f;
-    private const float _MARKER_BLOOM_Y_OFFSET = 0.12f;
+    private const float _MARKER_BLOOM_Y_OFFSET = 0.08f;
     private const float _MARKER_INTERVAL = 1.5f;
+
+    private const bool _SKIP_FIRST_MARKER = false;
+    private const bool _SKIP_LAST_MARKER = true;
+    // TODO: 中継のマーカーをスキップするオプションも追加検討
 
     /// <summary>マーカー Y 座標オフセット定数を取得（BloomPath 等で使用）</summary>
     internal static float GetMarkerYOffset()
@@ -192,18 +196,24 @@ public static class PathMakerCtrl
 
         for (int j = 0; j <= segmentCount; j++)
         {
-            // if (ShouldSkipMarker(segmentIndex, j, segmentCount))
-            // {
-            //     continue;
-            // }
+            if (ShouldSkipMarker(segmentIndex, j, segmentCount))
+            {
+                continue;
+            }
             PlaceMarkerAtPosition(startPoint, endPoint, j, segmentCount, segmentIndex, markerPrefab, parentTransform);
         }
     }
 
     private static bool ShouldSkipMarker(int segmentIndex, int markerIndex, int segmentCount)
     {
-        // スキップ条件：最初のセグメントの最初のマーカー、または最後のセグメントの最後のマーカー
-        if (segmentIndex == 0 && markerIndex == 0)
+        // スキップ条件：最初のセグメントの最初のマーカー
+        if (_SKIP_FIRST_MARKER && segmentIndex == 0 && markerIndex == 0)
+        {
+            return true;
+        }
+
+        // スキップ条件：最後のセグメントの最後のマーカー
+        if (_SKIP_LAST_MARKER && segmentCount == markerIndex )
         {
             return true;
         }

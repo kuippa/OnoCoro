@@ -156,14 +156,14 @@ public class SpawnCtrl : MonoBehaviour
 
     private bool SpawnLitter(string[] marker_names)
     {
-        // GameObject gameObject = Instantiate(PrefabManager.EnemyLitterPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
-        // EnemyLitter component = gameObject.GetComponent<EnemyLitter>();
-        // int idx = EnemyLitter._idx;
-        // gameObject.name = GameEnum.ModelsType.Litter.ToString() + idx;
-        // Litter orAddComponent = GameObjectTreat.GetOrAddComponent<Litter>(gameObject);
-        // orAddComponent._unit_struct.UnitID = gameObject.name;
-        // orAddComponent._item_struct.ItemID = gameObject.name;
-        // component.InitUnitSpawn(marker_names);
+        GameObject gameObject = Instantiate(PrefabManager.EnemyLitterPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
+        EnemyLitter component = gameObject.GetComponent<EnemyLitter>();
+        int idx = EnemyLitter._idx;
+        gameObject.name = GameEnum.ModelsType.Litter.ToString() + idx;
+        Litter orAddComponent = GameObjectTreat.GetOrAddComponent<Litter>(gameObject);
+        orAddComponent._unit_struct.UnitID = gameObject.name;
+        orAddComponent._item_struct.ItemID = gameObject.name;
+        component.InitUnitSpawn(marker_names);
         return true;
     }
 
