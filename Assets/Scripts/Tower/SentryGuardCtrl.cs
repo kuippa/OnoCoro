@@ -6,7 +6,11 @@ public class SentryGuardCtrl : MonoBehaviour
 	{
 		if (other.gameObject.tag == GameEnum.TagType.EnemyLitters.ToString())
 		{
-			other.gameObject.GetComponent<EnemyLitter>().ChangeHeadColor(true);
+			EnemyLitter enemyLitter = other.gameObject.GetComponent<EnemyLitter>();
+			if (enemyLitter != null)
+			{
+				enemyLitter.ChangeHeadColor(1);  // Monitoring カウント +1
+			}
 		}
 	}
 
@@ -14,7 +18,11 @@ public class SentryGuardCtrl : MonoBehaviour
 	{
 		if (other.gameObject.tag == GameEnum.TagType.EnemyLitters.ToString())
 		{
-			other.gameObject.GetComponent<EnemyLitter>().ChangeHeadColor(false);
+			EnemyLitter enemyLitter = other.gameObject.GetComponent<EnemyLitter>();
+			if (enemyLitter != null)
+			{
+				enemyLitter.ChangeHeadColor(-1);  // Monitoring カウント -1
+			}
 		}
 	}
 

@@ -7,7 +7,9 @@
 > - [introduction.md](../docs/introduction.md) - プロジェクトの概要・目的・非目的
 > - [architecture.md](../docs/architecture.md) - システム全体のアーキテクチャ
 > - [coding-standards.md](../docs/coding-standards.md) - C#実装・Unity設計の詳細規約
-> - [AGENTS.md](AGENTS.md) - AI Agent 最上位ルール
+> - [AGENTS.md](../AGENTS.md) - AI Agent 最上位ルール
+> - [copilot/README.md](copilot/README.md) - GitHub Copilot カスタマイズガイド
+> - [copilot/skills/README.md](copilot/skills/README.md) - Agent Skills（microsoft-docs, microsoft-code-reference, make-skill-template）
 
 ## プロジェクト概要
 
@@ -143,33 +145,9 @@ git config credential.helper manager-core
 
 #### コミットメッセージ規約
 
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-**type の種類:**
-- `feat`: 新機能
-- `fix`: バグ修正
-- `docs`: ドキュメント
-- `style`: コード整形（意味の変更なし）
-- `refactor`: コード整理
-- `perf`: パフォーマンス改善
-- `test`: テストコードの追加・修正
-- `chore`: ビルドやツール設定の変更
-
-**例:**
-```
-feat(plateau-loader): Add support for CityGML 2.0 format
-
-- Implemented new parser for CityGML 2.0 buildings
-- Added automatic coordinate transformation
-
-Closes #123
-```
+**Conventional Commits** を採用。詳細は以下を参照：
+- [conventional-commit プロンプト](copilot/prompts/conventional-commit.prompt.md)
+- [AGENTS.md](../../AGENTS.md#git-workflow)
 
 ### .gitignore の運用ルール
 
@@ -389,235 +367,46 @@ Semantic Versioning を採用: `MAJOR.MINOR.PATCH`
 
 ---
 
-## Windows PowerShell での注意事項
+## Windows PowerShell での基本操作
 
-### コマンドの互換性
-
-このプロジェクトは **Windows 環境** を想定しています。Linux/macOS コマンドは利用できません。
-
-**使えないコマンド（Linux/macOS）:**
-```
-ls, grep, wc, du, sed, awk, cat, head, tail など
-```
-
-**Windows PowerShell での代替コマンド:**
-
-| Linux コマンド | Windows PowerShell | 説明 |
-|---|---|---|
-| `ls` | `Get-ChildItem` | ファイル/フォルダ一覧 |
-| `ls -la` | `Get-ChildItem -Force` | 隠しファイル含む一覧 |
-| `grep pattern` | `Select-String "pattern"` | テキスト検索 |
-| `wc -l` | `Measure-Object -Line` | 行数カウント |
-| `du -sh` | `(Get-ChildItem -Recurse \| Measure-Object -Property Length -Sum).Sum / 1GB` | フォルダサイズ |
-| `cat file` | `Get-Content file` | ファイル内容表示 |
-| `head -n 10` | `Get-Content file \| Select-Object -First 10` | 最初の10行 |
-| `tail -n 10` | `Get-Content file \| Select-Object -Last 10` | 最後の10行 |
-| `find . -name "*.cs"` | `Get-ChildItem -Recurse -Filter "*.cs"` | ファイル検索 |
-| `rm -rf folder` | `Remove-Item -Path folder -Recurse -Force` | フォルダ削除 |
-| `cp file dest` | `Copy-Item -Path file -Destination dest` | ファイルコピー |
-| `mv file dest` | `Move-Item -Path file -Destination dest` | ファイル移動 |
-
-### PowerShell のパイプ処理
-
-PowerShell ではパイプ（`\|`）で複数コマンドをつなげることができます：
+**このプロジェクトは Windows 環境（PowerShell）を前提としています。**
 
 ```powershell
-# 例1: .cs ファイルをすべて検索して、ファイル数をカウント
-Get-ChildItem -Path ".\Assets" -Recurse -Filter "*.cs" | Measure-Object | Select-Object -ExpandProperty Count
+# ファイル検索
+Get-ChildItem -Recurse -Filter "*.cs"
 
-# 例2: 大きなファイルを上位10個表示
-Get-ChildItem -Path ".\Assets" -Recurse -File | Sort-Object -Property Length -Descending | Select-Object -First 10
+# テキスト検索
+Select-String "pattern" file.txt
 
-# 例3: テキスト内で特定パターンを検索
-Get-Content ".\file.txt" | Select-String "searchPattern"
+# フォルダサイズ
+(Get-ChildItem -Recurse | Measure-Object -Property Length -Sum).Sum / 1GB
 ```
+
+詳細は [PowerShell 公式ドキュメント](https://learn.microsoft.com/powershell/) を参照。
 
 ---
 
-## Git 操作チートシート（Windows PowerShell）
-
-### ブランチ管理
+## Git コマンドクイックリファレンス
 
 ```powershell
-# ブランチ一覧表示
-git branch -a
+# ブランチ・コミット
+git checkout -b feature/name
+git add .; git commit -m "feat: description"
 
-# 新しいブランチを作成
-git checkout -b feature/my-feature
-
-# ブランチを削除
-git branch -d feature/my-feature
-
-# リモートブランチを削除
-git push origin --delete feature/my-feature
-```
-
-### コミット・プッシュ
-
-```powershell
-# ステージング（すべてのファイル）
-git add .
-
-# ステージング（特定ファイルのみ）
-git add .\Assets\Scripts\MyScript.cs
-
-# コミット
-git commit -m "feat: Add new feature description"
-
-# 直前のコミットを修正
-git commit --amend -m "feat: Corrected message"
+# 確認
+git status; git log --oneline -5
 
 # プッシュ
 git push origin main
 
-# 強制プッシュ（慎重に使用）
-git push origin main --force
+# 差分確認
+git diff; git diff --cached
 
-# タグの作成とプッシュ
-git tag -a v1.0.0 -m "Release version 1.0.0"
-git push origin v1.0.0
+# リモート更新
+git fetch origin; git pull origin main
 ```
 
-### 差分確認
-
-```powershell
-# ワーキングディレクトリの差分を表示
-git diff
-
-# ステージされた差分を表示
-git diff --cached
-
-# コミット間の差分
-git diff <commit1> <commit2>
-
-# ファイル一覧のみを表示
-git diff --name-only
-
-# 統計情報を表示
-git diff --stat
-```
-
-### 履歴確認
-
-```powershell
-# コミット履歴（1行表示）
-git log --oneline -10
-
-# グラフ表示で分岐を可視化
-git log --oneline --graph --all
-
-# 特定ファイルの履歴
-git log -p .\Assets\Scripts\MyScript.cs
-
-# 日時範囲で検索
-git log --since="2025-01-01" --until="2026-01-03"
-
-# ファイルの削除履歴も含める
-git log --full-history -- .\Assets\MyFile.cs
-```
-
-### 変更の戻し
-
-```powershell
-# ワーキングディレクトリの変更を取り消し
-git checkout -- .\Assets\Scripts\MyScript.cs
-
-# ステージを取り消し
-git reset HEAD .\Assets\Scripts\MyScript.cs
-
-# 直前のコミットを取り消し（変更は保持）
-git reset --soft HEAD~1
-
-# 直前のコミットを完全に取り消し
-git reset --hard HEAD~1
-
-# コミット履歴から特定ファイルを削除（履歴を上書き）
-git rm -r --cached .\Assets\LargeData\
-git commit -m "chore: Remove large data from tracking"
-```
-
-### リモート操作
-
-```powershell
-# リモート一覧表示
-git remote -v
-
-# リモート追加
-git remote add origin https://github.com/kuippa/OnoCoro.git
-
-# リモート削除
-git remote remove origin
-
-# リモートの最新情報を取得（フェッチ）
-git fetch origin
-
-# リモートの最新をローカルにマージ
-git pull origin main
-
-# フェッチ＋マージを一度に実行
-git pull --rebase origin main
-```
-
-### マージ・リベース
-
-```powershell
-# 他のブランチをマージ
-git merge feature/my-feature
-
-# マージの中止
-git merge --abort
-
-# リベース（慎重に）
-git rebase main
-
-# リベースの中止
-git rebase --abort
-
-# マージ競合の解決後（コンフリクト）
-git add .
-git commit -m "Resolve merge conflict"
-```
-
-### クリーンアップ
-
-```powershell
-# トラッキングされていないファイルを表示
-git clean -n -d
-
-# トラッキングされていないファイルを削除
-git clean -f -d
-
-# 追跡されなくなったリモートブランチの参照を削除
-git fetch --prune
-
-# ローカルの削除されたリモートブランチを削除
-git branch -vv | Select-String "gone" | ForEach-Object { 
-    $branch = $_.Line.Split()[0]
-    git branch -d $branch
-}
-```
-
-### 診断・確認
-
-```powershell
-# リポジトリの状態確認
-git status
-
-# トラッキング中のファイル数
-(git ls-files | Measure-Object).Count
-
-# 最大のトラッキング中のファイルを表示
-git ls-files -s | Sort-Object { [long]($_.Split()[3]) } -Descending | Select-Object -First 10
-
-# リポジトリサイズの詳細
-git count-objects -v
-
-# リモートのURL確認
-git config --get remote.origin.url
-
-# ローカル設定の確認
-git config --local --list
-```
+詳細な Git ワークフローは [GitHub フロー](https://guides.github.com/introduction/flow/) を参照してください。
 
 このプロジェクトへの貢献を歓迎します。以下のガイドラインをお守りください：
 
@@ -643,22 +432,15 @@ git config --local --list
 
 ---
 
-## コーディング規約
+## コーディング規約について
 
-> **注意**: コーディング規約の詳細は [AGENTS.md](AGENTS.md) を参照してください。
-> ここでは要点のみを記載します。
+OnoCoro プロジェクトのコーディング規約は以下を参照してください：
 
-### 重要ルール（要約）
+- **基本ルール**: [AGENTS.md](../AGENTS.md#coding-standards) の「Coding Standards」セクション
+- **詳細な実装ガイド**: [docs/coding-standards.md](../docs/coding-standards.md)
+- **Recovery フェーズ特有ガイド**: [.github/instructions/unity-csharp-recovery.instructions.md](.github/instructions/unity-csharp-recovery.instructions.md)
 
-1. **マジックナンバー・マジックストリング禁止** - 必ず定数化
-2. **制御文には必ず `{}` を使用**
-3. **三項演算子 `? :` と null条件演算子 `?.` は使用禁止**
-4. **関数は40行以内** - 超える場合は分割
-5. **Early Return パターンの徹底** - ネストしたif文を避ける
-6. **意味のある変数名** - `obj`, `temp`, `str` などを避ける
-7. **ユーティリティクラスの活用** - 共通処理を集約
-
-詳細は [AGENTS.md](AGENTS.md) を必ず参照してください。
+特に以下のポイントに注意：Null チェック（guard clause）・マジックナンバー禁止・メソッド 40 行以内・制御文に波括弧・3 項演算子禁止
 
 ---
 

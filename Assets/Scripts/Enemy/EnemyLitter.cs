@@ -65,37 +65,41 @@ public class EnemyLitter : MonoBehaviour
         {
             _targetPosition = Vector3.zero;
             _targetRadius = _ZERO_THRESHOLD;
-            ChangeHeadColor(false);
+            ChangeHeadColor(-1);  // Monitoring カウント -1
             return;
         }
 
         _targetPosition = targetObj.transform.position;
         _targetRadius = targetObj.GetComponent<TowerDustBoxCtrl>().GetRadius();
-        ChangeHeadColor(true);
+        ChangeHeadColor(1);  // Monitoring カウント +1
     }
 
-    internal void ChangeHeadColor(bool isMonitoring)
+    internal void ChangeHeadColor(int monit)
     {
+        _numberOfMonitoring += monit;  // 複数箇所からの監視カウント
+        
         Transform capsuleHeadTransform = transform.Find(_CHILD_NAME_CAPSULE_HEAD);
         if (capsuleHeadTransform == null)
         {
-            // Debug.LogWarning($"CapsuleHead not found in {name}");
+            Debug.LogWarning($"CapsuleHead not found in {name}");
             return;
         }
+        
         Renderer headRenderer = capsuleHeadTransform.GetComponent<Renderer>();
         if (headRenderer == null)
         {
-            // Debug.LogWarning($"Renderer not found on CapsuleHead in {name}");
+            Debug.LogWarning($"Renderer not found on CapsuleHead in {name}");
             return;
         }
-
-        if (!isMonitoring)
+        
+        // 複数箇所からの監視カウントが1以上なら赤色、それ以外は緑色
+        if (_numberOfMonitoring > 0)
         {
-            headRenderer.material = MaterialManager.Material_BG_Green;
+            headRenderer.material = MaterialManager.Material_BG_RED;
         }
         else
         {
-            headRenderer.material = MaterialManager.Material_BG_RED;
+            headRenderer.material = MaterialManager.Material_BG_Green;
         }
     }
 

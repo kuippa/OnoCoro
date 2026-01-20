@@ -160,6 +160,10 @@ Assembly-CSharp-Editor.csproj
 GeneratedCode/
 Generated/
 
+# Ignore AI session context cache files
+.github/.session-context*
+.github/.auto-load-enabled
+
 # Ignore OS-specific files
 Thumbs.db
 .DS_Store

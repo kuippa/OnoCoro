@@ -11,13 +11,14 @@ public class PrefabManager
 		GarbageCube,
 		FireCube,
 		DustBox,
-		SentryGuard,
+		TowerSentryGuard,
 		WaterTurret,
 		StopPlate,
 		PowerCube,
 		TowerSweeper,
 		WaterSphere,
 		RainDrop,
+		Puddle,
 		EnemyLitter,
 		
 		// Marker
@@ -35,13 +36,14 @@ public class PrefabManager
 		{ PrefabType.GarbageCube, "Prefabs/WorkUnit/GarbageCube" },
 		{ PrefabType.FireCube, "Prefabs/WorkUnit/FireCube" },
 		{ PrefabType.DustBox, "Prefabs/WorkUnit/TowerDustBox" },
-		{ PrefabType.SentryGuard, "Prefabs/WorkUnit/SentryGuard" },
+		{ PrefabType.TowerSentryGuard, "Prefabs/WorkUnit/TowerSentryGuard" },
 		{ PrefabType.WaterTurret, "Prefabs/WorkUnit/WaterTurret" },
 		{ PrefabType.StopPlate, "Prefabs/WorkUnit/StopPlate" },
 		{ PrefabType.PowerCube, "Prefabs/WorkUnit/PowerCube" },
 		{ PrefabType.TowerSweeper, "Prefabs/WorkUnit/TowerSweeper" },
 		{ PrefabType.WaterSphere, "Prefabs/WorkUnit/WaterSphere" },
 		{ PrefabType.RainDrop, "Prefabs/WorkUnit/RainDrop" },
+		{ PrefabType.Puddle, "Prefabs/WorkUnit/Puddle" },
 		{ PrefabType.EnemyLitter, "Prefabs/EnemyUnit/EnemyLitter" },
 		
 		// Marker
@@ -101,11 +103,12 @@ public class PrefabManager
 	internal static GameObject UIStageInfoBoxPrefab => GetPrefab(PrefabType.UIStageInfoBox);
 	internal static GameObject GarbageCubePrefab => GetPrefab(PrefabType.GarbageCube);
 	internal static GameObject RainDropPrefab => GetPrefab(PrefabType.RainDrop);
+	internal static GameObject PuddlePrefab => GetPrefab(PrefabType.Puddle);
 	internal static GameObject FireCubePrefab => GetPrefab(PrefabType.FireCube);
 	internal static GameObject PathMakerPrefab => GetPrefab(PrefabType.PathMaker);
 	internal static GameObject PathBloomPrefab => GetPrefab(PrefabType.PathBloom);
 	internal static GameObject DustBoxPrefab => GetPrefab(PrefabType.DustBox);
-	internal static GameObject SentryGuardPrefab => GetPrefab(PrefabType.SentryGuard);
+	internal static GameObject TowerSentryGuardPrefab => GetPrefab(PrefabType.TowerSentryGuard);
 	internal static GameObject EnemyLitterPrefab => GetPrefab(PrefabType.EnemyLitter);
 	internal static GameObject WaterTurretPrefab => GetPrefab(PrefabType.WaterTurret);
 	internal static GameObject StopPlatePrefab => GetPrefab(PrefabType.StopPlate);
@@ -117,7 +120,7 @@ public class PrefabManager
 	internal static int GarbageCubeUID => GetNextUID(PrefabType.GarbageCube);
 	internal static int FireCubeUID => GetNextUID(PrefabType.FireCube);
 	internal static int DustBoxUID => GetNextUID(PrefabType.DustBox);
-	internal static int SentryGuardUID => GetNextUID(PrefabType.SentryGuard);
+	internal static int TowerSentryGuardUID => GetNextUID(PrefabType.TowerSentryGuard);
 	internal static int StopPlateUID => GetNextUID(PrefabType.StopPlate);
 	internal static int PowerCubeUID => GetNextUID(PrefabType.PowerCube);
 

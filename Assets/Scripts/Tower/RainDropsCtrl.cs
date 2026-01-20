@@ -33,7 +33,12 @@ public class RainDropsCtrl : MonoBehaviour
             return false;
         }
 
-		GameObject prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/Puddle");
+        GameObject prefab = PrefabManager.GetPrefab(PrefabManager.PrefabType.Puddle);
+        if (prefab == null)
+        {
+            Debug.LogWarning("Puddle prefab が見つかりません");
+            return false;
+        }
         Vector3 setPoint = DemCtrl.GetDemAbovePosition(this.gameObject, PUDDLE_ABOVE_DISTANCE);
         Quaternion setRotation = Quaternion.Euler(0, 0, 0);
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
@@ -124,7 +129,21 @@ public class RainDropsCtrl : MonoBehaviour
 
     private void ChangeColliderSize()
     {
-        this.gameObject.transform.Find("absorbcollider").gameObject.GetComponent<RainAbsorbCtrl>().ChangeColliderSize(0.7f);
+        Transform absorbColliderTransform = this.gameObject.transform.Find("absorbcollider");
+        if (absorbColliderTransform == null)
+        {
+            Debug.LogWarning("absorbcollider が見つかりません: " + this.name);
+            return;
+        }
+
+        RainAbsorbCtrl rainAbsorbCtrl = absorbColliderTransform.gameObject.GetComponent<RainAbsorbCtrl>();
+        if (rainAbsorbCtrl == null)
+        {
+            Debug.LogWarning("RainAbsorbCtrl コンポーネントが見つかりません: " + absorbColliderTransform.name);
+            return;
+        }
+
+        rainAbsorbCtrl.ChangeColliderSize(0.7f);
     }
 
     IEnumerator RainDrops()

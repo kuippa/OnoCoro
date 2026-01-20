@@ -285,6 +285,27 @@ void Start()
 
 **TODO**:
 - [ ] **Assets/Recovery/.Editor/ILspy_CS フォルダの削除** - マージ完了後、不要な復元ファイルフォルダを削除
+- [ ] **SentryGuard アーキテクチャの統一化** - SentryGuard.cs を動的アタッチ（GetOrAddComponent パターン）に変更
+  - 現在: SentryGuard.cs がプレファブに直接アタッチ
+  - 目標: DustBox、StopPlate と同じパターンで SpawnCtrl から動的にアタッチ
+  - 理由: Defensive programming、プレファブ依存性低減、Recovery フェーズ対応
+  - 関連ファイル: `SentryGuardCtrl.cs`, `SpawnCtrl.cs`, `SentryGuard.cs`
+- [ ] **敵ユニット移動経路の最適化（NavMesh対応）** - Litter など敵ユニットが TowerSentryGuard 配置後に詰まる問題対応
+  - **問題**: ゲーム中に TowerSentryGuard（またはその他タワー）を配置すると、EnemyLitter の移動経路が塞がれて詰まる
+  - **対策案A**: 動的 NavMesh 再ベイク
+    - ユニット配置時点で NavMesh.Bake() を実行
+    - リアルタイム NavMesh 更新（パフォーマンスコスト注意）
+    - 実装ファイル: `SpawnCtrl.cs` の Spawn メソッド追加
+  - **対策案B**: 最経路探索ロジック追加
+    - A* アルゴリズムで障害物を回避する経路を自動生成
+    - NavMeshAgent の目的地再計算
+    - 実装ファイル: `NavMeshCtrl.cs` の拡張、EnemyLitter.cs の経路更新
+  - **対策案C**: 配置前検証
+    - ユニット配置時に NavMesh 上の到達可能性を事前チェック
+    - 詰まる可能性が高い場合は配置を禁止またはユーザーに警告
+    - 実装ファイル: `SpawnCtrl.cs` の配置検証ロジック
+  - **推奨実装順序**: 対策C（即日対応）→ 対策A（中期）→ 対策B（長期）
+  - **関連ファイル**: `SpawnCtrl.cs`, `NavMeshCtrl.cs`, `EnemyLitter.cs`, `SentryGuardCtrl.cs`
 - [ ] 残りのマージ対象ファイルの確認と処理
 - [ ] エラーログの確認とデバッグ
 

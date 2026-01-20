@@ -128,15 +128,15 @@ public class SpawnCtrl : MonoBehaviour
 
     private bool SpawnSentryGuard(Vector3 spawnPoint = default(Vector3))
     {
-        // float dropbuffer = 0.05f;
-        // spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
-        // Quaternion spawnRotateAngle = GetSpawnRotateAngle();
-        // GameObject gameObject = Instantiate(PrefabManager.SentryGuardPrefab, spawnPoint, spawnRotateAngle);
-        // int sentryGuardUID = PrefabManager.SentryGuardUID;
-        // gameObject.name = GameEnum.ModelsType.SentryGuard.ToString() + sentryGuardUID;
-        // SentryGuard orAddComponent = GameObjectTreat.GetOrAddComponent<SentryGuard>(gameObject);
-        // orAddComponent._item_struct.ItemID = gameObject.name;
-        // orAddComponent._unit_struct.UnitID = gameObject.name;
+        float dropbuffer = 0.05f;
+        spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        Quaternion spawnRotateAngle = GetSpawnRotateAngle();
+        GameObject gameObject = Instantiate(PrefabManager.TowerSentryGuardPrefab, spawnPoint, spawnRotateAngle);
+        int sentryGuardUID = PrefabManager.TowerSentryGuardUID;
+        gameObject.name = GameEnum.ModelsType.SentryGuard.ToString() + sentryGuardUID;
+        SentryGuard orAddComponent = GameObjectTreat.GetOrAddComponent<SentryGuard>(gameObject);
+        orAddComponent._item_struct.ItemID = gameObject.name;
+        orAddComponent._unit_struct.UnitID = gameObject.name;
         return true;
     }
 

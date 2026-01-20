@@ -26,6 +26,10 @@ pathmakers:
   # 同名のオブジェクトがステージに配置済の場合は位置のみ更新される
   - name: path_marker_start  # nameに start|goal の文字列を含むものは色が変わる
     pos: 5, 0, 5
+  - name: path_marker_01
+    pos: 10, 0, -6
+  - name: path_marker_02
+    pos: 18, 0, -4
   - name: path_marker_03
     pos: 8, 0, 8
   - name: path_marker_04
@@ -59,7 +63,7 @@ events:
   #   event: spawn_unit
   #   value: Litter, 4, 2, 4
 
-  - time: 0   # 定義されていないので光らせられないが、エラーにはならない
+  - time: 0   # 定義されていないものは光らないが、エラーにはならない
     event: bloom_path
     value: path_marker_start, path_marker_03, path_marker_04, path_marker_goal
 
@@ -68,22 +72,28 @@ events:
   - time: 3
     event: spawn_enemy_unit
     value: Litter, path_marker_start, path_marker_03, path_marker_04, path_marker_goal
-    # value: Litter, path_marker_start, path_marker_goal
-
-  # - time: 5
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
 
   # - time: 7
   #   event: spawn_enemy_unit
   #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
 
-  # - time: 28 # 特定のパスマーカー経路だけを消す
-  #   event: off_bloom_path
-  #   value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
-
 
   # # path2 の 攻撃軍
+
+  - time: 8   # 定義されていないものは光らないが、エラーにはならない
+    event: bloom_path
+    value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+  - time: 9
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+
+
+  - time: 20 # 指定のパスマーカー経路だけを消す
+    event: off_bloom_path
+    # value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+    value: path_marker_start, path_marker_03, path_marker_04, path_marker_goal
+
 
   # - time: 17
   #   event: bloom_path

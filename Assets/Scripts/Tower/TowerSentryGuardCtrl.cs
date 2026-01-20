@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class TowerSentryGuard : MonoBehaviour
+public class TowerSentryGuardCtrl : MonoBehaviour
 {
     // Swing Constants
     private const float _SWING_INTERVAL = 0.5f;
