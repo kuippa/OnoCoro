@@ -427,3 +427,132 @@ void Start()
   - 確認事項: PlayerArmature のカプセルコライダーで参照（現在オフ状態）
   - 実施時期: 復旧作業一段落後、全体アセット精査時
   - 削除前に PlayerArmature が完全に使用されていないことを確認すること
+
+---
+
+### 2026-01-21: Debug.log ラッピング クラスの実装
+
+**目的**:
+- Debug.log をラッピングして一元管理
+- Editor 外でログを .log ファイルに出力
+- `using Debug = UnityEngine.Debug;` の記述を削除し、統一化
+
+**実施予定内容**:
+
+1. **DebugLoggerクラスの作成**
+   - `Assets/Scripts/Utilities/DebugLogger.cs` に実装
+   - Editor モード: Console に出力
+   - ビルド/実行時: `Application.persistentDataPath/debug.log` に出力
+   - ログレベル: Debug, Info, Warning, Error
+   - 条件付きコンパイル: `#if UNITY_EDITOR` で制御
+
+2. **既存コードの更新**
+   - `using Debug = UnityEngine.Debug;` をすべて削除
+   - `Debug.Log()` → `DebugLogger.Log()` に置換
+   - `Debug.LogWarning()` → `DebugLogger.Warning()` に置換
+   - `Debug.LogError()` → `DebugLogger.Error()` に置換
+   - `Debug.Assert()` → `DebugLogger.Assert()` に置換
+
+3. **実装の詳細**
+   - ファイル出力のタイミング: ログ出力時に即座に書き込み（パフォーマンス注視）
+   - ログローテーション: ファイルサイズが 10MB を超えた場合、日付タグで新規作成
+   - ファイル読み込み不可時の例外処理
+   - シングルトン or 静的メソッドパターン
+
+4. **ドキュメント整備**
+   - `docs/debug-logger-guide.md` に使用方法を記載
+   - ビルド時のログファイル確認方法
+   - トラブルシューティング
+
+**関連ファイル**:
+- `Assets/Scripts/Utilities/DebugLogger.cs` (新規)
+- 全 CS ファイル（Debug → DebugLogger への置換）
+
+**TODO**:
+- [ ] **DebugLogger クラスの実装**
+  - Awake でファイルパスを初期化
+  - Log, Info, Warning, Error メソッドの実装
+  - ログローテーション機能の実装
+  - 条件付きコンパイルの適用
+
+- [ ] **既存ファイルの Debug → DebugLogger への置換**
+  - `grep_search` で `Debug.Log` を検索して全ファイルをリスト
+  - 置換実行（正規表現での一括置換）
+  - テスト実行でログ出力を確認
+
+- [ ] **ドキュメント作成と AGENTS.md の更新**
+  - debug-logger-guide.md を作成
+  - AGENTS.md に DebugLogger 使用ルールを記載
+  - 既存ドキュメント（coding-standards.md など）の更新確認
+
+---
+
+### 2026-01-21: NavMesh を使わずに経路計算をできるようにラッピング
+
+**目的**:
+- NavMesh への依存を減らし、より柔軟な経路探索が可能に
+- ゲーム中の障害物（タワー配置）による経路塞ぎ問題を解決
+- A* アルゴリズムで動的な経路計算を実装
+
+**実施予定内容**:
+
+1. **PathfinderUtility クラスの作成**
+   - `Assets/Scripts/Utilities/PathfinderUtility.cs` に実装
+   - A* アルゴリズムによる経路探索
+   - グリッドベース or グラフベースの実装（検討必要）
+   - Unity の NavMesh とは独立した経路計算エンジン
+
+2. **既存との互換性**
+   - `NavMeshAgent` の既存実装は維持
+   - PathfinderUtility は補助的な役割
+   - 必要に応じて `NavMeshAgent` の目的地を動的に再計算
+
+3. **実装の詳細**
+   - **グリッドベース方式**:
+     - ゲーム空間をグリッドに分割
+     - 各グリッドの通行可否を判定
+     - 障害物（タワー）がグリッドを塞いだ場合、周辺グリッドでルート探索
+     - パフォーマンス: O(n log n)
+   
+   - **グラフベース方式**:
+     - ゲーム空間上の重要なポイント（ウェイポイント）をノードとして定義
+     - タワー配置により影響を受けるエッジの無効化
+     - より柔軟だが実装が複雑
+
+4. **スコープ決定**
+   - Phase 1: グリッドベース A* の基本実装
+   - Phase 2: パフォーマンス最適化（キャッシング、部分更新）
+   - Phase 3: グラフベース への拡張（オプション）
+
+5. **ドキュメント整備**
+   - `docs/pathfinding-guide.md` に使用方法を記載
+   - A* アルゴリズムの概要
+   - パフォーマンス考慮点
+
+**関連ファイル**:
+- `Assets/Scripts/Utilities/PathfinderUtility.cs` (新規)
+- `Assets/Scripts/Enemy/EnemyLitter.cs` (経路更新対応)
+- `Assets/Scripts/Managers/NavMeshCtrl.cs` (連携)
+- `Assets/Scripts/Enemy/SpawnCtrl.cs` (障害物衝突検出)
+
+**TODO**:
+- [ ] **PathfinderUtility の基本実装**
+  - グリッドセルの定義と管理
+  - A* 探索アルゴリズムの実装
+  - ヒューリスティック関数（Manhattan or Euclidean 距離）
+  - 障害物検出ロジック
+
+- [ ] **既存システムとの統合テスト**
+  - NavMeshAgent との併用テスト
+  - EnemyLitter の移動経路が正しく計算されるか確認
+  - タワー配置後の敵ユニット移動確認
+
+- [ ] **パフォーマンス測定と最適化**
+  - Profiler でメモリ・CPU 使用率を測定
+  - キャッシング戦略の検討
+  - グリッド更新の最小化
+
+- [ ] **ドキュメント作成**
+  - pathfinding-guide.md を作成
+  - AGENTS.md に PathfinderUtility 使用ルールを記載
+  - アルゴリズムの詳細説明
