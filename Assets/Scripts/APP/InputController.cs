@@ -438,5 +438,27 @@ namespace StarterAssets
 
 		}
 
+        // 落下時に速度をリセットする
+        public void ResetVelocity()
+        {
+            _verticalVelocity = 0.0f;
+            _speed = 0.0f;
+            _input._move = Vector2.zero;
+            Grounded = false;
+            _jumpTimeoutDelta = 10f;
+        }
+
+        // デバッグ用：垂直速度を直接設定
+        public void SetVerticalVelocity(float velocity)
+        {
+            _verticalVelocity = velocity;
+        }
+
+        // デバッグ用：移動速度を直接設定
+        public void SetMoveSpeed(float speed)
+        {
+            _speed = speed;
+        }
+
     }
 }

@@ -21,6 +21,9 @@ public class PrefabManager
 		Puddle,
 		EnemyLitter,
 		
+		// Environment
+		WaterSurface,
+		
 		// Marker
 		PathMaker,
 		PathBloom,
@@ -45,6 +48,9 @@ public class PrefabManager
 		{ PrefabType.RainDrop, "Prefabs/WorkUnit/RainDrop" },
 		{ PrefabType.Puddle, "Prefabs/WorkUnit/Puddle" },
 		{ PrefabType.EnemyLitter, "Prefabs/EnemyUnit/EnemyLitter" },
+		
+		// Environment
+		{ PrefabType.WaterSurface, "Prefabs/Environment/watersurface" },
 		
 		// Marker
 		{ PrefabType.PathMaker, "Prefabs/Marker/path_marker" },
@@ -115,6 +121,7 @@ public class PrefabManager
 	internal static GameObject PowerCubePrefab => GetPrefab(PrefabType.PowerCube);
 	internal static GameObject TowerSweeperPrefab => GetPrefab(PrefabType.TowerSweeper);
 	internal static GameObject WaterSpherePrefab => GetPrefab(PrefabType.WaterSphere);
+	internal static GameObject WaterSurfacePrefab => GetPrefab(PrefabType.WaterSurface);
 	internal static GameObject SignPowerOutagePrefab => GetPrefab(PrefabType.SignPowerOutage);
 
 	internal static int GarbageCubeUID => GetNextUID(PrefabType.GarbageCube);

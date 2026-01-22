@@ -68,6 +68,15 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 - Provides visibility into session reset events
 - Confirms document loading state
 
+### Response Language
+
+**MANDATORY**: All AI Agents must respond in **Japanese (日本語)** by default.
+
+- ✅ **Respond in Japanese** for all code changes, documentation, and explanations
+- ✅ **Use Japanese** for error messages, warnings, and logs added to code
+- ✅ **Japanese first** for session information and interaction with users
+- ✅ **Accept English requests** but respond in Japanese unless otherwise specified
+
 ---
 
 ## Technology Stack

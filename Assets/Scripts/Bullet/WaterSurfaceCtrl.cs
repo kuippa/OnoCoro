@@ -13,7 +13,19 @@ public class WaterSurfaceCtrl : MonoBehaviour
 
 	private GameObject GetWaterSurface()
 	{
-		_waterSurface = GameObjectTreat.GetOrNewGameObject(_waterSurface, "watersurface");
+		if (_waterSurface == null)
+		{
+			GameObject waterSurfacePrefab = PrefabManager.GetPrefab(PrefabManager.PrefabType.WaterSurface);
+			if (waterSurfacePrefab == null)
+			{
+				Debug.LogWarning("[WaterSurfaceCtrl] watersurface プレファブが見つかりません");
+				_waterSurface = GameObjectTreat.GetOrNewGameObject(_waterSurface, "watersurface");
+				return _waterSurface;
+			}
+			
+			_waterSurface = Instantiate(waterSurfacePrefab);
+			_waterSurface.name = "watersurface";
+		}
 		return _waterSurface;
 	}
 

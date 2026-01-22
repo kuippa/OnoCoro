@@ -34,12 +34,19 @@ public class NarakuCtrl : MonoBehaviour
 
             // Vector3 setPlayerPos = _dem_center_pos;
             Vector3 setPlayerPos = GetClosestPointOnBounds(other);
-            // SetRigidbodyVelocity(other);
+            SetRigidbodyVelocity(other);
 
+            // CharacterController を使用している場合、内部速度もリセット
+            InputController inputCtrl = other.gameObject.GetComponent<InputController>();
+            if (inputCtrl != null)
+            {
+                inputCtrl.ResetVelocity();
+                // inputCtrl.SetVerticalVelocity(-5.0f);
+                // inputCtrl.SetMoveSpeed(0.1f);
+            }
             Debug.Log("OnTriggerEnter Player " + other.gameObject.name + " " + setPlayerPos);
             setPlayerPos.y += _POPUP_PLAYER_DISTANCE;
             other.gameObject.GetComponent<InputController>().CharacterMoveToPosition(setPlayerPos);
-            // other.gameObject.transform.position = setPlayerPos;
         }
         else if (other.gameObject.tag == GameEnum.TagType.Naraku.ToString())
         {
@@ -91,9 +98,7 @@ public class NarakuCtrl : MonoBehaviour
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            // rb.angularVelocity *= -1;
 
-            // 動作確認のため、dragを増やしてゆっくり落ちるようにする
             if (GameConfig._APP_GAME_MODE == GlobalConst.GAME_MODE_DEBUG)
             {
                 rb.linearDamping = 2;
@@ -112,7 +117,7 @@ public class NarakuCtrl : MonoBehaviour
         GameObject naraku = this.gameObject;
         if (naraku == null)
         {
-            Debug.Log("InitWindow " + "naraku is null");
+            // Debug.Log("InitWindow " + "naraku is null");
         }
         _dem = DemCtrl.GetDemObject();
         ChangeMaterialUVToPlanar(_dem); // マテリアルのUVをPlanarに変更
