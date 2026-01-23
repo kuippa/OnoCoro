@@ -1,0 +1,51 @@
+Unityで電波の広がりを図示する際、遮蔽物に阻害される塗りつぶし円を描画するには、以下のようなステップが必要になります。
+
+シーンに遮蔽物を配置する
+遮蔽物となるオブジェクト(壁やビルなど)をシーンに配置します。これらのオブジェクトは、後に電波の通過を妨げるものとして機能します。
+電波発信源を設定する
+電波を発信する場所(アンテナなど)を決めて、そこにゲームオブジェクトを配置します。
+電波の広がり範囲を計算する
+発信源からの距離に基づいて、電波が到達する範囲を計算します。この計算では、遮蔽物の有無や材質などを考慮する必要があります。
+遮蔽物との交差判定
+電波の広がり範囲と遮蔽物の位置関係から、電波が遮蔽される領域を特定します。これには、レイキャストやオーバーラップスフィアなどの衝突判定手法が使えます。
+塗りつぶし円の描画
+遮蔽物に阻害されない領域を表す塗りつぶし円を描画します。この際、4で特定した遮蔽領域は除外する必要があります。塗りつぶしにはOnGUIやShaderを使うことができます。
+
+具体的な実装方法は以下の通りです。
+csharpCopyusing UnityEngine;
+
+public class WaveVisualization : MonoBehaviour
+{
+    public float radius = 10f; // 電波の広がり範囲
+    public LayerMask obstacleMask; // 遮蔽物のレイヤー
+
+    private void OnGUI()
+    {
+        // 電波発信源の位置
+        Vector3 sourcePos = transform.position;
+
+        // 電波の広がり範囲内で格子状に点を作成
+        for (float x = -radius; x <= radius; x += 0.5f)
+        {
+            for (float y = -radius; y <= radius; y += 0.5f)
+            {
+                // 格子点の位置
+                Vector3 point = sourcePos + new Vector3(x, y, 0);
+
+                // 発信源から格子点へのレイを作成し、遮蔽物との衝突を判定
+                RaycastHit hit;
+                if (Physics.Raycast(sourcePos, point - sourcePos, out hit, radius, obstacleMask))
+                {
+                    // 遮蔽物があれば、その手前で描画を止める
+                    point = hit.point;
+                }
+
+                // 格子点を描画
+                Handles.color = Color.green;
+                Handles.DrawSolidDisc(point, Vector3.forward, 0.1f);
+            }
+        }
+    }
+}
+この例では、OnGUIで電波発信源の周りに格子状に点を作成し、各点からレイを飛ばして遮蔽物との衝突を判定しています。衝突した場合はその手前で描画を止め、それ以外の場所に緑色の円を描画しています。
+実際の実装では、パフォーマンス向上のために最適化が必要になる場合があります。また、より現実的な電波の減衰モデルを使うことも検討する必要があるでしょう。

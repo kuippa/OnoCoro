@@ -8,9 +8,11 @@ using UnityEngine;
 public class Earthquake : MonoBehaviour
 {
     private GameObject _dem = null;
+    private GameObject _bldg = null;
     private float _time = 0.0f;
     private float _time_duration = 0.0f;
     private Vector3 _org_stage_vector;
+    private Vector3 _org_bldg_vector;
     private float _degree = 0.0f;
     private bool _is_earthquake = false;
     private float _total_duration = 3.5f;
@@ -19,6 +21,7 @@ public class Earthquake : MonoBehaviour
 
     private const float _DURATION = 4.5f;
     private const float _INTERVAL = 0.02f;
+    private const string _BLDG_IDENTIFIER = "_bldg_";  // 建物オブジェクト名の識別子
 
     /// <summary>
     /// 地震イベントを開始する
@@ -45,13 +48,34 @@ public class Earthquake : MonoBehaviour
         float val = CalcSin();
         if (_total_duration > _time_duration)
         {
-            _dem.transform.position = new Vector3(_org_stage_vector.x, _org_stage_vector.y + val, _org_stage_vector.z);
+            // 地面を揺らす
+            if (_dem != null)
+            {
+                _dem.transform.position = new Vector3(_org_stage_vector.x, _org_stage_vector.y + val, _org_stage_vector.z);
+            }
+
+            // 建物も同時に揺らす
+            if (_bldg != null)
+            {
+                _bldg.transform.position = new Vector3(_org_bldg_vector.x, _org_bldg_vector.y + val, _org_bldg_vector.z);
+            }
+
             _degree += 30.0f;
         }
         else
         {
-            // Debug.Log("QualeP end");
-            _dem.transform.position = _org_stage_vector;
+            // 地面を元の位置に戻す
+            if (_dem != null)
+            {
+                _dem.transform.position = _org_stage_vector;
+            }
+
+            // 建物を元の位置に戻す
+            if (_bldg != null)
+            {
+                _bldg.transform.position = _org_bldg_vector;
+            }
+
             _degree = 0.0f;
             _time_duration = 0.0f;
             _is_earthquake = false;
@@ -126,6 +150,27 @@ public class Earthquake : MonoBehaviour
         {
             _dem = ground.gameObject;
             _org_stage_vector = _dem.transform.position;
+
+            // _dem.transform.parent.parent.parent が建物オブジェクトの親
+            if (_dem.transform.parent != null && 
+                _dem.transform.parent.parent != null && 
+                _dem.transform.parent.parent.parent != null)
+            {
+                _bldg = FindBuildingObjectInParent(_dem.transform.parent.parent.parent);
+                if (_bldg != null)
+                {
+                    _org_bldg_vector = _bldg.transform.position;
+                    Debug.Log($"Found building object for earthquake vibration: {_bldg.name}");
+                }
+                else
+                {
+                    Debug.LogWarning("Could not find building object containing '_bldg_' in DEM parent hierarchy");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("DEM parent hierarchy is incomplete (expected 3 levels deep)");
+            }
         }
         else
         {
@@ -147,7 +192,30 @@ public class Earthquake : MonoBehaviour
         // );
     }
 
-    internal void OnTriggerEnter(Collider other)
+    /// <summary>
+    /// 親オブジェクトのチャイルドから、_bldg_を含む建物オブジェクトを探す
+    /// </summary>
+    /// <param name="parentTransform">親Transform</param>
+    /// <returns>見つかった建物GameObject、見つからない場合はnull</returns>
+    private GameObject FindBuildingObjectInParent(Transform parentTransform)
+    {
+        if (parentTransform == null)
+        {
+            return null;
+        }
+
+        foreach (Transform child in parentTransform)
+        {
+            if (child.name.Contains(_BLDG_IDENTIFIER))
+            {
+                return child.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
         {

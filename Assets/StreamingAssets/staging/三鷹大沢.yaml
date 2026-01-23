@@ -39,9 +39,9 @@ events:
     event: wind # 風イベント
     value: 5, 45  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
 
-  # - time: 0
-  #   event: watersurface # 基礎水面上昇イベント
-  #   value: 16.5  # 水面の高さ（メートル ）
+  - time: 0
+    event: watersurface # 基礎水面上昇イベント
+    value: 3.5  # 水面の高さ（メートル ）
 
 
 

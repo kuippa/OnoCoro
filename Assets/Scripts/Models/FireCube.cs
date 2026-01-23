@@ -16,6 +16,10 @@ public class FireCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
         #if UNITY_EDITOR
             // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
+
+        // Y軸回転を初期値で固定
+        Vector3 currentRotation = transform.eulerAngles;
+        transform.eulerAngles = new Vector3(currentRotation.x, 0f, currentRotation.z);
         
         // 炎キューブの初期化
         _item_struct = new ItemStruct(

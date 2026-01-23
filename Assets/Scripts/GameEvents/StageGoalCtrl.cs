@@ -86,13 +86,51 @@ public static class StageGoalCtrl
 
     internal static void StartCheckStageGoal(MonoBehaviour caller)
     {
-        int notfailtime = int.Parse(_dict_req["notfailtime"]);
+        if (caller == null)
+        {
+            Debug.LogWarning("MonoBehaviour caller is null in StartCheckStageGoal");
+            return;
+        }
+
+        // notfailtime キーが存在しない場合はゴール条件として無視
+        if (!_dict_req.ContainsKey("notfailtime"))
+        {
+            Debug.Log("Key 'notfailtime' not found in goals. Time-based goal check is skipped.");
+            return;
+        }
+
+        if (!int.TryParse(_dict_req["notfailtime"], out int notfailtime))
+        {
+            Debug.LogWarning($"Failed to parse notfailtime value: {_dict_req["notfailtime"]}. Time-based goal check is skipped.");
+            return;
+        }
+
+        Debug.Log($"Starting goal check with notfailtime: {notfailtime} seconds");
         caller.StartCoroutine(ProcessGoalCheck(notfailtime));
     }
 
     internal static void StartCheckStageFail(MonoBehaviour caller)
     {
-        int garbageCount = int.Parse(_dict_fail["garbage"]);
+        if (caller == null)
+        {
+            Debug.LogWarning("MonoBehaviour caller is null in StartCheckStageFail");
+            return;
+        }
+
+        // garbage キーが存在しない場合はゲームオーバー条件として無視
+        if (!_dict_fail.ContainsKey("garbage"))
+        {
+            Debug.Log("Key 'garbage' not found in gameovers. Garbage-based fail check is skipped.");
+            return;
+        }
+
+        if (!int.TryParse(_dict_fail["garbage"], out int garbageCount))
+        {
+            Debug.LogWarning($"Failed to parse garbage value: {_dict_fail["garbage"]}. Garbage-based fail check is skipped.");
+            return;
+        }
+
+        Debug.Log($"Starting fail check with garbage threshold: {garbageCount}");
         caller.StartCoroutine(ProcessFailCheck(garbageCount));
     }
 

@@ -4,13 +4,28 @@ Plateau SDK からターゲットのエリアを選択インポート（時間�
 読み込まれたオブジェクトうちいらないものをざっくり削除
 カメラの削除
 EventSystemの削除
+Directional Lightの削除
 GamePrefabsをステージに追加
+GamePrefabsのPlayerArmatureのプレイヤースタート位置を調整
+dem_ で検索
 基準となるXXX_dem_XXXの子供のdem_XXXのタグをGroundに
+dem_*** を右クリック
+AI → 
 nav AI>NavMesh Surfaceを追加
-nav NavMesh の Agent typeをターゲット（sweeper）が動けるタイプに変更
+NavMesh Surface の Agent typeをターゲット（sweeper）タイプに変更
 bake
 ステージ名と同名のyamlを \Assets\Resources\staging に配置
 
+
+
+# Plateau SDK からのインポート手順
+現在のところサーバー経由からの導入より、
+G空間情報センターのPlateauデータをダウンロードして、ローカルに展開し、
+それをインポートしたほうがよい。サーバー経由だとタイムアウトしてビル情報などが欠落、失敗することが多い。
+https://front.geospatial.jp/
+TOPからも辿れるがわかりにくいので下記URLから土地名で検索がよい
+https://www.geospatial.jp/ckan/dataset/?license_id=plateau
+2026/1/21 現在 549 件のデータセット
 
 
 

@@ -16,7 +16,7 @@ itemlists:
   - item: PowerCube
   - item: Sweeper
   - item: Litter
-  - item: Extinguishing # 消火器
+  - item: WaterTurret # 消火器
   - item: FireCube  # 火事
 goals:
   - building: repair_all
@@ -41,13 +41,13 @@ events:
   #   event: spawn_unit
   #   value: FireCube, 66, 70, -122
 
-  # - time: 1
-  #   event: earthquake
-  #   value: 1.6
+  - time: 1
+    event: earthquake
+    value: 1.6
 
-  # - time: 2
-  #   event: notice
-  #   value: "地震が発生しました。"
+  - time: 2
+    event: notice
+    value: "地震が発生しました。"
 
   - time: 3
     event: building_break

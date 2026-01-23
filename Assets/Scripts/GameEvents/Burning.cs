@@ -51,6 +51,8 @@ public class Burning : MonoBehaviour
             {
                 base.gameObject.GetComponent<FireCube>()._unit_struct.Lv += other.gameObject.GetComponent<FireCube>()._unit_struct.Lv;
                 ChangeFireLv(base.gameObject.GetComponent<FireCube>()._unit_struct.Lv);
+                // Y軸回転を固定（物理衝突による回転を回避）
+                FixFireCubeYAxisRotation();
                 GameObjectTreat.DestroyAll(other.gameObject);
             }
         }
@@ -69,6 +71,8 @@ public class Burning : MonoBehaviour
                 _damage_buffer = 0f;
                 base.gameObject.GetComponent<FireCube>()._unit_struct.Lv--;
                 ChangeFireLv(base.gameObject.GetComponent<FireCube>()._unit_struct.Lv);
+                // Y軸回転を固定（水で弱体化した時）
+                FixFireCubeYAxisRotation();
             }
         }
     }
@@ -206,6 +210,8 @@ public class Burning : MonoBehaviour
                 GarbageToAsh(name);
                 base.gameObject.GetComponent<FireCube>()._unit_struct.Lv++;
                 ChangeFireLv(base.gameObject.GetComponent<FireCube>()._unit_struct.Lv);
+                // Y軸回転を固定（砲火干渉作用を回避）
+                FixFireCubeYAxisRotation();
                 _dict_burn_count.Remove(name);
             }
         }
@@ -299,7 +305,29 @@ public class Burning : MonoBehaviour
         }
         Explode_Ash(target_ash);
     }
+    /// <summary>
+    /// FireCube の Y軸回転を固定する
+    /// 物理衝突による回転を回避するため、定期的に呼び出す
+    /// </summary>
+    private void FixFireCubeYAxisRotation()
+    {
+        if (base.gameObject == null)
+        {
+            return;
+        }
 
+        Vector3 currentRotation = base.gameObject.transform.eulerAngles;
+        base.gameObject.transform.eulerAngles = new Vector3(currentRotation.x, 0f, currentRotation.z);
+
+        // Angular Velocity の Y成分もリセット
+        Rigidbody rigidbody = base.gameObject.GetComponent<Rigidbody>();
+        if (rigidbody != null)
+        {
+            Vector3 angularVelocity = rigidbody.angularVelocity;
+            rigidbody.angularVelocity = new Vector3(angularVelocity.x, 0.0f, angularVelocity.z);
+        }
+    }
+    
     private void Awake()
     {
     }
