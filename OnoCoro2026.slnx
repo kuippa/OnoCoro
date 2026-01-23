@@ -15,7 +15,6 @@
   <Project Path="Unity.Multiplayer.Center.Editor.csproj" />
   <Project Path="Unity.RenderPipelines.Core.Editor.csproj" />
   <Project Path="UnityEngine.UI.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Addressables.Editor.csproj" />
   <Project Path="PlateauToolkit.Sandbox.csproj" />
   <Project Path="Unity.Collections.csproj" />
@@ -42,6 +41,7 @@
   <Project Path="Unity.UnifiedRayTracing.Runtime.csproj" />
   <Project Path="Unity.AI.Navigation.Editor.ConversionSystem.csproj" />
   <Project Path="Unity.VisualScripting.State.Editor.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.VisualEffectGraph.Runtime.csproj" />
   <Project Path="Autodesk.Fbx.csproj" />
   <Project Path="Unity.TestTools.CodeCoverage.Editor.csproj" />

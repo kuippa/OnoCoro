@@ -10,6 +10,7 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 - [Session Information Requirements](#session-information-requirements)
 - [Technology Stack](#technology-stack)
 - [Coding Standards](#coding-standards)
+- [Class Naming Convention](#class-naming-convention)
 - [Development Workflow](#development-workflow)
 - [Git Workflow](#git-workflow)
 - [Data Protection](#data-protection)
@@ -117,6 +118,140 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 8. **UnityEngine.Debug** - Always use explicit alias: `using Debug = UnityEngine.Debug;`
 
 For detailed code examples and rationale, see [docs/coding-standards.md](docs/coding-standards.md).
+
+---
+
+## Class Naming Convention
+
+**MANDATORY**: All C# classes must follow the unified naming convention.
+
+> **Complete Convention**: See [docs/class-naming-convention-proposal.md](docs/class-naming-convention-proposal.md)
+
+### Class Name Suffixes (Standard Patterns)
+
+**Use appropriate suffix based on class responsibility**:
+
+| Suffix | Usage | Example |
+|--------|-------|---------|
+| **Manager** | リソース・状態管理 (Singleton/static) | `ConfigManager`, `PrefabManager` |
+| **System** | ゲームシステム実装 (複合的なゲーム機能) | `WeatherSystem`, `SpawnSystem` |
+| **Controller** | UI・入力制御 (MonoBehaviour) | `InputController`, `PauseMenuController` |
+| **Handler** | イベント処理 (event callback) | `CollisionHandler`, `GameOverHandler` |
+| **Service** | 特定機能提供 (複合的で管理的) | `SaveGameService`, `LocalizationService` |
+| **Factory** | オブジェクト生成 (生成ロジック集約) | `TowerFactory`, `EnemyFactory` |
+| **Provider** | データ提供 (キャッシュ機構あり) | `StageDataProvider`, `ConfigProvider` |
+| **Utility** | 静的ユーティリティ (static メソッド集) | `FileUtility`, `MathUtility` |
+| **(none)** | ゲームエンティティ (game entity) | `Tower`, `Enemy`, `Player` |
+
+### ⚠️ Legacy Naming Detection & Warning
+
+**When you encounter classes with outdated naming patterns:**
+
+#### Pattern 1: `*Ctrl` Suffix (Deprecated)
+
+```csharp
+// 🔴 DEPRECATED (needs refactoring decision)
+public class GameCtrl : MonoBehaviour { }
+public class GameSpeedCtrl : MonoBehaviour { }
+public class NavMeshCtrl : MonoBehaviour { }
+public class WindCtrl : MonoBehaviour { }
+
+// ✅ ACTION REQUIRED (when modifying these classes):
+// - Determine actual responsibility
+// - Mark with [Obsolete] attribute with migration guidance
+// - Add comment with new name recommendation
+```
+
+**Recommended refactoring mapping**:
+```csharp
+// When you touch these classes, add guidance comment:
+
+// 🔴 GameCtrl → ❓ GameController / GameManager?
+// - If UI control: rename to GameController
+// - If state management: rename to GameManager
+// Add below to class:
+[Obsolete("GameCtrl is deprecated. Use GameController (UI control) or GameManager (state management). See docs/class-naming-convention-proposal.md")]
+public class GameCtrl : MonoBehaviour { }
+
+// 🔴 GameSpeedCtrl → 🟢 GameSpeedManager
+// Clearly state management - can be renamed with confidence
+[Obsolete("GameSpeedCtrl renamed to GameSpeedManager. Update references and migrate. See docs/class-naming-convention-proposal.md", false)]
+public class GameSpeedCtrl : MonoBehaviour { }
+
+// 🔴 NavMeshCtrl → 🟢 NavMeshSystem
+// Clearly system implementation
+[Obsolete("NavMeshCtrl renamed to NavMeshSystem. See docs/class-naming-convention-proposal.md", false)]
+public class NavMeshCtrl : MonoBehaviour { }
+
+// 🔴 WindCtrl → 🟢 WeatherSystem
+// Part of weather system
+[Obsolete("WindCtrl integrated into WeatherSystem. See docs/class-naming-convention-proposal.md", false)]
+public class WindCtrl : MonoBehaviour { }
+```
+
+#### Pattern 2: No Suffix (Ambiguous)
+
+```csharp
+// 🔴 AMBIGUOUS (needs classification)
+public class CoroutineRunner { }          // → CoroutineManager
+public class GameObjectTreat { }          // → GameObjectUtility
+public class CommonsCalcs { }             // → MathUtility
+public class XMLparser { }                // → XMLUtility
+
+// ✅ ACTION REQUIRED (when modifying):
+[Obsolete("Add appropriate suffix (Manager/Utility/etc). See docs/class-naming-convention-proposal.md")]
+public class CoroutineRunner { }
+```
+
+#### Pattern 3: Mixed Manager/Ctrl
+
+```csharp
+// 🔴 INCONSISTENT (Manager と Ctrl が同じ役割)
+public class InitializationManager { }    // ✅ OK - already correct
+public class MaterialManager { }          // ✅ OK - already correct
+public class GameCtrl { }                 // ❓ Uncertain - check responsibility
+public class LangCtrl { }                 // → LanguageManager (state mgmt)
+
+// ✅ ACTION REQUIRED (when modifying GameCtrl or LangCtrl):
+[Obsolete("GameCtrl inconsistent with Manager suffix. Determine if GameController (UI) or GameManager (state) is appropriate.")]
+public class GameCtrl : MonoBehaviour { }
+```
+
+### Action Checklist (When Touching Existing Classes)
+
+**Each time you modify a legacy-named class:**
+
+- [ ] **Recognize the pattern**
+  - [ ] `*Ctrl` suffix detected?
+  - [ ] No suffix on manager-like class?
+  - [ ] Inconsistent naming with similar classes?
+
+- [ ] **Assess responsibility**
+  - [ ] Is this a Manager (state/resource)?
+  - [ ] Is this a System (game feature)?
+  - [ ] Is this a Controller (UI/input)?
+  - [ ] Is this a Utility (static methods)?
+  - [ ] Is this a Handler/Service/Factory/Provider?
+
+- [ ] **Add migration guidance**
+  ```csharp
+  // Option 1: If responsibility is CLEAR
+  [Obsolete("Rename to <NewName>Manager/System/Controller. See docs/class-naming-convention-proposal.md")]
+  public class LegacyCtrl : MonoBehaviour { }
+  
+  // Option 2: If responsibility is UNCLEAR
+  [Obsolete("Class naming needs refactoring decision. Check docs/class-naming-convention-proposal.md and apply appropriate suffix (Manager/System/Controller/etc)")]
+  public class AmbiguousClass : MonoBehaviour { }
+  ```
+
+- [ ] **Log to commit message**
+  ```
+  fix(legacy): ClassName refactoring guidance added
+  
+  - Added [Obsolete] attribute with migration path
+  - See docs/class-naming-convention-proposal.md
+  - Future: plan full rename in Phase X
+  ```
 
 ---
 

@@ -8,33 +8,130 @@ OnoCoro プロジェクトの実装状況、既知の問題、および今後の
 
 ## プロトタイプ版で実装予定の項目
 
+テストユーザーへのリリース（v0.1.0-alpha）を目標とした実装。
 実装難度が低く、短期的に完了可能な項目です。
 
-### UIタグ導入
+**詳細ロードマップ**: [docs/prototype-phase-roadmap.md](docs/prototype-phase-roadmap.md)  
+**目標リリース**: 2026-02-末  
+**工数**: 約 60 人日（1人チーム 3-4週間）
+
+### Phase 1: コア機能整備 & デバッグ環境 (Week 1-2)
+
+#### Debug.Log ラッピング実装
+
+- [ ] DebugLogger クラスの実装
+- [ ] LogUtility.cs で5段階ログレベル実装（Debug/Info/Warning/Error/Fatal）
+- [ ] Application.persistentDataPath へログファイル出力
+- [ ] Assets/Scripts/ 内のすべての Debug → LogUtility/DebugLogger へ置換
+- [ ] Development Build でのログ表示フィルタ設定
+- [ ] 詳細: [docs/debug-logger-guide.md](docs/debug-logger-guide.md)
+
+#### YAML ファイルフォーマット検証
+
+- [ ] YamlValidator クラスの実装
+- [ ] 検証対象: pathmakers, itemlists, stages, goals, boards セクション
+- [ ] マーカー名・座標形式検証
+- [ ] Editor スクリプトでの事前チェック機能
+- [ ] エラーメッセージ定義・ユーザー向け出力
+- [ ] 詳細: [docs/yaml-validation-guide.md](docs/yaml-validation-guide.md)
+
+#### UIタグ導入 & キャンバス動的調整
 
 - [ ] UIプレファブ系にUIタグを振る
 - [ ] キャンバスレイヤーのサイズを動的に変更できるようにする
+- [ ] 複数画面解像度テスト（1920×1080, 1280×720, タブレット対応）
 
-### Debug.Log整理
-
-- [ ] Debug.Log を統合的なログ吐き出し関数へ統合（LogUtility.cs を使用）
-- [ ] Debug.LogError の削除または LogUtility に統合
-
-### Resources.Load の PrefabManager 統一
+#### Resources.Load の PrefabManager 統一
 
 - [ ] Resources.Load で PrefabManager を使っていないものをすべてチェック
+- [ ] すべての Resources.Load を PrefabManager で統一
 - [ ] Bonfire の削除確認および削除処理
+- [ ] 詳細: [.github/instructions/prefab-asset-management.instructions.md](.github/instructions/prefab-asset-management.instructions.md)
 
-### カメラの Z-Fighting 対策
+### Phase 2: ステージデザイン & ゲーム性調整 (Week 2-3)
+
+#### ステージレベルデザイン (5段階)
+
+- [ ] **Stage 1: チュートリアル** (Easy) - タワー配置基本操作
+- [ ] **Stage 2: 基本マップ** (Normal) - 複数敵タイプ対応
+- [ ] **Stage 3: 複合マップ** (Normal) - 複合タワー戦略
+- [ ] **Stage 4: 高難度マップ** (Hard) - 全タイプ敵出現
+- [ ] **Stage 5: エクストラ** (Very Hard) - 制限時間チャレンジ
+
+**ステージ設計チェック**: PLATEAU 整合性、スポーン点配置、タワー配置エリア明確化、ゴール到達可能性、ウェーブバランス、UI見易さ、FPS安定性
+
+#### ゲームバランス調整
+
+- [ ] ユニットのコスト・効果のバランス調整
+- [ ] 敵ユニットの難易度調整（HP・速度）
+- [ ] ステージ難易度の段階的な設定
+- [ ] リソース配分最適化（初期ゴールド・増加量）
+- [ ] 10回プレイテスト（クリア率 60-70% 目標）
+- [ ] バランス調整ドキュメント作成
+
+#### カメラの Z-Fighting 対策
 
 - [ ] 同じ優先順位の描画オブジェクト配置時に発生する Z-Fighting を修正
 - [ ] y座標位置の微調整で画面ちらつきを解決
+- [ ] Sorting Order ドキュメント作成
 
-### .csproj ファイル整理
+#### カメラ制御の最適化
 
-- [ ] OnoCoro.sln (旧プロジェクト名) の削除
-- [ ] OnoCoro2024.sln (旧プロジェクト名) の削除
-- [ ] 詳細リストは [docs/cleanup/csproj-files-to-delete.md](docs/cleanup/csproj-files-to-delete.md) を参照
+- [ ] ズームレベルの動作感を再調整（期待値: 0.5秒で target zoom に到達）
+- [ ] 視界カメラの障害物衝突による上下反転を修正
+- [ ] カメラ制御のチュートリアル UI ガイダンス追加
+
+### Phase 3: QA & リリース準備 (Week 3-4)
+
+#### 進行不能バグの排除
+
+- [ ] クリア不可バグの排除（敵が詰まる、タワー配置不可、ゴール到達不可）
+- [ ] UI 非応答バグの排除（ボタン無反応、メニュー固定）
+- [ ] データ破損バグの排除（ステージロード失敗、YAML パース失敗）
+- [ ] クラッシュ排除（NullReferenceException、OutOfMemory）
+- [ ] 全ステージ完全攻略プレイテスト（10時間以上連続プレイでクラッシュなし）
+- [ ] ログ確認（Error/Exception なし）
+
+#### パフォーマンス確保
+
+- [ ] フレームレート 60 FPS（最小 45 FPS）を確保
+- [ ] メモリ使用量 < 1GB
+- [ ] ロード時間 < 3秒/ステージ
+- [ ] Profiler での FPS・メモリ測定
+- [ ] Texture 圧縮設定確認
+- [ ] Physics.autoSimulation の最適化確認
+
+#### ユーザー向けドキュメント作成
+
+- [ ] README_Prototype.md（ゲーム概要・操作方法）
+- [ ] GAMEPLAY_GUIDE.md（ゲーム進行ガイド・戦略）
+- [ ] KNOWN_ISSUES.md（既知の問題・回避方法）
+- [ ] BUG_REPORT_TEMPLATE.md（バグ報告テンプレート）
+- [ ] LOG_GUIDE.md（ログファイル確認方法）
+
+#### リリース前最終チェック
+
+- [ ] Debug/Development/Release Build 成功
+- [ ] Windows 10/11 動作確認
+- [ ] GPU 互換性確認（Intel/NVIDIA/AMD）
+- [ ] 最低仕様環境での動作確認
+- [ ] Version 0.1.0-alpha に設定
+- [ ] BuildNumber 001 に設定
+- [ ] CHANGELOG.md 記載
+
+#### リリース & テストユーザー対応
+
+- [ ] Git tag: v0.1.0-alpha 作成
+- [ ] Release notes 作成
+- [ ] GitHub Releases で配布
+- [ ] テストユーザー配布完了
+- [ ] バグ報告チャネル設定完了
+
+### .csproj ファイル整理（Recovery Phase 完了）
+
+- [x] OnoCoro.sln (旧プロジェクト名) の削除 ✅ 2026-01-23
+- [x] OnoCoro2024.sln (旧プロジェクト名) の削除 ✅ 2026-01-23
+- [x] 不要な .csproj ファイル削除（42個） ✅ 2026-01-23
 
 ---
 
