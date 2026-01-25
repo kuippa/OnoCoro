@@ -125,8 +125,6 @@ For detailed code examples and rationale, see [docs/coding-standards.md](docs/co
 
 **MANDATORY**: All C# classes must follow the unified naming convention.
 
-> **Complete Convention**: See [docs/class-naming-convention-proposal.md](docs/class-naming-convention-proposal.md)
-
 ### Class Name Suffixes (Standard Patterns)
 
 **Use appropriate suffix based on class responsibility**:
@@ -143,6 +141,346 @@ For detailed code examples and rationale, see [docs/coding-standards.md](docs/co
 | **Utility** | 静的ユーティリティ (static メソッド集) | `FileUtility`, `MathUtility` |
 | **(none)** | ゲームエンティティ (game entity) | `Tower`, `Enemy`, `Player` |
 
+### 1. Manager（リソース・状態管理）
+
+**用途**: Singleton や static manager でリソース・状態を一元管理
+
+**特徴**:
+- リソース管理（Asset 読み込み、キャッシュ管理）
+- 状態管理（ゲーム設定、言語設定）
+- グローバル状態の保持
+
+**命名パターン**: `<Domain>Manager.cs`
+
+**例**:
+```csharp
+InitializationManager       # 初期化順序管理
+ConfigManager               # ゲーム設定管理
+LanguageManager             # 言語リソース管理
+PrefabManager               # プレファブ読み込み・キャッシュ
+
+// NG
+GameCtrl                    # → GameManager が推奨
+GameSpeedCtrl               # → GameSpeedManager が推奨
+```
+
+**配置場所**: `Core/Managers/`
+
+**実装例**:
+```csharp
+public static class ConfigManager
+{
+    public static int GameDifficulty { get; set; }
+    public static float MasterVolume { get; set; }
+}
+
+// または MonoBehaviour の場合
+public class PrefabManager : MonoBehaviour
+{
+    public static PrefabManager Instance { get; private set; }
+    
+    void Awake()
+    {
+        if (Instance != null) return;
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+}
+```
+
+---
+
+### 2. System（ゲームシステム）
+
+**用途**: ゲーム進行に必要な各種システム（複合的な処理）
+
+**特徴**:
+- ゲームロジックの実装
+- 複数エンティティの相互作用を管理
+- イベント駆動的な設計
+
+**命名パターン**: `<Domain>System.cs`
+
+**例**:
+```csharp
+SpawnSystem                 # 敵スポーン管理システム
+WeatherSystem               # 天候・環境イベントシステム
+PhysicsSystem               # 物理・衝突判定システム
+AudioSystem                 # 音声再生システム
+NavMeshSystem               # NavMesh 管理・再ベークシステム
+
+// NG
+WindCtrl                    # → WeatherSystem が推奨
+NavMeshCtrl                 # → NavMeshSystem が推奨
+```
+
+**配置場所**: `Game/Systems/<Domain>/`
+
+**実装例**:
+```csharp
+public class WeatherSystem : MonoBehaviour
+{
+    public void ApplyWind(Vector3 windDirection)
+    {
+        // 風の影響を計算・適用
+    }
+    
+    public void StartRain()
+    {
+        // 雨イベント開始
+    }
+}
+```
+
+---
+
+### 3. Controller（UI・入力制御）
+
+**用途**: UI コンポーネント・ユーザー入力の制御
+
+**特徴**:
+- MonoBehaviour として UI や GameObject に attach
+- UI イベント（ボタンクリック）や入力の処理
+- 表示・非表示の切り替え
+
+**命名パターン**: `<Component>Controller.cs` または `<Panel>PanelController.cs`
+
+**例**:
+```csharp
+InputController             # 入力受付制御
+PauseMenuController         # メニュー UI 制御
+GameTimerController         # ゲームタイマー UI 制御
+MessageBoxController        # メッセージボックス表示制御
+
+// NG
+GameCtrl                    # → GameController が推奨（UI 制御なら）
+```
+
+**配置場所**: `Presentation/UI/` または `Presentation/Input/`
+
+**実装例**:
+```csharp
+public class PauseMenuController : MonoBehaviour
+{
+    private Button _resumeButton;
+    
+    void Start()
+    {
+        _resumeButton = GetComponentInChildren<Button>();
+        _resumeButton.onClick.AddListener(OnResumeButtonClicked);
+    }
+    
+    private void OnResumeButtonClicked()
+    {
+        // ゲーム再開処理
+    }
+}
+```
+
+---
+
+### 4. Service（特定機能の提供）
+
+**用途**: 特定の機能を提供するサービスクラス（複合的で管理的）
+
+**特徴**:
+- 複数クラスから利用されるサービス
+- 責務が限定されている
+- static メソッドと instance メソッドの混在可
+
+**命名パターン**: `<Function>Service.cs`
+
+**例**:
+```csharp
+SaveGameService             # セーブゲーム機能を提供
+LoadGameService             # ロードゲーム機能を提供
+AnalyticsService            # アナリティクス送信機能を提供
+LocalizationService         # 多言語化機能を提供
+```
+
+**配置場所**: `Core/Services/`
+
+---
+
+### 5. Handler（イベント処理）
+
+**用途**: イベント駆動的な処理を担当
+
+**特徴**:
+- 特定のイベントに応答
+- 副次的な処理
+- Event callback として使用される
+
+**命名パターン**: `<Event>Handler.cs`
+
+**例**:
+```csharp
+CollisionHandler            # 衝突イベント処理
+TowerPlacementHandler       # タワー配置イベント処理
+GameOverHandler             # ゲームオーバーイベント処理
+```
+
+**配置場所**: `Game/Events/`
+
+---
+
+### 6. Factory（生成工場）
+
+**用途**: オブジェクト生成を一元管理
+
+**特徴**:
+- 複雑な生成ロジック
+- 複数の生成パターン
+- Pooling との組み合わせ
+
+**命名パターン**: `<Type>Factory.cs`
+
+**例**:
+```csharp
+TowerFactory                # タワーインスタンス生成工場
+EnemyFactory                # 敵インスタンス生成工場
+ProjectileFactory           # 発射物インスタンス生成工場
+```
+
+**配置場所**: `Game/Units/Factories/`
+
+---
+
+### 7. Provider（データ提供）
+
+**用途**: データ取得・キャッシュ管理（取得に特化）
+
+**特徴**:
+- キャッシュ機構あり
+- データベースアクセス抽象化
+- 遅延読み込み
+
+**命名パターン**: `<Data>Provider.cs`
+
+**例**:
+```csharp
+StageDataProvider           # ステージデータ提供者
+ConfigProvider              # 設定データ提供者
+LocalizationProvider        # 多言語テキスト提供者
+```
+
+**配置場所**: `Data/Providers/`
+
+---
+
+### 8. Utility（静的ユーティリティ）
+
+**用途**: 静的メソッド集（singleton ではない）
+
+**特徴**:
+- static class（MonoBehaviour ではない）
+- 関数型プログラミング的
+- 依存性が最小
+
+**命名パターン**: `<Function>Utility.cs` または `<Function>Helper.cs`
+
+**例**:
+```csharp
+FileUtility                 # ファイル操作ユーティリティ
+LogUtility                  # ログ出力ユーティリティ
+MathUtility                 # 数学演算ユーティリティ
+GameObjectUtility           # GameObject 操作ユーティリティ
+
+// NG
+GameObjectTreat             # → GameObjectUtility が推奨
+CommonsCalcs                # → MathUtility が推奨
+XMLparser                   # → XMLUtility が推奨
+```
+
+**配置場所**: `Core/Utilities/`
+
+**実装例**:
+```csharp
+public static class GameObjectUtility
+{
+    public static void SafeDestroy(Object obj)
+    {
+        if (obj == null) return;
+        Object.Destroy(obj);
+    }
+    
+    public static T GetOrAddComponent<T>(GameObject obj) where T : Component
+    {
+        T component = obj.GetComponent<T>();
+        return component ?? obj.AddComponent<T>();
+    }
+}
+```
+
+---
+
+### 9. Data Models（データ構造）
+
+**用途**: データの定義のみ（ロジックなし）
+
+**特徴**:
+- readonly struct 推奨
+- ロジックを持たない
+- Serializable
+
+**命名パターン**: `<Entity>Data.cs` または `<Entity>Struct.cs`
+
+**例**:
+```csharp
+TowerData                   # タワー属性データ
+EnemyData                   # 敵属性データ
+StageData                   # ステージ属性データ
+ItemData                    # アイテム属性データ
+```
+
+**配置場所**: `Data/Models/`
+
+---
+
+### 10. Game Entity（ゲームエンティティ）
+
+**用途**: ゲームエンティティの実装
+
+**特徴**:
+- Scene に配置されるオブジェクト
+- 複雑な状態遷移あり
+- MonoBehaviour を直接継承
+
+**命名パターン**: `<Entity>.cs` または `<Entity>Controller.cs`
+
+**例**:
+```csharp
+Tower                       # タワーエンティティ（基底）
+SentryGuard                 # 監視塔タワー（実装）
+Enemy                       # 敵エンティティ（基底）
+Litter                      # ゴミ敵（実装）
+
+// NG
+TowerCtrl                   # → Tower または TowerController が推奨
+```
+
+**配置場所**: `Game/Units/`
+
+---
+
+### 命名規則マッピング表（既存 → 推奨）
+
+| 現在の名前 | 推奨される名前 | 理由 |
+|-----------|-----------------|------|
+| GameCtrl | GameController | UI/ゲーム進行制御 |
+| GameSpeedCtrl | GameSpeedManager | ゲーム速度の状態管理 |
+| NavMeshCtrl | NavMeshSystem | NavMesh システム管理 |
+| WindCtrl | WeatherSystem | 天候・環境システム |
+| LangCtrl | LanguageManager | 言語リソース管理 |
+| BloomPathCtrl | BloomPathController | UI 制御 |
+| MarkerIndicatorCtrl | MarkerIndicatorController | マーカー表示 UI |
+| CoroutineRunner | CoroutineManager | コルーチン管理 |
+| GameObjectTreat | GameObjectUtility | GameObject ユーティリティ |
+| CommonsCalcs | MathUtility | 数学計算ユーティリティ |
+| XMLparser | XMLUtility | XML パース ユーティリティ |
+
+---
+
 ### ⚠️ Legacy Naming Detection & Warning
 
 **When you encounter classes with outdated naming patterns:**
@@ -153,40 +491,10 @@ For detailed code examples and rationale, see [docs/coding-standards.md](docs/co
 // 🔴 DEPRECATED (needs refactoring decision)
 public class GameCtrl : MonoBehaviour { }
 public class GameSpeedCtrl : MonoBehaviour { }
-public class NavMeshCtrl : MonoBehaviour { }
-public class WindCtrl : MonoBehaviour { }
 
 // ✅ ACTION REQUIRED (when modifying these classes):
-// - Determine actual responsibility
-// - Mark with [Obsolete] attribute with migration guidance
-// - Add comment with new name recommendation
-```
-
-**Recommended refactoring mapping**:
-```csharp
-// When you touch these classes, add guidance comment:
-
-// 🔴 GameCtrl → ❓ GameController / GameManager?
-// - If UI control: rename to GameController
-// - If state management: rename to GameManager
-// Add below to class:
-[Obsolete("GameCtrl is deprecated. Use GameController (UI control) or GameManager (state management). See docs/class-naming-convention-proposal.md")]
+[Obsolete("GameCtrl is deprecated. Use GameController (UI) or GameManager (state). See AGENTS.md Class Naming Convention.")]
 public class GameCtrl : MonoBehaviour { }
-
-// 🔴 GameSpeedCtrl → 🟢 GameSpeedManager
-// Clearly state management - can be renamed with confidence
-[Obsolete("GameSpeedCtrl renamed to GameSpeedManager. Update references and migrate. See docs/class-naming-convention-proposal.md", false)]
-public class GameSpeedCtrl : MonoBehaviour { }
-
-// 🔴 NavMeshCtrl → 🟢 NavMeshSystem
-// Clearly system implementation
-[Obsolete("NavMeshCtrl renamed to NavMeshSystem. See docs/class-naming-convention-proposal.md", false)]
-public class NavMeshCtrl : MonoBehaviour { }
-
-// 🔴 WindCtrl → 🟢 WeatherSystem
-// Part of weather system
-[Obsolete("WindCtrl integrated into WeatherSystem. See docs/class-naming-convention-proposal.md", false)]
-public class WindCtrl : MonoBehaviour { }
 ```
 
 #### Pattern 2: No Suffix (Ambiguous)
@@ -196,62 +504,14 @@ public class WindCtrl : MonoBehaviour { }
 public class CoroutineRunner { }          // → CoroutineManager
 public class GameObjectTreat { }          // → GameObjectUtility
 public class CommonsCalcs { }             // → MathUtility
-public class XMLparser { }                // → XMLUtility
-
-// ✅ ACTION REQUIRED (when modifying):
-[Obsolete("Add appropriate suffix (Manager/Utility/etc). See docs/class-naming-convention-proposal.md")]
-public class CoroutineRunner { }
-```
-
-#### Pattern 3: Mixed Manager/Ctrl
-
-```csharp
-// 🔴 INCONSISTENT (Manager と Ctrl が同じ役割)
-public class InitializationManager { }    // ✅ OK - already correct
-public class MaterialManager { }          // ✅ OK - already correct
-public class GameCtrl { }                 // ❓ Uncertain - check responsibility
-public class LangCtrl { }                 // → LanguageManager (state mgmt)
-
-// ✅ ACTION REQUIRED (when modifying GameCtrl or LangCtrl):
-[Obsolete("GameCtrl inconsistent with Manager suffix. Determine if GameController (UI) or GameManager (state) is appropriate.")]
-public class GameCtrl : MonoBehaviour { }
 ```
 
 ### Action Checklist (When Touching Existing Classes)
 
-**Each time you modify a legacy-named class:**
-
-- [ ] **Recognize the pattern**
-  - [ ] `*Ctrl` suffix detected?
-  - [ ] No suffix on manager-like class?
-  - [ ] Inconsistent naming with similar classes?
-
-- [ ] **Assess responsibility**
-  - [ ] Is this a Manager (state/resource)?
-  - [ ] Is this a System (game feature)?
-  - [ ] Is this a Controller (UI/input)?
-  - [ ] Is this a Utility (static methods)?
-  - [ ] Is this a Handler/Service/Factory/Provider?
-
-- [ ] **Add migration guidance**
-  ```csharp
-  // Option 1: If responsibility is CLEAR
-  [Obsolete("Rename to <NewName>Manager/System/Controller. See docs/class-naming-convention-proposal.md")]
-  public class LegacyCtrl : MonoBehaviour { }
-  
-  // Option 2: If responsibility is UNCLEAR
-  [Obsolete("Class naming needs refactoring decision. Check docs/class-naming-convention-proposal.md and apply appropriate suffix (Manager/System/Controller/etc)")]
-  public class AmbiguousClass : MonoBehaviour { }
-  ```
-
-- [ ] **Log to commit message**
-  ```
-  fix(legacy): ClassName refactoring guidance added
-  
-  - Added [Obsolete] attribute with migration path
-  - See docs/class-naming-convention-proposal.md
-  - Future: plan full rename in Phase X
-  ```
+- [ ] **Recognize the pattern**: `*Ctrl` suffix or no suffix?
+- [ ] **Assess responsibility**: Manager/System/Controller/Utility/etc.?
+- [ ] **Add migration guidance** with [Obsolete] attribute
+- [ ] **Log to commit message** with refactoring intent
 
 ---
 
