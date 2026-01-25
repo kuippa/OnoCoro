@@ -11,6 +11,7 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 - [Technology Stack](#technology-stack)
 - [Coding Standards](#coding-standards)
 - [Class Naming Convention](#class-naming-convention)
+- [Folder Structure](#folder-structure)
 - [Development Workflow](#development-workflow)
 - [Git Workflow](#git-workflow)
 - [Data Protection](#data-protection)
@@ -38,7 +39,6 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 - [docs/introduction.md](docs/introduction.md) - Project purpose and non-goals
 - [docs/architecture.md](docs/architecture.md) - System architecture
 - [docs/coding-standards.md](docs/coding-standards.md) - C# implementation standards
-- [docs/recovery-workflow.md](docs/recovery-workflow.md) - Recovery merge rules and guidelines
 - [.github/instructions.md](.github/instructions.md) - Project management guide
 
 ---
@@ -601,15 +601,15 @@ Game ──────────┼──→ Data
                └──→ Core (lowest layer - depends on nothing)
 ```
 
+**Key**: Presentation layer includes both UI and View subsystems (cameras, rendering, effects).
+
 **Allowed** ✅:
-- Game layer using Data layer classes
-- Game layer using Core layer classes
-- Presentation layer using Game layer classes
+- Presentation layer using Game, Data, and Core layer classes
+- Game layer using Data and Core layer classes
+- Data layer using Core layer classes
 
 **Forbidden** ❌:
-- Core layer using Game layer classes
-- Core layer using Data layer classes
-- Data layer using Game layer classes
+- Any upward dependencies (Core/Data/Game cannot use upper layers)
 
 ### File Creation Checklist
 
@@ -657,14 +657,6 @@ When adding a new file, verify:
 | `cat file` | `Get-Content file` |
 | `find . -name "*.cs"` | `Get-ChildItem -Recurse -Filter "*.cs"` |
 | `rm -rf folder` | `Remove-Item -Path folder -Recurse -Force` |
-
----
-
-## Recovery Merge Rules
-
-**See [docs/recovery-workflow.md](docs/recovery-workflow.md) for detailed recovery merge guidelines.**
-
-**Key principle**: Do NOT modify code if there's no functional improvement. Minor refactoring without functional change should be SKIPPED.
 
 ---
 
@@ -761,5 +753,5 @@ MIT License - See [LICENSE](LICENSE) for details
 
 ---
 
-**Last Updated**: 2026-01-20
+**Last Updated**: 2026-01-26
 **Project**: OnoCoro (Unity 6.3 Geospatial Visualization)
