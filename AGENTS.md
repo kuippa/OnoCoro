@@ -255,6 +255,115 @@ public class GameCtrl : MonoBehaviour { }
 
 ---
 
+## Folder Structure
+
+**MANDATORY**: All C# files must be placed in the correct folder according to this layer structure.
+
+> **Complete Reference**: See [docs/scripts-folder-structure-completed.md](docs/scripts-folder-structure-completed.md)
+
+### Layer Architecture (4 Layers)
+
+OnoCoro uses a **4-layer architecture** with clear responsibility separation:
+
+| Layer | Responsibility | Examples | External Dependencies |
+|-------|-----------------|----------|----------------------|
+| **Presentation** | UI display, Input handling | CameraController, InputController, HUD | Game, View |
+| **Game** | Game logic, Systems | SpawnController, WeatherController, GameManager | Data, Units |
+| **Data** | Data models, Repositories | StageRepository, Models, PLATEAU | Core/Utilities |
+| **Core** | Common infrastructure | Managers, Utilities, Handlers, Constants | (none - independent) |
+
+### Folder Structure by Layer
+
+```
+Assets/Scripts/
+├── Presentation/            【Layer 1: Presentation】
+│   ├── UI/                  (Controls/, Dialogs/, HUD/, Panels/)
+│   ├── View/                (Cameras/, Rendering/, Effects/)
+│   └── Input/               (InputController, PlayerInputs)
+├── Game/                    【Layer 2: Game Logic】
+│   ├── GameManager/
+│   ├── Systems/             (Stage/, Spawn/, Weather/)
+│   ├── Units/               (Towers/, Enemies/, Items/, Bullets/)
+│   └── Events/              (Environmental/, System/)
+├── Data/                    【Layer 3: Data】
+│   ├── Models/
+│   ├── Repositories/        (StageRepository, StageYamlRepository)
+│   └── Plateau/
+└── Core/                    【Layer 4: Core (Orthogonal)】
+    ├── Managers/            (GameSpeedManager, LanguageManager, etc.)
+    ├── Utilities/           (FileUtility, MathUtility, etc.)
+    ├── Handlers/            (ExceptionHandler, etc.)
+    ├── Constants/
+    ├── Helpers/
+    └── Editor/
+```
+
+### File Placement Rules
+
+**When creating a new file, determine the correct folder by responsibility**:
+
+| Type | Suffix | Folder | Example |
+|------|--------|--------|---------|
+| **Resource/State Management** | Manager | Core/Managers/ | GameSpeedManager.cs |
+| **Game Features** | System or Controller | Game/Systems/ | WeatherController.cs |
+| **UI Components** | Controller | Presentation/UI/ | PanelController.cs |
+| **Static Functions** | Utility | Core/Utilities/ | FileUtility.cs |
+| **Data Access** | Repository | Data/Repositories/ | StageRepository.cs |
+| **Event Handling** | Handler | Core/Handlers/ | EventHandler.cs |
+| **Data Definition** | (none) | Data/Models/ | GameStruct.cs |
+| **Game Entity** | (none) | Game/Units/ | Tower.cs, Enemy.cs |
+
+### Namespace Rules
+
+**MANDATORY**: Use unified namespace `CommonsUtility` for all project code.
+
+```csharp
+// ✅ CORRECT
+namespace CommonsUtility
+{
+    public class GameSpeedManager { }
+}
+
+// ❌ WRONG - Do not use hierarchical namespaces
+namespace OnoCoro.Core.Managers { }
+namespace OnoCoro.Game.Systems { }
+```
+
+### Layer Dependency Rules
+
+**STRICT**: Layers can only depend on layers below them. NO upward dependencies allowed.
+
+```
+Presentation ──┐
+               │
+Game ──────────┼──→ Data
+               │
+               └──→ Core (lowest layer - depends on nothing)
+```
+
+**Allowed** ✅:
+- Game layer using Data layer classes
+- Game layer using Core layer classes
+- Presentation layer using Game layer classes
+
+**Forbidden** ❌:
+- Core layer using Game layer classes
+- Core layer using Data layer classes
+- Data layer using Game layer classes
+
+### File Creation Checklist
+
+When adding a new file, verify:
+
+- [ ] **Correct Folder**: File is in the appropriate layer folder
+- [ ] **Correct Namespace**: Using `CommonsUtility`
+- [ ] **Correct Suffix**: Class name has appropriate suffix (Manager/Controller/Utility/etc.)
+- [ ] **Correct Layer**: No forbidden upward dependencies
+- [ ] **Documentation**: Brief comments explaining class responsibility
+- [ ] **Related Reference**: Update [docs/scripts-folder-structure-completed.md](docs/scripts-folder-structure-completed.md) if creating a new folder category
+
+---
+
 ## Development Workflow
 
 ### Document Loading
@@ -266,6 +375,7 @@ public class GameCtrl : MonoBehaviour { }
 | AGENTS.md (this file) | `AGENTS.md` | Before all merge/edit work |
 | coding-standards.md | `docs/coding-standards.md` | Before all merge/edit work |
 | architecture.md | `docs/architecture.md` | Before new class design or major refactoring |
+| **scripts-folder-structure-completed.md** | `docs/scripts-folder-structure-completed.md` | **Before adding new files to Assets/Scripts/** |
 | introduction.md | `docs/introduction.md` | For policy confirmation |
 
 **Confirm loading in session message**:
