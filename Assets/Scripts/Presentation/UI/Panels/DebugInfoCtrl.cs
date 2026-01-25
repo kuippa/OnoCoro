@@ -39,12 +39,12 @@ public class DebugInfoCtrl : MonoBehaviour
 
     private string GetGameSpeed()
     {
-        return "SIM SPEED:" + GameSpeedCtrl.GetGameSpeed();
+        return "SIM SPEED:" + GameSpeedManager.GetGameSpeed();
     }
 
     private string GetWind()
     {
-        return " Wind:" + WindCtrl.GetDirectionText() + " " + WindCtrl.GetWindSpeed() + "m/s";
+        return " Wind:" + WindController.GetDirectionText() + " " + WindController.GetWindSpeed() + "m/s";
     }
 
     private string GetAppMemory()

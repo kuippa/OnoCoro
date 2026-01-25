@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using CommonsUtility;
 
-public class PuddleCtrl : MonoBehaviour
+public class PuddleController : MonoBehaviour
 {
     private const float PUDDLE_INCREASE = 4f;    // 雨粒あたりの増加サイズm^2
 

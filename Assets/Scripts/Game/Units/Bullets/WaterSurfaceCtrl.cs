@@ -46,7 +46,7 @@ public class WaterSurfaceCtrl : MonoBehaviour
 		if (!(rainDrop.transform.localScale.y <= 0.1f))
 		{
 			float waterSurfaceHeight = GetWaterSurfaceHeight();
-			waterSurfaceHeight += 0.005f * GameSpeedCtrl.GetGameSpeed();
+			waterSurfaceHeight += 0.005f * GameSpeedManager.GetGameSpeed();
 			SetWaterSurfaceHeight(waterSurfaceHeight);
 		}
 	}

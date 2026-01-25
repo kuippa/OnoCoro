@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 /// - 遅延付きシーン読み込み
 /// - 即座のシーン読み込み
 /// </summary>
-public static class SceneLoaderUtility
+public static class SceneLoaderManager
 {
     /// <summary>
     /// 指定した遅延後にシーンを読み込むコルーチン

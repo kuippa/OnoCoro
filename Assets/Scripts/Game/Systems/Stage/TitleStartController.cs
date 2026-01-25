@@ -76,8 +76,8 @@ public class TitleStartController : MonoBehaviour
     private void SetStageContents(GameObject content)
     {
         ClearContetArea(content);
-        StageDataManager.GetSceneNames();
-        Dictionary<string, string[]> sceneDict = StageDataManager.GetSceneDict();
+        StageRepository.GetSceneNames();
+        Dictionary<string, string[]> sceneDict = StageRepository.GetSceneDict();
         foreach (KeyValuePair<string, string[]> item in sceneDict)
         {
             string key = item.Key;
@@ -206,10 +206,10 @@ public class TitleStartController : MonoBehaviour
             return;
         }
         string text = component.text;
-        if (StageDataManager.IsScenePathValid(text))
+        if (StageRepository.IsScenePathValid(text))
         {
             _loading.SetActive(value: true);
-            StartCoroutine(SceneLoaderUtility.LoadSceneWithDelay(text, _SCENE_LOAD_DELAY));
+            StartCoroutine(SceneLoaderManager.LoadSceneWithDelay(text, _SCENE_LOAD_DELAY));
         }
         else
         {

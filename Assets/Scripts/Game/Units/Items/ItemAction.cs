@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 public class ItemAction : MonoBehaviour
 {
     public static ItemAction instance = null;
-    private static SpawnCtrl _spawnCtrl = null;
+    private static SpawnController _spawnCtrl = null;
     private static ItemHolderCtrl _itemHolderCtrl = null;
     private static ItemStruct _item = new ItemStruct();
 
@@ -127,7 +127,7 @@ public class ItemAction : MonoBehaviour
     {
         ItemStruct selectedItem = GetSelectedItemStruct();
         Mouse.current.position.ReadValue();
-        _spawnCtrl = SpawnCtrl.Instance;
+        _spawnCtrl = SpawnController.Instance;
         if (!_spawnCtrl.CallUnitByName(selectedItem.Name))
         {
             Debug.Log($"ItemAction ActItemUse: CallUnitByName failed: {selectedItem.Name}");
@@ -177,6 +177,6 @@ public class ItemAction : MonoBehaviour
         {
             instance = this;
         }
-        _spawnCtrl = SpawnCtrl.Instance;
+        _spawnCtrl = SpawnController.Instance;
     }
 }

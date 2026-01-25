@@ -1,7 +1,8 @@
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using CommonsUtility;
 
-namespace OnoCoro.Presentation.View
+namespace CommonsUtility
 {
     /// <summary>
     /// 環境（PLATEAU）カメラ制御

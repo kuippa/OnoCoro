@@ -10,21 +10,21 @@ using System;
 /// ユニットスポーン管理クラス
 /// 各種ユニット（ゴミキューブ、炎キューブ、タワー等）の生成を制御します
 /// </summary>
-public class SpawnCtrl : MonoBehaviour 
+public class SpawnController : MonoBehaviour 
 {
-    public static SpawnCtrl _instance = null;
+    public static SpawnController _instance = null;
 
-    public static SpawnCtrl Instance
+    public static SpawnController Instance
     {
         get
         {
             if (_instance == null)
             {
-                _instance = FindFirstObjectByType<SpawnCtrl>();
+                _instance = FindFirstObjectByType<SpawnController>();
                 if (_instance == null)
                 {
-                    GameObject go = new GameObject("SpawnCtrl");
-                    _instance = go.AddComponent<SpawnCtrl>();
+                    GameObject go = new GameObject("SpawnController");
+                    _instance = go.AddComponent<SpawnController>();
                 }
             }
             return _instance;
@@ -39,7 +39,7 @@ public class SpawnCtrl : MonoBehaviour
         }
     }
 
-    private void OnDestory()
+    private void OnDestroy()
     {
         // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (_instance == this)

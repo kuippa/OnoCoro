@@ -133,7 +133,7 @@ public static class BloomPathController
         navAgent.avoidancePriority = _AVOIDANCE_PRIORITY;
         string pathName = BuildPathName(markerNames, pathIndex);
         GameObject bloomPrefab = GetBloomPrefab();
-        CoroutineRunner.Instance.StartCoroutine(PlaceMarkersAfterPathCalculation(navAgent, bloomPrefab, pathName));
+        CoroutineManager.Instance.StartCoroutine(PlaceMarkersAfterPathCalculation(navAgent, bloomPrefab, pathName));
     }
 
     private static void SetNavAgentDestination(NavMeshAgent navAgent, string[] markerNames, int pathIndex)

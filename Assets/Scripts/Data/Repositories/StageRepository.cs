@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 /// - ステージ辞書の構築
 /// - シーンパスの検証
 /// </summary>
-public static class StageDataManager
+public static class StageRepository
 {
     // UI Messages
     private const string MSG_INVALID_LINE_FORMAT = "Invalid line format: ";

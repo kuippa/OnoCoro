@@ -117,7 +117,7 @@ public class PlateauUIManager : MonoBehaviour
         string formattedInfo = "";
         foreach (var pair in buildingInfo)
         {
-            string langH = LangCtrl.GetLangVal(pair.Key);
+            string langH = LanguageManager.GetLangVal(pair.Key);
             if (!string.IsNullOrEmpty(langH))
             {
                 formattedInfo += $"{langH}: {pair.Value}{Environment.NewLine}";

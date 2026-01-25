@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public static class WindCtrl
+public static class WindController
 {
     private static float _wind_speed = 1f;
     private static float _wind_direction = 0f;

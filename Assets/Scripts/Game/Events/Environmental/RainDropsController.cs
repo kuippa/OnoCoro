@@ -3,7 +3,7 @@ using UnityEditor;
 using System.Collections;
 using CommonsUtility;
 
-public class RainDropsCtrl : MonoBehaviour
+public class RainDropsController : MonoBehaviour
 {
 // puddle については、雨が降るときに生成するようにする
 
@@ -92,7 +92,7 @@ public class RainDropsCtrl : MonoBehaviour
     private void OnTriggerCheck()
     {
         _check_count++;
-        if ((float)_check_count > MAX_CHECK_COUNT * GameSpeedCtrl.GetGameSpeed())
+        if ((float)_check_count > MAX_CHECK_COUNT * GameSpeedManager.GetGameSpeed())
         {
             _is_rain = false;
             GameObjectTreat.DestroyAll(this.gameObject);
@@ -136,10 +136,10 @@ public class RainDropsCtrl : MonoBehaviour
             return;
         }
 
-        RainAbsorbCtrl rainAbsorbCtrl = absorbColliderTransform.gameObject.GetComponent<RainAbsorbCtrl>();
+        RainAbsorbController rainAbsorbCtrl = absorbColliderTransform.gameObject.GetComponent<RainAbsorbController>();
         if (rainAbsorbCtrl == null)
         {
-            Debug.LogWarning("RainAbsorbCtrl コンポーネントが見つかりません: " + absorbColliderTransform.name);
+            Debug.LogWarning("RainAbsorbController コンポーネントが見つかりません: " + absorbColliderTransform.name);
             return;
         }
 

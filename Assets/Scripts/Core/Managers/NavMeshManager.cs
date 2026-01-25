@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public static class NavMeshCtrl
+public static class NavMeshManager
 {
     private const float _MIN_DISTANCE = 0.8f;
     private const float _MIN_VELOCITY = 0.8f;
@@ -98,15 +98,15 @@ public static class NavMeshCtrl
     {
         // TODO: 固定値をキャラクター別にもつ
 
-        NavMeshAgent.speed = 2.6f * GameSpeedCtrl.GetGameSpeed();
-        NavMeshAgent.acceleration = 6f * GameSpeedCtrl.GetGameSpeed();
+        NavMeshAgent.speed = 2.6f * GameSpeedManager.GetGameSpeed();
+        NavMeshAgent.acceleration = 6f * GameSpeedManager.GetGameSpeed();
     }
 
     // TODO: キャラクターごとの移動スピードの制御
     internal static void ChangeAgentSpeed(NavMeshAgent NavMeshAgent, float speed, float acceleration)
     {
-        NavMeshAgent.speed = speed * GameSpeedCtrl.GetGameSpeed();
-        NavMeshAgent.acceleration = acceleration * GameSpeedCtrl.GetGameSpeed();
+        NavMeshAgent.speed = speed * GameSpeedManager.GetGameSpeed();
+        NavMeshAgent.acceleration = acceleration * GameSpeedManager.GetGameSpeed();
     }
 
     internal static bool IsSameDestination(NavMeshAgent NavMeshAgent, Vector3 destination)

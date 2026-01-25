@@ -1,7 +1,7 @@
 using System;
-using OnoCoro.Core.Utilities;
+using Debug = UnityEngine.Debug;
 
-namespace OnoCoro.Core.Handlers
+namespace CommonsUtility
 {
     /// <summary>
     /// 例外処理統一管理クラス

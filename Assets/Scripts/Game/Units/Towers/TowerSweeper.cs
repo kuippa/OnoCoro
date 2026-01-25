@@ -473,7 +473,7 @@ public class TowerSweeper : MonoBehaviour
     void Update()
     {
         _time += Time.deltaTime;
-        if (_time > (double)(_LOOP_TIME / GameSpeedCtrl.GetGameSpeed()) && !_isDelete && IsPowerState())
+        if (_time > (double)(_LOOP_TIME / GameSpeedManager.GetGameSpeed()) && !_isDelete && IsPowerState())
         {
             _time = 0;
             MoveControl();

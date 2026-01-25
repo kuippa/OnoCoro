@@ -236,10 +236,10 @@ public class EventLoader : MonoBehaviour
         Vector3 spawnPoint = tryGetPosition(TryGetColValue(event_value));
         
         GameObject eventSystem = GameObjectTreat.GetEventSystem();
-        SpawnCtrl spawnCtrl = eventSystem.GetComponent<SpawnCtrl>();
+        SpawnController spawnCtrl = eventSystem.GetComponent<SpawnController>();
         if (spawnCtrl == null)
         {
-            spawnCtrl = eventSystem.AddComponent<SpawnCtrl>();
+            spawnCtrl = eventSystem.AddComponent<SpawnController>();
         }
         
         spawnCtrl.CallUnitByName(unit_name, spawnPoint);
@@ -252,10 +252,10 @@ public class EventLoader : MonoBehaviour
         string[] marker_names = event_value.Split(',').Skip(1).ToArray();
         
         GameObject eventSystem = GameObjectTreat.GetEventSystem();
-        SpawnCtrl spawnCtrl = eventSystem.GetComponent<SpawnCtrl>();
+        SpawnController spawnCtrl = eventSystem.GetComponent<SpawnController>();
         if (spawnCtrl == null)
         {
-            spawnCtrl = eventSystem.AddComponent<SpawnCtrl>();
+            spawnCtrl = eventSystem.AddComponent<SpawnController>();
         }
         
         spawnCtrl.CallEnemyUnitByName(unit_name, marker_names);
@@ -276,13 +276,13 @@ public class EventLoader : MonoBehaviour
         float windSpeed = float.Parse(TryGetCol0(event_value));
         float windDirection = float.Parse(TryGetColValue(event_value));
         
-        WindCtrl.SetWindSpeed(windSpeed);
-        WindCtrl.SetWindDirection(windDirection);
+        WindController.SetWindSpeed(windSpeed);
+        WindController.SetWindDirection(windDirection);
     }
 
     private void CallWeather(string event_value)
     {
-        WeatherCtrl orAddComponent = GameObjectTreat.GetOrAddComponent<WeatherCtrl>(GameObjectTreat.GetEventSystem());
+        WeatherController orAddComponent = GameObjectTreat.GetOrAddComponent<WeatherController>(GameObjectTreat.GetEventSystem());
         string weather_type = TryGetCol0(event_value);
         string weather_params = TryGetColValue(event_value);
         string[] array = weather_params.Split(',');
@@ -308,7 +308,7 @@ public class EventLoader : MonoBehaviour
 
     private void CallSolar(string event_value)
     {
-        GameObjectTreat.GetOrAddComponent<WeatherCtrl>(GameObjectTreat.GetEventSystem()).ChangeSolarAltitude(float.Parse(event_value));
+        GameObjectTreat.GetOrAddComponent<WeatherController>(GameObjectTreat.GetEventSystem()).ChangeSolarAltitude(float.Parse(event_value));
     }
 
     private void CallWaterSurface(string event_value)

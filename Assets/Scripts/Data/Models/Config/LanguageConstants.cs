@@ -8,7 +8,7 @@ using CommonsUtility;
 
 namespace CommonsUtility
 {
-    internal static class LangConst
+    internal static class LanguageConstants
     {
 
         internal static readonly Dictionary<string, string> _jp_lang_const = new Dictionary<string, string>()

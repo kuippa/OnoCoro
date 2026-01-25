@@ -3,7 +3,7 @@ using Unity.Cinemachine;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
-namespace AppCamera
+namespace CommonsUtility
 {
     /// <summary>
     /// カメラモード

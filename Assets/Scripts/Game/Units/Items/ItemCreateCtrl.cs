@@ -140,7 +140,7 @@ public class ItemCreateCtrl : MonoBehaviour
     {
         List<ItemStruct> itemList = new List<ItemStruct>();
         new List<string>();
-        foreach (string item in StagingYamlCtrl.GetItemList())
+        foreach (string item in StageYamlRepository.GetItemList())
         {
             Type type = Type.GetType(item);
             if (type != null)

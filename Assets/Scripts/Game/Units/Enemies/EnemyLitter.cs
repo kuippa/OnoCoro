@@ -237,7 +237,7 @@ public class EnemyLitter : MonoBehaviour
         {
             yield return new WaitForSeconds(_MOVING_CHECK_INTERVAL);
             
-            if (NavMeshCtrl.HasReachedDestination(_navMeshAgent) && !SetNextPath(_myPaths))
+            if (NavMeshManager.HasReachedDestination(_navMeshAgent) && !SetNextPath(_myPaths))
             {
                 _movingMode = false;
             }
@@ -298,7 +298,7 @@ public class EnemyLitter : MonoBehaviour
             return;
         }
 
-        if (NavMeshCtrl.IsSameDestination(_navMeshAgent, path))
+        if (NavMeshManager.IsSameDestination(_navMeshAgent, path))
         {
             return;
         }
@@ -360,15 +360,15 @@ public class EnemyLitter : MonoBehaviour
     private void SetDestination(Vector3 destination)
     {
         // TODO: キャラクターごとの移動スピードの制御
-        // NavMeshCtrl.SetAgentSpeed(_navMeshAgent);
-        NavMeshCtrl.ChangeAgentSpeed(_navMeshAgent, 1.2f, 6f);  
+        // NavMeshManager.SetAgentSpeed(_navMeshAgent);
+        NavMeshManager.ChangeAgentSpeed(_navMeshAgent, 1.2f, 6f);  
         
-        if (NavMeshCtrl.IsSameDestination(_navMeshAgent, destination))
+        if (NavMeshManager.IsSameDestination(_navMeshAgent, destination))
         {
             return;
         }
 
-        bool isDestinationSet = NavMeshCtrl.SetNavMeshDestination(_navMeshAgent, destination, transform);
+        bool isDestinationSet = NavMeshManager.SetNavMeshDestination(_navMeshAgent, destination, transform);
         if (!isDestinationSet)
         {
             Debug.Log("SetNavMeshDestination failed:" + destination.ToString());
@@ -400,7 +400,7 @@ public class EnemyLitter : MonoBehaviour
 
     private void Awake()
     {
-        _navMeshAgent = NavMeshCtrl.GetNavMeshAgent(gameObject);
+        _navMeshAgent = NavMeshManager.GetNavMeshAgent(gameObject);
         _idx++;
     }
 

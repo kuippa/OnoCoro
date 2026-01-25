@@ -1,7 +1,7 @@
 using System;
 using Debug = UnityEngine.Debug;
 
-namespace OnoCoro.Core.Utilities
+namespace CommonsUtility
 {
     /// <summary>
     /// Debug ログ統一管理ユーティリティ

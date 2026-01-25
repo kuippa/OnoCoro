@@ -1,10 +1,8 @@
-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// WeatherCtrl
 using CommonsUtility;
 using PlateauToolkit.Rendering;
 using UnityEngine;
 
-public class WeatherCtrl : MonoBehaviour
+public class WeatherController : MonoBehaviour
 {
     private EnvironmentController _env;
 

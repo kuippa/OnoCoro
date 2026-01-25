@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YamlDotNet.RepresentationModel;
 
-public class StagingYamlCtrl : MonoBehaviour
+public class StageYamlRepository : MonoBehaviour
 {
     // YamlDotNet for Unity
     // https://assetstore.unity.com/packages/tools/integration/yamldotnet-for-unity-36292

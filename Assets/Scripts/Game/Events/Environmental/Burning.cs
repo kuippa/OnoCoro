@@ -145,12 +145,12 @@ public class Burning : MonoBehaviour
 
     private Vector3 GetWindDirectionVector()
     {
-        return WindCtrl.GetWindDirectionVector();
+        return WindController.GetWindDirectionVector();
     }
 
     private float GetWindSpeed()
     {
-        return WindCtrl.GetWindSpeed();
+        return WindController.GetWindSpeed();
     }
 
     private IEnumerator InvokeWithGameObject(GameObject obj, float delay)
@@ -192,12 +192,12 @@ public class Burning : MonoBehaviour
 
     private float GetCountTime()
     {
-        return 30f / GameSpeedCtrl.GetGameSpeed();
+        return 30f / GameSpeedManager.GetGameSpeed();
     }
 
     private float GetFireSpreadTime()
     {
-        return 100f / GameSpeedCtrl.GetGameSpeed();
+        return 100f / GameSpeedManager.GetGameSpeed();
     }
 
     private void CountUpBurning(string name)

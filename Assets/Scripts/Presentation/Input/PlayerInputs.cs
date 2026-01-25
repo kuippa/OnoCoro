@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Cinemachine;
-using AppCamera;
+using CommonsUtility;
 using UnityEngine.AI;
 
 namespace StarterAssets
@@ -225,15 +225,15 @@ namespace StarterAssets
 			{
 				if (current[Key.F3].wasPressedThisFrame)
 				{
-					GameSpeedCtrl.SetGameSpeed(1f);
+					GameSpeedManager.SetGameSpeed(1f);
 				}
 				else if (current[Key.F4].wasPressedThisFrame)
 				{
-					GameSpeedCtrl.SetGameSpeed(2f);
+					GameSpeedManager.SetGameSpeed(2f);
 				}
 				else if (current[Key.F5].wasPressedThisFrame)
 				{
-					GameSpeedCtrl.SetGameSpeed(20f);
+					GameSpeedManager.SetGameSpeed(20f);
 				}
 			}
 		}

@@ -2,7 +2,7 @@ using System;
 using CommonsUtility;
 using UnityEngine;
 
-public class RainAbsorbCtrl : MonoBehaviour
+public class RainAbsorbController : MonoBehaviour
 {
 	private static float _BUILDING_BRAKE_SIZE = 20f;
 

@@ -108,7 +108,7 @@ public class Raining : MonoBehaviour
         if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
         {
             _eventSystem = GameObjectTreat.GetEventSystem(_eventSystem);
-            WeatherCtrl orAddComponent = GameObjectTreat.GetOrAddComponent<WeatherCtrl>(_eventSystem);
+            WeatherController orAddComponent = GameObjectTreat.GetOrAddComponent<WeatherController>(_eventSystem);
             float toggleRainStrength = orAddComponent.GetToggleRainStrength();
             orAddComponent.ChangeWeather(toggleRainStrength);
         }
@@ -122,7 +122,7 @@ public class Raining : MonoBehaviour
     {
         if (_is_rain)
         {
-            float num = INTERVAL_RAIN / GameSpeedCtrl.GetGameSpeed();
+            float num = INTERVAL_RAIN / GameSpeedManager.GetGameSpeed();
             _time += Time.deltaTime;
             if (_time > num)
             {

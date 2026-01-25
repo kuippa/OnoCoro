@@ -1,4 +1,4 @@
-public static class GameSpeedCtrl
+public static class GameSpeedManager
 {
     private static float _game_speed = 1f;
 
