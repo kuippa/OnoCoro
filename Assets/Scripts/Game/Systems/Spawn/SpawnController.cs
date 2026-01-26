@@ -1,6 +1,7 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
 using TMPro;
 using CommonsUtility;
@@ -245,7 +246,8 @@ public class SpawnController : MonoBehaviour
         GameObject prefab = PrefabManager.StopPlatePrefab;
         if (prefab == null)
         {
-            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/StopPlate");
+            Debug.LogWarning("StopPlate prefab not found in PrefabManager");
+            return ret;
         }
         Vector3 setPoint = GetSpawnPoint(dropbuffer);
         Quaternion setRotation = SpawnMarkerPointerCtrl.GetMarkerRotateAngle();
@@ -266,7 +268,8 @@ public class SpawnController : MonoBehaviour
         GameObject prefab = PrefabManager.PowerCubePrefab;
         if (prefab == null)
         {
-            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/PowerCube");
+            Debug.LogWarning("PowerCube prefab not found in PrefabManager");
+            return false;
         }
         prefab.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
         setPoint = GetSpawnPoint(dropbuffer, setPoint);
@@ -291,7 +294,8 @@ public class SpawnController : MonoBehaviour
         GameObject prefab = PrefabManager.TowerSweeperPrefab;
         if (prefab == null)
         {
-            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/TowerSweeper");
+            Debug.LogWarning("TowerSweeper prefab not found in PrefabManager");
+            return false;
         }
         Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
         GameObject TowerSweeper = Instantiate(prefab, setPoint, rotation);

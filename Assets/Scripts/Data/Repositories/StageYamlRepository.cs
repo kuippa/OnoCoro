@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.SceneManagement;
 using YamlDotNet.RepresentationModel;
 

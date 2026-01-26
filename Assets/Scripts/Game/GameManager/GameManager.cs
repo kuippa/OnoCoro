@@ -22,7 +22,10 @@ namespace CommonsUtility
         // 処理落ちさせないためガベージコレクターを止めることができる。
         // GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
 
-
+        private void OnApplicationQuit()
+        {
+            LogUtility.CloseLogFile();  // ファイルポインタを閉じる
+        }
 
     }
 

@@ -1,7 +1,8 @@
-#if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
+﻿#if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.EventSystems;
 #endif
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.InputSystem;
 using Unity.Cinemachine;
 using CommonsUtility;

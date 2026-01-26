@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using CommonsUtility;
 using TMPro;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
 
 public class InfoWindowCtrl : MonoBehaviour

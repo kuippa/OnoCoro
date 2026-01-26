@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 // using UnityEngine.Rendering.Universal.Internal;
 
 public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
@@ -65,7 +66,12 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
             return;
         }
 
-        GameObject tooltips = Resources.Load<GameObject>("Prefabs/UI/UIToolTips");
+        GameObject tooltips = PrefabManager.UIToolTipsPrefab;
+        if (tooltips == null)
+        {
+            Debug.LogWarning("UIToolTips prefab not found in PrefabManager");
+            return;
+        }
         GameObject unit = Instantiate(tooltips);
 
         GameObject UIInfo = GameObject.Find(GlobalConst.UI_INFO_OBJ_NAME);

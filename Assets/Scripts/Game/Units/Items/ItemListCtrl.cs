@@ -42,7 +42,13 @@ public class ItemListCtrl : MonoBehaviour
         int num = 26 - childCount;
         for (int i = 0; i < num; i++)
         {
-            GameObject gameObject = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UI/Item_holder"));
+            GameObject itemHolderPrefab = PrefabManager.ItemHolderPrefab;
+            if (itemHolderPrefab == null)
+            {
+                Debug.LogWarning("ItemHolder prefab not found in PrefabManager");
+                break;
+            }
+            GameObject gameObject = Object.Instantiate(itemHolderPrefab);
             gameObject.transform.SetParent(this.gameObject.transform);
             gameObject.GetComponent<ItemHolderCtrl>().ChangeSiblingIndex(gameObject.transform.GetSiblingIndex());
         }

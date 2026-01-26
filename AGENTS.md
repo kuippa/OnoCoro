@@ -121,6 +121,122 @@ For detailed code examples and rationale, see [docs/coding-standards.md](docs/co
 
 ---
 
+## Access Modifier Policy
+
+**MANDATORY**: Use `internal` as default for all Manager/System/Utility classes. Use `public` only for public interfaces.
+
+### Basic Principle
+
+OnoCoro prioritizes Assembly boundary encapsulation over namespace isolation, because C# `namespace` alone is insufficient for true encapsulation. The `internal` modifier provides:
+
+- **Assembly boundary protection** - Prevents unintended external access
+- **Recovery phase safety** - Makes global state dependencies explicit
+- **Future extensibility** - Supports plugin/DLC architecture without API breakage
+
+### Access Modifier Usage Guidelines
+
+| Modifier | Usage Context | Example | Reasoning |
+|----------|---------------|---------|-----------|
+| **public** | Public API, stable contract | Interface definitions, main entry points | Guarantees backward compatibility |
+| **internal** | Project-internal implementation | GameConfig, Manager classes, Utility classes | Restricts access to this assembly only |
+| **protected** | Inheritance extension points | Base controller classes | Supports intentional subclassing |
+| **private** | Class-internal only | Helper methods, cache variables | Hides implementation details |
+
+### Default Pattern: internal
+
+```csharp
+// ✅ CORRECT: Manager classes use internal
+internal class GameConfig : MonoBehaviour
+{
+    internal static string _APP_GAME_MODE = GlobalConst.GAME_MODE_DEBUG;
+    internal static DebugLevel DebugLevel { get; set; } = DebugLevel.All;
+}
+
+// ✅ CORRECT: Utility classes use internal
+internal static class LogUtility
+{
+    public static void WriteLog(LogLevel level, string message) { }
+}
+
+// ✅ CORRECT: Expose public interface, hide internal implementation
+public interface IGameConfig { }  // Stable public API
+internal class GameConfig : IGameConfig { } // Internal implementation
+```
+
+### When to Use public
+
+Use `public` only in these scenarios:
+
+1. **Public Interface/Contract** - Designed for external use
+2. **Main Entry Point** - Game initialization, scene controller
+3. **Asset Reference** - Serialized field that Unity Inspector needs access to
+
+```csharp
+// ✅ OK: Public interface is expected
+public interface IPrefabManager
+{
+    GameObject GetPrefab(string prefabName);
+}
+
+// ✅ OK: Scene controller may be public for editor/testing
+public class GameMainController : MonoBehaviour { }
+
+// ❌ NG: No reason to expose this globally
+public static class LogUtility { }  // → use internal
+```
+
+### Recovery Phase Context (Critical for OnoCoro)
+
+Given that OnoCoro is recovering from a 2-year-old backup:
+
+- **`public`** = "This is a stable, documented API that won't change"
+- **`internal`** = "This is implementation detail; may change or refactor"
+
+This distinction helps prevent:
+- Unintended access to global state
+- Coupling to internal implementation details
+- Regression when refactoring recovered code
+- Accidental API surface expansion
+
+### Example: GameConfig Design
+
+```csharp
+// ✅ CORRECT: Restrict access, promote via interface if needed
+internal sealed class GameConfig : MonoBehaviour
+{
+    // All state is internal - prevents external manipulation
+    internal static string _APP_GAME_MODE = GlobalConst.GAME_MODE_DEBUG;
+    internal static DebugLevel DebugLevel { get; set; } = DebugLevel.All;
+    internal static string LogFileName { get; set; } = GlobalConst._LOG_FILE_NAME;
+}
+
+// If external code needs read-only access, use interface
+public interface IGameConfigProvider
+{
+    string GetGameMode();
+    DebugLevel GetDebugLevel();
+}
+
+// Internal implementation of public interface
+internal class GameConfigProvider : IGameConfigProvider
+{
+    public string GetGameMode() => GameConfig._APP_GAME_MODE;
+    public DebugLevel GetDebugLevel() => GameConfig.DebugLevel;
+}
+```
+
+### Pre-Commit Checklist for Access Modifiers
+
+When reviewing code changes:
+
+- [ ] **Default internal**: Manager/System/Utility classes are `internal` unless justified
+- [ ] **No premature public**: Avoid `public` to "future-proof" code
+- [ ] **Interface-driven**: If external access needed, expose via `public interface`, hide implementation with `internal`
+- [ ] **Consistent with Recovery policy**: Global state is protected from external manipulation
+- [ ] **Assembly boundary respected**: No reliance on `namespace` alone for encapsulation
+
+---
+
 ## Class Naming Convention
 
 **MANDATORY**: All C# classes must follow the unified naming convention.
@@ -549,14 +665,46 @@ Assets/Scripts/
 │   ├── Models/
 │   ├── Repositories/        (StageRepository, StageYamlRepository)
 │   └── Plateau/
-└── Core/                    【Layer 4: Core (Orthogonal)】
-    ├── Managers/            (GameSpeedManager, LanguageManager, etc.)
-    ├── Utilities/           (FileUtility, MathUtility, etc.)
-    ├── Handlers/            (ExceptionHandler, etc.)
-    ├── Constants/
-    ├── Helpers/
-    └── Editor/
+├── Core/                    【Layer 4: Core (Orthogonal)】
+│   ├── Managers/            (GameSpeedManager, LanguageManager, etc.)
+│   ├── Utilities/           (FileUtility, MathUtility, etc.)
+│   ├── Handlers/            (ExceptionHandler, etc.)
+│   ├── Constants/
+│   ├── Helpers/
+│   └── Editor/
+└── UnitTest/                【テストスクリプト】
+    ├── LogUtilityTest.cs    (一時的なテストスクリプト)
+    └── ...
 ```
+
+### テストスクリプトの管理
+
+**テストスクリプトの配置と移動**:
+
+| フェーズ | 場所 | 説明 |
+|---------|------|------|
+| **作成・実行中** | `Assets/Scripts/UnitTest/` | 機能テスト・デバッグ用スクリプト |
+| **使用後** | `Assets/Scripts/Core/Editor/` | アーカイブ・参考資料として保管 |
+| **削除** | 削除 | テストが不要になった場合 |
+
+**テストスクリプトの命名規則**:
+```csharp
+// ✅ CORRECT: 機能名 + Test サフィックス
+LogUtilityTest.cs
+DebugClassTest.cs
+PrefabManagerTest.cs
+
+// ❌ WRONG: 曖昧な命名
+Test.cs
+MyTest.cs
+TestScript.cs
+```
+
+**テストスクリプトの特徴**:
+- `UnitTest/` フォルダはビルドから除外可能（.asmdef または .meta 設定）
+- Editor Only で機能するテストも含む
+- 使用後は `Core/Editor/` に移動してアーカイブ化
+- 参考実装として他の開発者が参照できるようにしておく
 
 ### File Placement Rules
 

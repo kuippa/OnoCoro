@@ -1,6 +1,7 @@
-using System.Collections;   // IEnumerator を使うために追加
+﻿using System.Collections;   // IEnumerator を使うために追加
 using System.Collections.Generic;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using CommonsUtility;
@@ -145,7 +146,7 @@ public class ClickCtrl : MonoBehaviour
     private static void CreateBonFire(Ray PointRay, RaycastHit hit)
     {
         Debug.DrawRay(PointRay.origin, PointRay.direction * 10, Color.red, 5f);
-        GameObject prefab = Resources.Load<GameObject>("Prefabs/Bonfire");
+        GameObject prefab = PrefabManager.BonfirePrefab;
         Vector3 setPoint = hit.collider.gameObject.transform.position;
         MeshFilter meshFilter = hit.collider.gameObject.GetComponent<MeshFilter>();
         if (meshFilter != null)

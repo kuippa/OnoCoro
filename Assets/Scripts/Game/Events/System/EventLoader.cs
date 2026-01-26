@@ -1,7 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 public class EventLoader : MonoBehaviour
 {

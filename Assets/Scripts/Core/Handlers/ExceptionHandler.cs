@@ -1,5 +1,5 @@
 using System;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 namespace CommonsUtility
 {
@@ -52,7 +52,7 @@ namespace CommonsUtility
             string contextStr = string.IsNullOrEmpty(context) ? "" : $"[{context}] ";
             string errorMessage = $"{contextStr}例外発生: {exception.Message}\nスタックトレース: {exception.StackTrace}";
 
-            DebugUtility.LogError(errorMessage);
+            Debug.LogError(errorMessage);
 
             // ここで追加処理を実装：
             // - エラーログファイルに記録
@@ -70,7 +70,7 @@ namespace CommonsUtility
         {
             if (action == null)
             {
-                DebugUtility.LogError("HandleSafe: action がnullです");
+                Debug.LogError("HandleSafe: action がnullです");
                 return;
             }
 
@@ -91,7 +91,7 @@ namespace CommonsUtility
         {
             if (action == null)
             {
-                DebugUtility.LogError("HandleSafe<T>: action がnullです");
+                Debug.LogError("HandleSafe<T>: action がnullです");
                 return defaultValue;
             }
 
@@ -115,7 +115,7 @@ namespace CommonsUtility
         {
             if (asyncAction == null)
             {
-                DebugUtility.LogError("HandleSafeAsync: asyncAction がnullです");
+                Debug.LogError("HandleSafeAsync: asyncAction がnullです");
                 return;
             }
 
@@ -139,7 +139,7 @@ namespace CommonsUtility
         {
             if (asyncAction == null)
             {
-                DebugUtility.LogError("HandleSafeAsync<T>: asyncAction がnullです");
+                Debug.LogError("HandleSafeAsync<T>: asyncAction がnullです");
                 return defaultValue;
             }
 
@@ -170,7 +170,7 @@ namespace CommonsUtility
             {
                 if (logType == UnityEngine.LogType.Exception)
                 {
-                    DebugUtility.LogError($"グローバル例外: {logString}\n{stackTrace}");
+                    Debug.LogError($"グローバル例外: {logString}\n{stackTrace}");
                 }
             };
         }

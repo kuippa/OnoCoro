@@ -1,10 +1,11 @@
-// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+﻿// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // ItemCreateCtrl
 using System;
 using System.Collections.Generic;
 using CommonsUtility;
 using TMPro;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
 
 public class ItemCreateCtrl : MonoBehaviour

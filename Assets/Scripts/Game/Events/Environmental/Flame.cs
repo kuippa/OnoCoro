@@ -68,7 +68,12 @@ public class Flame : MonoBehaviour
     // 大火事用 TODO
     private void SetBonFire(Vector3 setPoint)
     {
-        GameObject prefab = Resources.Load<GameObject>("Prefabs/Bonfire");
+        GameObject prefab = PrefabManager.BonfirePrefab;
+        if (prefab == null)
+        {
+            Debug.LogWarning("Bonfire prefab not found in PrefabManager");
+            return;
+        }
         setPoint.y += 0.5f;
         GameObject instance = Instantiate(prefab, setPoint, Quaternion.identity);
         instance.AddComponent<Rigidbody>();

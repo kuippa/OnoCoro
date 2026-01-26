@@ -1,4 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEditor;
 using System.Collections;
 using CommonsUtility;

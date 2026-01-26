@@ -20,17 +20,23 @@ public class PrefabManager
 		RainDrop,
 		Puddle,
 		EnemyLitter,
+		TowerDock,
 		
 		// Environment
 		WaterSurface,
+		Bonfire,
 		
 		// Marker
 		PathMaker,
 		PathBloom,
 		SignPowerOutage,
+		CircularIndicator,
 		
 		// UI
-		UIStageInfoBox
+		UIStageInfoBox,
+		UIToolTips,
+		ItemHolder,
+		NowLoading
 	}
 
 	private static readonly Dictionary<PrefabType, string> _paths = new Dictionary<PrefabType, string>
@@ -48,17 +54,23 @@ public class PrefabManager
 		{ PrefabType.RainDrop, "Prefabs/WorkUnit/RainDrop" },
 		{ PrefabType.Puddle, "Prefabs/WorkUnit/Puddle" },
 		{ PrefabType.EnemyLitter, "Prefabs/EnemyUnit/EnemyLitter" },
+		{ PrefabType.TowerDock, "Prefabs/WorkUnit/TowerDock" },
 		
 		// Environment
 		{ PrefabType.WaterSurface, "Prefabs/Environment/watersurface" },
+		{ PrefabType.Bonfire, "Prefabs/Bonfire" },
 		
 		// Marker
 		{ PrefabType.PathMaker, "Prefabs/Marker/path_marker" },
 		{ PrefabType.PathBloom, "Prefabs/Marker/path_bloom" },
 		{ PrefabType.SignPowerOutage, "Prefabs/Marker/SignPowerOutage" },
+		{ PrefabType.CircularIndicator, "Prefabs/Marker/CircularIndicator" },
 		
 		// UI
-		{ PrefabType.UIStageInfoBox, "Prefabs/UI/UIStageInfoBox" }
+		{ PrefabType.UIStageInfoBox, "Prefabs/UI/UIStageInfoBox" },
+		{ PrefabType.UIToolTips, "Prefabs/UI/UIToolTips" },
+		{ PrefabType.ItemHolder, "Prefabs/UI/Item_holder" },
+		{ PrefabType.NowLoading, "Prefabs/UI/nowloading" }
 	};
 
 	private static readonly Dictionary<PrefabType, GameObject> _cache = new Dictionary<PrefabType, GameObject>();
@@ -104,8 +116,6 @@ public class PrefabManager
 	}
 
 	// 後方互換性のためのプロパティ（既存コードとの互換性維持）
-
-	// 後方互換性のためのプロパティ（既存コードとの互換性維持）
 	internal static GameObject UIStageInfoBoxPrefab => GetPrefab(PrefabType.UIStageInfoBox);
 	internal static GameObject GarbageCubePrefab => GetPrefab(PrefabType.GarbageCube);
 	internal static GameObject RainDropPrefab => GetPrefab(PrefabType.RainDrop);
@@ -123,6 +133,12 @@ public class PrefabManager
 	internal static GameObject WaterSpherePrefab => GetPrefab(PrefabType.WaterSphere);
 	internal static GameObject WaterSurfacePrefab => GetPrefab(PrefabType.WaterSurface);
 	internal static GameObject SignPowerOutagePrefab => GetPrefab(PrefabType.SignPowerOutage);
+	internal static GameObject BonfirePrefab => GetPrefab(PrefabType.Bonfire);
+	internal static GameObject TowerDockPrefab => GetPrefab(PrefabType.TowerDock);
+	internal static GameObject CircularIndicatorPrefab => GetPrefab(PrefabType.CircularIndicator);
+	internal static GameObject UIToolTipsPrefab => GetPrefab(PrefabType.UIToolTips);
+	internal static GameObject ItemHolderPrefab => GetPrefab(PrefabType.ItemHolder);
+	internal static GameObject NowLoadingPrefab => GetPrefab(PrefabType.NowLoading);
 
 	internal static int GarbageCubeUID => GetNextUID(PrefabType.GarbageCube);
 	internal static int FireCubeUID => GetNextUID(PrefabType.FireCube);
@@ -130,6 +146,7 @@ public class PrefabManager
 	internal static int TowerSentryGuardUID => GetNextUID(PrefabType.TowerSentryGuard);
 	internal static int StopPlateUID => GetNextUID(PrefabType.StopPlate);
 	internal static int PowerCubeUID => GetNextUID(PrefabType.PowerCube);
+	internal static int TowerDockUID => GetNextUID(PrefabType.TowerDock);
 
 	/// <summary>
 	/// プレハブが利用可能かチェックします（nullチェック）

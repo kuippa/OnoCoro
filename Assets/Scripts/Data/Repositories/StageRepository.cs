@@ -45,7 +45,7 @@ public static class StageRepository
         
         if (csvLines == null)
         {
-            LogUtility.Error($"ステージリストファイルが見つかりません: {LoadStreamingAsset.STAGE_LIST_FILE_NAME}");
+            Debug.LogError($"ステージリストファイルが見つかりません: {LoadStreamingAsset.STAGE_LIST_FILE_NAME}");
             return dictionary;
         }
         
@@ -54,14 +54,14 @@ public static class StageRepository
             string[] csvColumns = LoadStreamingAsset.CsvCols(csvLines[i]);
             if (csvColumns.Length != 4)
             {
-                LogUtility.Warning(MSG_INVALID_LINE_FORMAT + csvLines[i]);
+                Debug.LogWarning(MSG_INVALID_LINE_FORMAT + csvLines[i]);
                 continue;
             }
             
             // 重複キーをスキップ
             if (dictionary.ContainsKey(csvColumns[0]))
             {
-                LogUtility.Warning($"重複するシーン名をスキップ: {csvColumns[0]}");
+                Debug.LogWarning($"重複するシーン名をスキップ: {csvColumns[0]}");
                 continue;
             }
             

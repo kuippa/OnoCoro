@@ -10,7 +10,7 @@ public static class MarkerIndicatorCtrl
             Debug.LogError("Target GameObject is null");
             return;
         }
-        GameObject gameObject = Resources.Load<GameObject>("Prefabs/Marker/CircularIndicator");
+        GameObject gameObject = PrefabManager.CircularIndicatorPrefab;
         if (gameObject == null)
         {
             Debug.LogError("Failed to load CircularIndicator prefab");

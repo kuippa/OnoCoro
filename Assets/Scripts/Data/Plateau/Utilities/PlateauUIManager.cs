@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;

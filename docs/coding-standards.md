@@ -508,20 +508,119 @@ Queue<Action> actionQueue;
 
 ### フィールド変数の命名規則
 
+**フィールド（変数）のみアンダースコアプレフィックスを使用する**
+
+重要な区別：
+- **フィールド** = 直接のデータ保持 → `_` プレフィックス必須
+- **プロパティ** = インターフェース/抽象化層 → `_` プレフィックス不要
+
+| 種類 | スコープ | 命名規則 | 例 | 用途 |
+|-----|---------|---------|-----|------|
+| **フィールド** | プライベート | `_fieldName` | `_currentScore` | クラス内のみ |
+| **フィールド** | 内部 Static | `_CONSTANT_NAME` | `_APP_GAME_MODE` | 同じアセンブリ内 |
+| **フィールド** | 内部 Instance | `_fieldName` | `_stageManager` | 同じアセンブリ内 |
+| **フィールド** | 定数 | `_CONSTANT_NAME` | `_MAX_ITEMS` | 変更不可 |
+| **プロパティ** | 任意 | `PropertyName` | `DebugLevel`, `LogFileName` | インターフェース |
+
+#### 実装例
+
 ```csharp
 public class ExampleController : MonoBehaviour
 {
-    // プライベートフィールド: アンダースコア + キャメルケース
+    // ✅ OK: プライベートフィールド（アンダースコア + キャメルケース）
     private GameObject _playerObject;
     private Transform _cameraTransform;
     private int _currentScore;
     
-    // パブリックフィールド（避けるべき）
-    public int maxHealth;  // プロパティの使用を推奨
+    // ✅ OK: 内部 Static フィールド（アンダースコア + 大文字スネークケース）
+    internal static string _APP_GAME_MODE = GlobalConst.GAME_MODE_DEBUG;
+    internal static bool _STAGE_PADDLE_MODE = false;
     
-    // 定数: アンダースコア + 大文字スネークケース
+    // ✅ OK: 内部 Instance フィールド（アンダースコア + キャメルケース）
+    internal static GameConfig _instance = null;
+    
+    // ✅ OK: 定数フィールド（アンダースコア + 大文字スネークケース）
     private const string _PLAYER_TAG = "Player";
     private const int _MAX_ITEMS = 100;
+    
+    // ✅ OK: プロパティはアンダースコアなし（パスカルケース）
+    // プロパティは実装の詳細を隠したインターフェース - _は不要
+    internal static DebugLevel DebugLevel { get; set; } = DebugLevel.All;
+    internal static string LogFileName { get; set; } = GlobalConst._LOG_FILE_NAME;
+    internal static string LogFilePath => System.IO.Path.Combine(Application.persistentDataPath, LogFileName);
+    
+    // ❌ NG: パブリックフィールド（避けるべき）
+    public int maxHealth;  // → プロパティ化すべき
+}
+```
+
+#### フィールド vs プロパティ の選択基準
+
+**フィールド（`_` 付き）を使う場合：**
+```csharp
+// データを直接保持する変数
+private int _health = 100;
+private bool _isActive = true;
+internal static bool _ENABLE_DEBUG = false;
+```
+
+**プロパティ（`_` なし）を使う場合：**
+```csharp
+// ゲッター・セッターで実装の詳細を隠す
+internal static DebugLevel DebugLevel { get; set; } = DebugLevel.All;
+
+// 計算による値
+internal static string LogFilePath => System.IO.Path.Combine(
+    Application.persistentDataPath,
+    LogFileName
+);
+
+// バリデーション付き
+public int Health
+{
+    get => _health;
+    set => _health = Mathf.Clamp(value, 0, 100);
+}
+```
+    internal static string _APP_GAME_MODE = GlobalConst.GAME_MODE_DEBUG;
+    internal static bool _STAGE_PADDLE_MODE = false;
+    
+    // ✅ OK: 内部 Instance フィールド（アンダースコア + キャメルケース）
+    internal static GameConfig _instance = null;
+    
+    // ✅ OK: 定数（アンダースコア + 大文字スネークケース）
+    private const string _PLAYER_TAG = "Player";
+    private const int _MAX_ITEMS = 100;
+    
+    // ✅ OK: プロパティはアンダースコアなし（パスカルケース）
+    internal static string LogFileName { get; set; } = GlobalConst.LOG_FILE_NAME;
+    public int Health { get; set; }
+    
+    // ❌ NG: パブリックフィールド（避けるべき）
+    public int maxHealth;  // → プロパティ化すべき
+}
+```
+
+#### スコープ可視性の根拠
+
+- **フィールドへの `_` プレフィックス**: 目視でモジュールレベルの「変数」かローカル変数かが判断可能
+- **プロパティへの `_` なし**: プロパティはインターフェース/抽象化層で、実装の詳細を隠すため
+- **Recovery フェーズでの安全性**: グローバル状態への依存が明確になり、リグレッション防止
+- **保守性向上**: フィールドとプロパティの役割が明確で、意図しないスコープ汚染を防止
+
+#### 例外：ローカル変数
+
+関数内のローカル変数はアンダースコアを使用しない
+
+```csharp
+void ProcessData()
+{
+    // ✅ OK: ローカル変数（アンダースコアなし）
+    int count = 0;
+    string message = "Processing";
+    
+    // ❌ NG: ローカル変数にアンダースコアはつけない
+    int _count = 0;
 }
 ```
 
@@ -1012,6 +1111,7 @@ void Awake()
 - [ ] **Early Return**: ネストした`if`を避け、ガード句を使用しているか
 - [ ] **関数の長さ**: 40行以内に収まっているか
 - [ ] **変数名**: 意味のある名前になっているか
+- [ ] **フィールド名**: モジュールレベル変数に`_`プレフィックスがあるか、ローカル変数にはないか
 - [ ] **ユーティリティの使用**: 共通処理を適切なユーティリティクラスに集約しているか
 - [ ] **ScrollRect**: スクロール位置制御は`normalizedPosition`を使用しているか
 - [ ] **コメント**: 不要なコメントがないか、必要なコメントがあるか
@@ -1030,4 +1130,5 @@ void Awake()
 
 | 日付 | バージョン | 変更内容 |
 |------|----------|---------|
+| 2026-01-26 | 1.1.0 | モジュールレベル変数の命名規則を追加（アンダースコアプレフィックス必須） |
 | 2026-01-15 | 1.0.0 | 初版作成 |

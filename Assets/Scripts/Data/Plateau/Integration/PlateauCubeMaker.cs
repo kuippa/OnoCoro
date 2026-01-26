@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 public class PlateauCubeMaker : MonoBehaviour
 {

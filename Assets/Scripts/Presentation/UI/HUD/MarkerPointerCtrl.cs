@@ -1,8 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using CommonsUtility;
 using Unity.VisualScripting;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 

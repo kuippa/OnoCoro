@@ -1,5 +1,6 @@
-using CommonsUtility;
+﻿using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 public class WaterSurfaceCtrl : MonoBehaviour
 {

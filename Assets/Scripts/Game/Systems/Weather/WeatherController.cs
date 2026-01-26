@@ -1,6 +1,7 @@
-using CommonsUtility;
+﻿using CommonsUtility;
 using PlateauToolkit.Rendering;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 public class WeatherController : MonoBehaviour
 {

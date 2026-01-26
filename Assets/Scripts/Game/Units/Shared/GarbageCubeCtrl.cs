@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 
 public class GarbageCubeCtrl : MonoBehaviour
@@ -110,11 +111,12 @@ public class GarbageCubeCtrl : MonoBehaviour
     /// </summary>
     internal static GameObject SpawnGarbageCube(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
     {
-        // PrefabManagerが利用可能な場合はそちらを使用、なければResourcesから読み込み
+        // PrefabManagerから取得
         GameObject prefab = PrefabManager.GarbageCubePrefab;
         if (prefab == null)
         {
-            prefab = Resources.Load<GameObject>("Prefabs/WorkUnit/GarbageCube");
+            Debug.LogWarning("GarbageCube prefab not found in PrefabManager");
+            return null;
         }
         prefab.transform.localScale = GetLocalScale(sizeFlag);
         Vector3 setPoint = spawnPoint;

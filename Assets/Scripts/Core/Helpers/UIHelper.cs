@@ -197,12 +197,10 @@ public static class UIHelper
     
     /// <summary>
     /// GameObjectを検索し、見つからない場合はPrefabから生成する
+    /// 注: このメソッドは FindAndSetupPanel などの使用を推奨
+    /// 新しいプレハブは PrefabManager に登録してください
     /// </summary>
-    /// <param name="objectName">検索するGameObjectの名前</param>
-    /// <param name="prefabPath">Prefabのリソースパス（Resources.Loadで使用）</param>
-    /// <param name="missingObjects">見つからないオブジェクトを追加するリスト</param>
-    /// <param name="setActiveFalse">生成後にSetActive(false)を実行する場合はtrue</param>
-    /// <returns>見つかったまたは生成されたGameObject、失敗した場合はnull</returns>
+    [System.Obsolete("FindOrInstantiatePrefab is deprecated. Use PrefabManager.GetPrefab() with FindAndSetupPanel instead.")]
     public static GameObject FindOrInstantiatePrefab(string objectName, string prefabPath, List<string> missingObjects, bool setActiveFalse = false)
     {
         GameObject obj = GameObject.Find(objectName);

@@ -161,7 +161,7 @@ public class TitleStartController : MonoBehaviour
         }
         
         string fileName = LoadStreamingAsset.GetYamlFileName(component.text);
-        LogUtility.Debug("OnClickStageEdit: " + fileName);
+        Debug.Log("OnClickStageEdit: " + fileName);
         string text = LoadStreamingAsset.AllTextStream(fileName);
         if (text == null)
         {
@@ -213,7 +213,7 @@ public class TitleStartController : MonoBehaviour
         }
         else
         {
-            LogUtility.Warning(_MSG_SCENE_PATH_NOT_FOUND + text);
+            Debug.LogWarning(_MSG_SCENE_PATH_NOT_FOUND + text);
         }
     }
 
@@ -224,11 +224,11 @@ public class TitleStartController : MonoBehaviour
         string text = LoadStreamingAsset.AllTextStream(LoadStreamingAsset.ABOUT_GAME_FILE_NAME, LoadStreamingAsset._PUBLIC_DOC_SUB_FOLDER);
         if (text == null)
         {
-            LogUtility.Warning(_MSG_ABOUT_GAME_NOT_FOUND);
+            Debug.LogWarning(_MSG_ABOUT_GAME_NOT_FOUND);
             component.text = _MSG_ABOUT_GAME_ERROR;
             return;
         }
-        LogUtility.Debug(_MSG_ABOUT_GAME_LOADED);
+        Debug.Log(_MSG_ABOUT_GAME_LOADED);
         component.text = text;
         UIHelper.ResetScrollbarInPanel(_pnlAboutThisGame);
     }
@@ -240,11 +240,11 @@ public class TitleStartController : MonoBehaviour
         string text = LoadStreamingAsset.AllTextStream(fileName, LoadStreamingAsset._PUBLIC_DOC_SUB_FOLDER);
         if (text == null)
         {
-            LogUtility.Warning(notFoundMessage);
+            Debug.LogWarning(notFoundMessage);
             textComponent.text = errorMessage;
             return;
         }
-        LogUtility.Debug(loadedMessage);
+        Debug.Log(loadedMessage);
         textComponent.text = text;
     }
 
@@ -273,7 +273,7 @@ public class TitleStartController : MonoBehaviour
 
     private void OnClickBugReport()
     {
-        LogUtility.Debug(_MSG_BUG_REPORT_LOG + _BUG_REPORT_URL);
+        Debug.Log(_MSG_BUG_REPORT_LOG + _BUG_REPORT_URL);
         Application.OpenURL(_BUG_REPORT_URL);
     }
 
@@ -307,10 +307,18 @@ public class TitleStartController : MonoBehaviour
         InitializeNotice(missingObjects);
         CheckMissingObjects(missingObjects);
     }
-
     private void InitializeLoadingCanvas(List<string> missingObjects)
     {
-        _loading = UIHelper.FindOrInstantiatePrefab("nowloading", UIHelper.PREFAB_PATH_LOADING, missingObjects, setActiveFalse: true);
+        GameObject loadingPrefab = PrefabManager.NowLoadingPrefab;
+        if (loadingPrefab == null)
+        {
+            Debug.LogWarning("NowLoading prefab not found in PrefabManager");
+            missingObjects.Add("nowloading");
+            return;
+        }
+        _loading = UnityEngine.Object.Instantiate(loadingPrefab);
+        _loading.name = "nowloading";
+        _loading.SetActive(false);
     }
 
     private void InitializePanels(List<string> missingObjects)
@@ -372,10 +380,10 @@ public class TitleStartController : MonoBehaviour
     {
         if (missingObjects.Count > 0)
         {
-            LogUtility.Error("=== 以下のGameObjectがシーンに存在しません ===");
+            Debug.LogError("=== 以下のGameObjectがシーンに存在しません ===");
             foreach (string objName in missingObjects)
             {
-                LogUtility.Error("  - " + objName);
+                Debug.LogError("  - " + objName);
             }
         }
     }

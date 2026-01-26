@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using CommonsUtility;
@@ -51,7 +52,13 @@ public class TowerSweeper : MonoBehaviour
         this.GetComponent<Sweeper>()._unit_struct.UnitID = this.name;
 
         this.transform.position = setPoint;
-        GameObject TowerDock = Instantiate(Resources.Load("Prefabs/WorkUnit/TowerDock")) as GameObject;
+        GameObject TowerDockPrefab = PrefabManager.TowerDockPrefab;
+        if (TowerDockPrefab == null)
+        {
+            Debug.LogWarning("TowerDock prefab not found in PrefabManager");
+            return;
+        }
+        GameObject TowerDock = Instantiate(TowerDockPrefab);
         setPoint.x = setPoint.x + this.transform.localScale.x / 2 + 0.1f;
         TowerDock.transform.position = setPoint;
         TowerDock.tag = GameEnum.TagType.TowerDock.ToString();

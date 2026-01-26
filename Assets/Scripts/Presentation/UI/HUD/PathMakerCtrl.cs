@@ -1,6 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 using UnityEngine.AI;
 
 /// <summary>
