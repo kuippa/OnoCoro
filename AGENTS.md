@@ -791,12 +791,49 @@ When adding a new file, verify:
 **Session**: Continuous (AGENTS.md, coding-standards.md loaded)
 ```
 
+### Markdown ドキュメント作成時の注意事項
+
+**重要**: Markdown ファイル（.md）を作成・更新する際は、**絵文字を極力使用しないこと**
+
+**理由**:
+- Unicode 絵文字（U+1F***など）はサーバー側でエンコーディングエラーを引き起こす可能性が高い
+- クライアント・サーバー間の文字化けにより、ファイル更新が 502 エラーで失敗することがある
+- 特に CI/CD パイプラインやファイルアップロード処理で問題が発生しやすい
+
+**推奨される記法**:
+- [OK] 、 [NOTE] 、 [NG] などの ASCII テキスト表記を使用
+- 箇条書きには `-` 、 `*` を使用
+- 強調は **太字** や `コード` を活用
+
+**使用を避けるべき絵文字の例**:
+- ✅ (U+2705) → [OK] に置き換え
+- ❌ (U+274C) → [NG] に置き換え
+- ⚠️ (U+26A0+FE0F) → [NOTE] に置き換え
+- 📋 (U+1F4CB) → 削除またはテキスト説明で対応
+- 📍 (U+1F4CD) → 削除またはテキスト説明で対応
+
+**ファイル更新テンプレート例** (yaml-specification.md より):
+```markdown
+## イベントタイプ一覧
+
+### [OK] 実装済みイベントタイプ（EventLoader で処理）
+
+| イベント | パラメータ | 状態 |
+|---------|----------|------|
+| `weather` | weather_type, ... | [OK] |
+| `volcano` | - | [NOTE] 未実装 |
+
+**実装上の特性**:
+- [OK] 値は文字列として保存
+- [NOTE] スポーン設定は未定義
+```
+
 ### Windows PowerShell Environment
 
 **REQUIRED**: This is a Windows-only project
 
-- ✅ **Allowed**: PowerShell cmdlets
-- ❌ **Forbidden**: Linux/macOS bash commands
+- [OK] **Allowed**: PowerShell cmdlets
+- [NG] **Forbidden**: Linux/macOS bash commands
 
 | Linux/macOS | Windows PowerShell |
 |-------------|-------------------|
