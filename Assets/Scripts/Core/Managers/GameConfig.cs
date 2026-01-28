@@ -30,6 +30,9 @@ namespace CommonsUtility
         // internal static string LogFilePath => UnityEngine.Application.persistentDataPath;
        internal static string LogFilePath = "G:\\log";
 
+        // リソースパス設定（実行時に変更可能）
+        internal static string CursorIconPath { get; set; } = GlobalConst.CURSOR_ICON_PATH;
+
 
 
         // public static bool eventWholeAction = false;   // 全体イベント実行中

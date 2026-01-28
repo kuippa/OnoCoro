@@ -18,7 +18,7 @@ namespace CommonsUtility
 
         internal static string GetAppVersion()
         {
-            TextAsset versiontxt = Resources.Load<TextAsset>("BuildDate");
+            TextAsset versiontxt = TextAssetLoader.LoadTextAsset(GlobalConst.BUILDDATE_RESOURCE_PATH);
             if (versiontxt == null)
             {
                 return "BuildDate: null";

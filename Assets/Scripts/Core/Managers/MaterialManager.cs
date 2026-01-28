@@ -1,31 +1,41 @@
 using UnityEngine;
+using CommonsUtility;
+using System.Collections.Generic;
 
-public class MaterialManager
+namespace CommonsUtility
 {
-    private static Material _material_BG_Green;
-    private static Material _material_BG_RED;
-
-    internal static Material Material_BG_Green
+    /// <summary>
+    /// マテリアルリソース管理クラス
+    /// Materials フォルダ配下のマテリアルをキャッシュして提供します
+    /// </summary>
+    internal static class MaterialManager
     {
-        get
-        {
-            if (_material_BG_Green == null)
-            {
-                _material_BG_Green = Resources.Load<Material>("Materials/BG_Green");
-            }
-            return _material_BG_Green;
-        }
-    }
+        private static readonly Dictionary<string, Material> _materialCache = 
+            new Dictionary<string, Material>();
 
-    internal static Material Material_BG_RED
-    {
-        get
+        /// <summary>
+        /// リソースパスからマテリアルを取得（キャッシュ機構あり）
+        /// </summary>
+        private static Material GetMaterial(string resourcePath)
         {
-            if (_material_BG_RED == null)
+            if (!_materialCache.ContainsKey(resourcePath) || _materialCache[resourcePath] == null)
             {
-                _material_BG_RED = Resources.Load<Material>("Materials/BG_RED");
+                Material material = Resources.Load<Material>(resourcePath);
+                if (material != null)
+                {
+                    _materialCache[resourcePath] = material;
+                }
+                else
+                {
+                    Debug.LogWarning($"[MaterialManager] Failed to load material: {resourcePath}");
+                }
             }
-            return _material_BG_RED;
+            return _materialCache[resourcePath];
         }
+
+        // プロパティ定義は 1 行で完結
+        internal static Material BGGreen => GetMaterial(GlobalConst.MATERIAL_BG_GREEN_PATH);
+        internal static Material BGRed => GetMaterial(GlobalConst.MATERIAL_BG_RED_PATH);
+        internal static Material PlateauGenericWood => GetMaterial(GlobalConst.MATERIAL_PLATEAU_GENERIC_WOOD_PATH);
     }
 }

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
+using CommonsUtility;
 
 public class XMLparser : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class XMLparser : MonoBehaviour
     private void ReadBuildingXML()
     {
         _buildingUsageDict.Clear();
-        TextAsset xml = Resources.Load<TextAsset>("xml/Building_usage");
+        TextAsset xml = TextAssetLoader.LoadTextAsset(GlobalConst.BUILDING_USAGE_XML_PATH);
         // ex.
         // <gml:Dictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" xsi:schemaLocation="http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/profiles/SimpleDictionary/1.0.0/gmlSimpleDictionaryProfile.xsd" gml:id="cl_6c44d07d-ac62-4a3f-abd2-81da7943a50b">
         // <gml:name>Building_usage</gml:name>

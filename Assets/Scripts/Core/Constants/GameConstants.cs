@@ -54,6 +54,23 @@ namespace CommonsUtility
         // ログファイル設定
         internal const string _LOG_FILE_NAME = "onocoro.log";  // YYYYMMDDonocoro.log の形式になる
 
+        // リソースパス - UI アイコン（Texture）
+        // internal const string CURSOR_ICON_PATH = "imgs/icons/iconaddedlocal";  // カーソルアイコン
+        internal const string CURSOR_ICON_PATH = "";  // カーソルアイコン（なし）
+
+        // リソースパス - TextAsset
+        internal const string BUILDDATE_RESOURCE_PATH = "BuildDate";  // ビルド日時テキスト（Resources相対パス）
+        // internal const string BUILDDATE_FILE_PATH = "Assets/Resources/BuildDate.txt";  // ビルド日時テキスト（ファイルシステムパス）
+        internal const string BUILDING_USAGE_XML_PATH = "xml/Building_usage";  // 建物用途定義XML
+
+        // リソースパス - Material
+        internal const string MATERIAL_BG_GREEN_PATH = "Materials/BG_Green";  // 背景用マテリアル（緑）
+        internal const string MATERIAL_BG_RED_PATH = "Materials/BG_RED";  // 背景用マテリアル（赤）
+        internal const string MATERIAL_PLATEAU_GENERIC_WOOD_PATH = "Materials/PlateauGenericWood";  // PLATEAU汎用木材マテリアル
+
+        // リソースパス - UI Prefab
+        internal const string UI_BUILDING_INFO_PREFAB_PATH = "Prefabs/UI/UIBuildingInfo";  // 建物情報UI
+
 
 
 

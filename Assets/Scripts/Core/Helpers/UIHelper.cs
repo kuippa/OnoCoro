@@ -11,9 +11,6 @@ using Debug = UnityEngine.Debug;
 /// </summary>
 public static class UIHelper
 {
-    // Prefab Paths
-    public const string PREFAB_PATH_LOADING = "Prefabs/UI/nowloading";
-    
     private const float SCROLLBAR_TOP_VALUE = 1f;
     
     /// <summary>
@@ -193,39 +190,5 @@ public static class UIHelper
     public static TMPro.TextMeshProUGUI FindTextComponent(string objectName, List<string> missingObjects, string objectType = "Text", GameObject parent = null)
     {
         return FindAndGetComponent<TMPro.TextMeshProUGUI>(objectName, missingObjects, objectType, parent);
-    }
-    
-    /// <summary>
-    /// GameObjectを検索し、見つからない場合はPrefabから生成する
-    /// 注: このメソッドは FindAndSetupPanel などの使用を推奨
-    /// 新しいプレハブは PrefabManager に登録してください
-    /// </summary>
-    [System.Obsolete("FindOrInstantiatePrefab is deprecated. Use PrefabManager.GetPrefab() with FindAndSetupPanel instead.")]
-    public static GameObject FindOrInstantiatePrefab(string objectName, string prefabPath, List<string> missingObjects, bool setActiveFalse = false)
-    {
-        GameObject obj = GameObject.Find(objectName);
-        if (obj == null)
-        {
-            GameObject prefab = Resources.Load<GameObject>(prefabPath);
-            if (prefab != null)
-            {
-                obj = UnityEngine.Object.Instantiate(prefab);
-                obj.name = objectName;
-                Debug.Log($"Instantiated {objectName} from prefab: {prefabPath}");
-            }
-            else
-            {
-                Debug.LogError($"Prefab not found: {prefabPath}");
-                missingObjects.Add($"{objectName} [Prefab: {prefabPath}]");
-                return null;
-            }
-        }
-        
-        if (setActiveFalse)
-        {
-            obj.SetActive(false);
-        }
-        
-        return obj;
     }
 }

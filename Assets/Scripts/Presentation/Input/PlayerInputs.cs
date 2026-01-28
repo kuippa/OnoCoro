@@ -35,16 +35,20 @@ namespace StarterAssets
 		public void OnMove(InputValue value)
 		{
 			// 他の移動キーを押しながら移動中にさらに呼び出された場合
-			SetCursorPointer(false);
+			CursorManager.SetCursorLockMode(false);
 			MoveInput(value.Get<Vector2>());
 		}
 
 		public void OnLook(InputValue value)
 		{
-			// todo マウスが動くたびに呼ばれているのでコール制限をかける
-
-			// Debug.Log("Look");
-			SetCursorPointer(true);
+			CursorManager.SetCursorLockMode(true);
+			// マウスカーソルがゲーム画面外の場合は LookInput を発火させない
+			if (!IsMouseInGameWindow())
+			{
+				LookInput(Vector2.zero);  // 前フレームの入力値をクリア
+				return;
+			}
+			
 			if(!_TabMenuOpen && !_EscMenuOpen)
 			{
 				LookInput(value.Get<Vector2>());
@@ -120,61 +124,6 @@ namespace StarterAssets
 			_sprint = newSprintState;
 		}
 
-		// private void OnApplicationFocus(bool hasFocus)
-		// {
-		// 	// SetCursorState(hasFocus?!_cursorLocked:_cursorLocked);
-		// 	SetCursorState(hasFocus);
-		// }
-
-		// void OnApplicationPause(bool pauseStatus)
-		// {
-		// 	Debug.Log("OnApplicationPause");
-		// 	// isPaused = pauseStatus;
-		// }		
-
-		// private void SetCursorState(bool newState)
-		// {
-		// 	// Cursor.lockState = newState ? CursorLockMode.None : CursorLockMode.Locked;
-		// 	Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
-		// 	// Cursor.lockState = CursorLockMode.None;		// カーソルの動作を変更させません。
-		// 	// Cursor.lockState = CursorLockMode.Locked;	// カーソルが消える(ゲームウィンドウの中央にカーソルをロックします。)			
-		// 	// Cursor.lockState = CursorLockMode.Confined;		// カーソルがゲーム内からでれなくなる カーソルをゲーム内のみ表示させます。
-		// }
-
-		private void SetCursorPointer(bool newState)
-		{
-			CursorLockMode lockMode;
-			// Cursor.lockState = newState ? CursorLockMode.Confined : CursorLockMode.Locked;
-			lockMode = newState ? CursorLockMode.None : CursorLockMode.Locked;
-
-			// 複数のキーを押しながら移動など多重呼び出しを回避するため
-			if (Cursor.lockState == lockMode)
-			{
-				return;
-			}
-			Cursor.lockState  = lockMode;
-		}
-
-		private void ChangeMousePointer()
-		{
-    		Texture2D cursorTexture;
-    		CursorMode cursorMode = CursorMode.Auto;	// プラットフォームがサポートしているハードウェアカーソルを使用します
-			// CursorMode cursorMode = CursorMode.ForceSoftware;		//ソフトウェアカーソルを使用します
-    		Vector2 hotSpot = Vector2.zero;	// マウスポインター位置を
-			// cursorTexture = Resources.Load<Texture2D>("imgs/icons/test");
-			cursorTexture = Resources.Load<Texture2D>("imgs/icons/iconaddedlocal");
-			// TODO:: 使える画像とそうでないのがある。
-			// SVG com.unity.vectorgraphics 入れてみたけど、まだうまくうごかない
-
-			// GameObject instance = Instantiate(Resources.Load("enemy", typeof(GameObject))) as GameObject;
-			// Addressables.LoadAssetAsync<GameObject>("ExamplePrefab");
-			if (Cursor.lockState != CursorLockMode.Locked)
-			{
-				Debug.Log("Cursor.SetCursor");
-				Cursor.SetCursor(cursorTexture, hotSpot, cursorMode);
-			}
-		}
-
 		public void OnEscMenu(InputValue value)
 		{
             GameObject esc_menu = GameObject.Find("UIEscMenu");
@@ -244,10 +193,25 @@ namespace StarterAssets
 			ItemAction.SelectItem(number);
 		}
 
+		/// <summary>
+		/// マウスカーソルがゲーム画面内にあるかチェック
+		/// </summary>
+		private bool IsMouseInGameWindow()
+		{
+			Vector3 mousePos = Input.mousePosition;
+			
+			// マウス位置がスクリーン座標の範囲内にあるか確認
+			bool isInBounds = mousePos.x >= 0 && mousePos.x <= Screen.width &&
+							  mousePos.y >= 0 && mousePos.y <= Screen.height;
+			
+			return isInBounds;
+		}
+
 #endif
 		public void Awake()
 		{
-			// initMousePointer();
+			// カーソル管理の初期化
+			CursorManager.Initialize();
 		}
 
 

@@ -95,11 +95,11 @@ public class EnemyLitter : MonoBehaviour
         // 複数箇所からの監視カウントが1以上なら赤色、それ以外は緑色
         if (_numberOfMonitoring > 0)
         {
-            headRenderer.material = MaterialManager.Material_BG_RED;
+            headRenderer.material = MaterialManager.BGRed;
         }
         else
         {
-            headRenderer.material = MaterialManager.Material_BG_Green;
+            headRenderer.material = MaterialManager.BGGreen;
         }
     }
 

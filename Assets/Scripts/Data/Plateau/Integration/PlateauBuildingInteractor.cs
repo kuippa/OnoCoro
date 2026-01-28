@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public class PlateauBuildingInteractor : MonoBehaviour
 {
@@ -66,7 +68,7 @@ public class PlateauBuildingInteractor : MonoBehaviour
 
     private IEnumerator ApplyDoomMaterialCoroutine(GameObject building)
     {
-        Material source = Resources.Load("Materials/PlateauGenericWood") as Material;
+        Material source = MaterialManager.PlateauGenericWood;
         Renderer component = building.GetComponent<Renderer>();
         building.GetComponentsInChildren<Renderer>();
         if (component != null)

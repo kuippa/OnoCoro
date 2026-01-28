@@ -4,6 +4,7 @@ using UnityEditor.Callbacks;
 using System.IO;
 using System.Text;
 using System;
+// using CommonsUtility;
 
 // コンパイルエラーになるのでビルド時にはEditor下フォルダに配置する
 namespace PostProcessBuild

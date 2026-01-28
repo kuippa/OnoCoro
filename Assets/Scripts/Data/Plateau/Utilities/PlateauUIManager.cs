@@ -91,7 +91,13 @@ public class PlateauUIManager : MonoBehaviour
         GameObject infoBox = GameObject.Find("UIBuildingInfo");
         if (infoBox == null)
         {
-            infoBox = Instantiate(Resources.Load("Prefabs/UI/UIBuildingInfo") as GameObject);
+            GameObject prefab = PrefabManager.UIBuildingInfoPrefab;
+            if (prefab == null)
+            {
+                Debug.LogWarning("[PlateauUIManager] UIBuildingInfo prefab not found");
+                return null;
+            }
+            infoBox = Instantiate(prefab);
             infoBox.name = "UIBuildingInfo";
             _plateauInfoManager = this.gameObject.GetComponent<PlateauInfoManager>();
             _plateauInfoManager.InitPlateauInfoWindow();

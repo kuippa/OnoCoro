@@ -34,6 +34,7 @@ public class PrefabManager
 		
 		// UI
 		UIStageInfoBox,
+		UIBuildingInfo,
 		UIToolTips,
 		ItemHolder,
 		NowLoading
@@ -68,6 +69,7 @@ public class PrefabManager
 		
 		// UI
 		{ PrefabType.UIStageInfoBox, "Prefabs/UI/UIStageInfoBox" },
+		{ PrefabType.UIBuildingInfo, "Prefabs/UI/UIBuildingInfo" },
 		{ PrefabType.UIToolTips, "Prefabs/UI/UIToolTips" },
 		{ PrefabType.ItemHolder, "Prefabs/UI/Item_holder" },
 		{ PrefabType.NowLoading, "Prefabs/UI/nowloading" }
@@ -117,6 +119,7 @@ public class PrefabManager
 
 	// 後方互換性のためのプロパティ（既存コードとの互換性維持）
 	internal static GameObject UIStageInfoBoxPrefab => GetPrefab(PrefabType.UIStageInfoBox);
+	internal static GameObject UIBuildingInfoPrefab => GetPrefab(PrefabType.UIBuildingInfo);
 	internal static GameObject GarbageCubePrefab => GetPrefab(PrefabType.GarbageCube);
 	internal static GameObject RainDropPrefab => GetPrefab(PrefabType.RainDrop);
 	internal static GameObject PuddlePrefab => GetPrefab(PrefabType.Puddle);
