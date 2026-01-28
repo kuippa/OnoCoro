@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using CommonsUtility;
 using TMPro;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.InputSystem;
 using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
 
-public class InfoWindowCtrl : MonoBehaviour
+public class InfoWindowCtrl : UIControllerBase
 {
     // public static InfoWindowCtrl instance = null;
     private GameObject _infoWindow = null;
@@ -307,12 +308,14 @@ public class InfoWindowCtrl : MonoBehaviour
         return unitStruct;
     }
 
-    void Awake()
+    protected override void Awake()
     {
-        // Debug.Log("InfoWindowCtrl Awake");
+        base.Awake();
         InitWindow();
-        #if UNITY_EDITOR
-        // debugPreview();
-        #endif
+    }
+
+    protected override IEnumerator Initialize()
+    {
+        yield return null;
     }
 }

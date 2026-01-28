@@ -7,14 +7,24 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using CommonsUtility;
 
-public class EscMenuCtrl : MonoBehaviour
+/// <summary>
+/// ESC メニューコントローラー
+/// UIControllerBase を継承し、初期化フラグで状態を管理
+/// </summary>
+public class EscMenuCtrl : UIControllerBase
 {
     private GameObject _esc_menu_window = null;
     private GameObject _environment = null;
     private GameTimerCtrl _gameTimerCtrl = null;
 
-    void Awake()
+    /// <summary>
+    /// 参照取得とメニュー初期非表示（元の Awake パターンを復帰）
+    /// 初期化タイミングの問題を確認するため
+    /// </summary>
+    protected override void Awake()
     {
+        base.Awake();
+        
         _environment = GameObject.Find("Environment").gameObject;
         if (_environment == null)
         {
@@ -27,10 +37,30 @@ public class EscMenuCtrl : MonoBehaviour
             _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
         }
 
-        // menuWindowを非表示にする
+        // menuWindow 参照取得
         _esc_menu_window = this.gameObject.transform.Find("menuWindow").gameObject;
+        
+        // [重要] メニュー初期非表示を Awake で実行（元の実装）
         ToggleEscMenuWindow(false);
+    }
 
+    /// <summary>
+    /// Initialize コルーチン - ボタンリスナー設定のみ
+    /// </summary>
+    protected override IEnumerator Initialize()
+    {
+        // [重要] ボタン設定を Initialize() に移動（非同期対応）
+        SetupButtonListeners();
+        
+        yield return null;
+    }
+
+    /// <summary>
+    /// ボタンリスナー設定
+    /// Initialize() コルーチンから呼び出される
+    /// </summary>
+    private void SetupButtonListeners()
+    {
         GameObject txtBackToGame = this.gameObject.transform.Find("menuWindow/txtBackToGame").gameObject;
         if (txtBackToGame != null)
         {
@@ -58,7 +88,6 @@ public class EscMenuCtrl : MonoBehaviour
             Button btn = txtOptions.GetComponent<Button>();
             btn.onClick.AddListener(OnClickOptions);
         }
-
     }
 
     public void OnClickOptions()
@@ -66,17 +95,18 @@ public class EscMenuCtrl : MonoBehaviour
         // オプション画面を呼び出す
         // TODO:
         // UnityEngine.SceneManagement.SceneManager.LoadScene("OptionScene");
+        Debug.Log("OnClickOptions:: これはまだ未実装です");
         ToggleEscMenuWindow(false);
-
+        EventSystem.current.SetSelectedGameObject(null);
     }    
 
     public void OnClickBackToTitle()
     {
         // タイトル画面に戻る
         // TODO:
-        // UnityEngine.SceneManagement.SceneManager.LoadScene("TitleScene");
-        Debug.Log("OnClickBackToTitle:: これはまだ未実装です");
+        SceneLoaderManager.LoadScene(SceneLoaderManager.LoadSceneName.TitleScene.ToString());
         ToggleEscMenuWindow(false);
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     public void OnClickBackToWindows()
@@ -90,6 +120,7 @@ public class EscMenuCtrl : MonoBehaviour
     public void OnClickBackToGame()
     {
         ToggleEscMenuWindow(false);
+        EventSystem.current.SetSelectedGameObject(null);
     }
 
     public bool GetEscMenuWindowStatus()
@@ -131,9 +162,9 @@ public class EscMenuCtrl : MonoBehaviour
         if (_gameTimerCtrl != null)
         {
             _gameTimerCtrl._isPaused = isOn;
+            Debug.Log("_gameTimerCtrl._isPaused" + isOn);
         }
 
-        // Debug.Log("ToggleEscMenuWindow:" + isOn + Time.timeScale);
     }
 
     

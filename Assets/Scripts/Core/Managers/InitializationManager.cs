@@ -1,64 +1,122 @@
 using System.Collections;
 using System.Collections.Generic;
+using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// コンポーネント初期化の順序制御を行うマネージャー
+
+/// Unity Editor メニュー → Edit (編集) → Project Settings (プロジェクト設定)
+///  → Script Execution Order で -10 に設定。スクリプト中最優先で呼び出される。
+/// 
 /// 全ての Awake が完了した後に、制御された順序で初期化を実行します。
 /// 
-/// 使用方法:
-/// 1. シーンに空のGameObjectを作成し、このスクリプトをアタッチ
-/// 2. Script Execution Orderで最優先(-100など)に設定することを推奨
-/// 3. 各コンポーネントで IsInitialized フラグを待機して処理を開始
+/// GamePrefabs（親オブジェクト）からの準備完了通知を受け取り、
+/// EventLoader / YamlLoader などの依存コンポーネントに伝播させます。
 /// 
-/// 詳細は InitializationManager_Usage.md を参照してください。
+/// 使用方法:
+/// 1. GamePrefabs オブジェクト（シーンに配置済み）にこのスクリプトをアタッチ
+/// 2. Script Execution Orderで最優先(-100)に設定
+/// 3. GamePrefabs の準備完了後、NotifyGamePrefabsReady() を手動呼び出しするか、
+///    親オブジェクトの OnEnable() 後に自動呼び出し
+/// 4. 各コンポーネントで IsInitialized フラグを待機して処理を開始
+/// 5. EventLoader / YamlLoader は OnGamePrefabsReady を購読
+/// 
+/// 詳細は InitializationManager_Usage.md / phase-1-5-initialization-order-design.md を参照
 /// </summary>
-public class InitializationManager : MonoBehaviour
+internal class InitializationManager : MonoBehaviour
 {
-    private static InitializationManager instance;
+    private static InitializationManager _instance;
     
     /// <summary>
-    /// 初期化が完了したかどうか
+    /// 全初期化が完了したかどうか
     /// </summary>
-    private bool isInitialized = false;
+    private bool _isInitialized = false;
+    
+    /// <summary>
+    /// GamePrefabs の準備が完了したかどうか
+    /// EventLoader / YamlLoader がこのフラグを確認して処理開始
+    /// </summary>
+    private static bool _isGamePrefabsReady = false;
     
     /// <summary>
     /// 各ステップの初期化状態
     /// </summary>
-    private Dictionary<string, bool> initializationSteps = new Dictionary<string, bool>();
+    private Dictionary<string, bool> _initializationSteps = new Dictionary<string, bool>();
     
     /// <summary>
-    /// 初期化が完了しているか
+    /// GamePrefabs 準備完了イベント
+    /// EventLoader / YamlLoader はこのイベントを購読
     /// </summary>
-    public static bool IsInitialized => instance != null && instance.isInitialized;
+    internal static event System.Action OnGamePrefabsReady;
+    
+    /// <summary>
+    /// 全初期化が完了しているか
+    /// </summary>
+    internal static bool IsInitialized => _instance != null && _instance._isInitialized;
+    
+    /// <summary>
+    /// GamePrefabs が準備完了しているか
+    /// </summary>
+    internal static bool IsGamePrefabsReady => _isGamePrefabsReady;
     
     /// <summary>
     /// シングルトンインスタンスの取得
     /// </summary>
-    public static InitializationManager Instance => instance;
+    internal static InitializationManager Instance => _instance;
     
     /// <summary>
     /// 特定のステップが初期化完了しているか確認
     /// </summary>
     /// <param name="stepName">ステップ名</param>
     /// <returns>初期化完了している場合はtrue</returns>
-    public static bool IsStepInitialized(string stepName)
+    internal static bool IsStepInitialized(string stepName)
     {
-        if (instance == null) return false;
-        return instance.initializationSteps.ContainsKey(stepName) && instance.initializationSteps[stepName];
+        if (_instance == null)
+        {
+            return false;
+        }
+        
+        return _instance._initializationSteps.ContainsKey(stepName) 
+            && _instance._initializationSteps[stepName];
+    }
+    
+    /// <summary>
+    /// GamePrefabs が準備完了したことを通知
+    /// GamePrefabs.cs から呼び出される
+    /// </summary>
+    internal static void NotifyGamePrefabsReady()
+    {
+        _isGamePrefabsReady = true;
+        Debug.Log("[InitializationManager] GamePrefabs 初期化完了 - Event 発火");
+        OnGamePrefabsReady?.Invoke();
+    }
+    
+    /// <summary>
+    /// GamePrefabs の準備完了を確認（安全弁）
+    /// まだ初期化されていない場合は例外を投げる
+    /// </summary>
+    internal static void WaitForGamePrefabsReady()
+    {
+        if (!_isGamePrefabsReady)
+        {
+            throw new System.InvalidOperationException(
+                "[InitializationManager] GamePrefabs がまだ初期化されていません");
+        }
     }
     
     private void Awake()
     {
         // シングルトンパターン
-        if (instance == null)
+        if (_instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
+            _instance = this;
+            DontDestroyOnLoad(this.gameObject);
         }
-        else if (instance != this)
+        else if (_instance != this)
         {
-            Destroy(gameObject);
+            Destroy(this.gameObject);
             return;
         }
         
@@ -66,96 +124,117 @@ public class InitializationManager : MonoBehaviour
         RegisterInitializationSteps();
     }
     
+    /// <summary>
+    /// 初期化ステップの登録
+    /// </summary>
     private void RegisterInitializationSteps()
     {
-        // 必要な初期化ステップをここに登録
-        // 例: initializationSteps["ResourceLoader"] = false;
-        //     initializationSteps["AudioManager"] = false;
-        //     initializationSteps["GameManager"] = false;
+        // Phase 1.5: GamePrefabs初期化レース条件の修正に特化
+        // EventLoader/YamlLoader が GamePrefabs 準備完了まで待機する仕組み
+        _initializationSteps["EventLoader"] = false;
+        _initializationSteps["YamlLoader"] = false;
     }
     
     private IEnumerator Start()
     {
         // 全ての Awake が完了するまで1フレーム待機
-        // これにより、全てのMonoBehaviourのAwakeメソッドが確実に実行される
         yield return null;
+        
+        Debug.Log("[InitializationManager] 初期化開始");
+        
+        // GamePrefabs（親オブジェクト）が準備完了したことを通知
+        // このタイミングで EventLoader / YamlLoader が起動可能に
+        NotifyGamePrefabsReady();
         
         // 順序制御された初期化処理を実行
         yield return InitializeAllComponents();
         
-        // 初期化完了フラグを立てる
-        isInitialized = true;
-        
+        // 全初期化完了フラグを立てる
+        _isInitialized = true;
         Debug.Log("[InitializationManager] 全ての初期化が完了しました");
     }
     
     /// <summary>
     /// 全てのコンポーネントを順序制御して初期化
+    /// GamePrefabs の準備完了後、その他のコンポーネント初期化を進める
     /// </summary>
     private IEnumerator InitializeAllComponents()
     {
-        // ステップ1: リソース読み込み系の初期化
+        // ステップ1: リソース読み込み系の初期化（必要に応じて）
         yield return InitializeResourceLoaders();
         
-        // ステップ2: マネージャークラスの初期化
+        // ステップ2: マネージャークラスの初期化（FireCubeCtrl など）
         yield return InitializeManagers();
         
-        // ステップ3: UI系の初期化
+        // ステップ3: UI系の初期化（Phase 1.4 で実装）
         yield return InitializeUIComponents();
-        
-        // 必要に応じてステップを追加
     }
     
     /// <summary>
     /// リソースローダーの初期化
+    /// 現在は最小限（EventLoader/YamlLoader が別途管理）
     /// </summary>
     private IEnumerator InitializeResourceLoaders()
     {
-        Debug.Log("[InitializationManager] リソースローダーを初期化中...");
-        
-        // 例: ResourceLoaderの初期化
-        // ResourceLoader loader = FindObjectOfType<ResourceLoader>();
-        // if (loader != null)
-        // {
-        //     yield return loader.Initialize();
-        //     MarkStepAsInitialized("ResourceLoader");
-        // }
-        
+        Debug.Log("[InitializationManager] リソース初期化中...");
         yield return null;
     }
     
     /// <summary>
     /// 各種マネージャークラスの初期化
+    /// Phase 1.5 では GamePrefabs のコントローラーを動的に検出・監視
+    /// 
+    /// 動的管理により：
+    /// - 新規コントローラー追加時に InitializationManager を修正不要
+    /// - コントローラー削除時に自動的に反映
+    /// - GetComponentsInChildren で実行時に検出
     /// </summary>
     private IEnumerator InitializeManagers()
     {
-        Debug.Log("[InitializationManager] マネージャーを初期化中...");
+        Debug.Log("[InitializationManager] GamePrefabs のコントローラーを自動検出");
         
-        // 例: GameManagerの初期化
-        // GameObject gameManagerObj = GameObjectTreat.GetGameManagerObject();
-        // if (gameManagerObj != null)
-        // {
-        //     // 必要なコンポーネントの初期化を待つ
-        //     var ctrl = gameManagerObj.GetComponent<SomeCtrl>();
-        //     if (ctrl != null)
-        //     {
-        //         yield return new WaitUntil(() => ctrl.IsInitialized);
-        //         MarkStepAsInitialized("GameManager");
-        //     }
-        // }
+        // GamePrefabs オブジェクト取得
+        // GameObjectTreat は Presentation/View にあるため注意
+        GameObject gamePrefabsObj = GameObjectTreat.GetGameManagerObject();
+        if (gamePrefabsObj == null)
+        {
+            Debug.LogWarning("[InitializationManager] GamePrefabs が見つかりません");
+            yield break;
+        }
         
-        yield return null;
+        // [1] IInitializable を実装したすべてのコンポーネントを検出
+        // GetComponentsInChildren は Awake 完了後であれば確実に検出可能
+        IInitializable[] controllers = gamePrefabsObj.GetComponentsInChildren<IInitializable>();
+        
+        if (controllers.Length == 0)
+        {
+            Debug.LogWarning("[InitializationManager] IInitializable を実装したコンポーネントがありません");
+            yield break;
+        }
+        
+        Debug.Log($"[InitializationManager] {controllers.Length} 個のコントローラーを検出しました");
+        
+        // [2] 各コントローラーの初期化完了を個別に監視
+        foreach (IInitializable controller in controllers)
+        {
+            // 個別に初期化完了を待機
+            yield return new WaitUntil(() => controller.IsInitialized);
+            
+            string componentName = controller.GetComponentName();
+            MarkStepAsInitialized(componentName);
+            Debug.Log($"[InitializationManager] [OK] {componentName} 初期化完了");
+        }
+        
+        Debug.Log("[InitializationManager] すべてのコントローラー初期化完了");
     }
     
     /// <summary>
     /// UIコンポーネントの初期化
+    /// Phase 1.4 で UI 改善時に実装
     /// </summary>
     private IEnumerator InitializeUIComponents()
     {
-        Debug.Log("[InitializationManager] UIコンポーネントを初期化中...");
-        
-        // UI関連の初期化処理
-        
+        Debug.Log("[InitializationManager] UI初期化中...");
         yield return null;
     }
     
@@ -165,23 +244,30 @@ public class InitializationManager : MonoBehaviour
     /// <param name="stepName">ステップ名</param>
     private void MarkStepAsInitialized(string stepName)
     {
-        if (initializationSteps.ContainsKey(stepName))
+        if (_initializationSteps.ContainsKey(stepName))
         {
-            initializationSteps[stepName] = true;
+            _initializationSteps[stepName] = true;
             Debug.Log($"[InitializationManager] {stepName} の初期化が完了しました");
+        }
+        else
+        {
+            Debug.LogWarning($"[InitializationManager] ステップ '{stepName}' が登録されていません");
         }
     }
     
     /// <summary>
     /// シーン遷移時などに初期化状態をリセット
     /// </summary>
-    public void ResetInitialization()
+    internal void ResetInitialization()
     {
-        isInitialized = false;
-        foreach (var key in new List<string>(initializationSteps.Keys))
+        _isInitialized = false;
+        _isGamePrefabsReady = false;
+        
+        foreach (string key in new List<string>(_initializationSteps.Keys))
         {
-            initializationSteps[key] = false;
+            _initializationSteps[key] = false;
         }
+        
         Debug.Log("[InitializationManager] 初期化状態をリセットしました");
     }
 }

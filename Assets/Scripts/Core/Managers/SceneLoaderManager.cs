@@ -9,6 +9,14 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public static class SceneLoaderManager
 {
+    internal enum LoadSceneName
+    {
+        TitleScene,
+        MainGameScene,
+        OptionScene
+    }
+
+
     /// <summary>
     /// 指定した遅延後にシーンを読み込むコルーチン
     /// </summary>

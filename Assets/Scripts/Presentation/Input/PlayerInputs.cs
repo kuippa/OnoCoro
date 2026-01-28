@@ -13,7 +13,6 @@ namespace StarterAssets
 {
 	public class PlayerInputs : MonoBehaviour
 	{
-        private GameObject _esc_menu_window = null;
 		const float _click_limit_distance = 20.0f;
 
 		[Header("Character Input Values")]
@@ -28,8 +27,9 @@ namespace StarterAssets
 		[Header("Mouse Cursor Settings")]
 		// public bool cursorLocked = true;
 		// public bool _cursorLocked = false;
-		public bool _TabMenuOpen = false;
-		public bool _EscMenuOpen = false;
+		private TabMenuCtrl _tabMenuCtrl = null;
+		private EscMenuCtrl _escMenuCtrl = null;
+
 
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 		public void OnMove(InputValue value)
@@ -49,7 +49,7 @@ namespace StarterAssets
 				return;
 			}
 			
-			if(!_TabMenuOpen && !_EscMenuOpen)
+			if(!IsMenuOpen())
 			{
 				LookInput(value.Get<Vector2>());
 			}
@@ -67,7 +67,7 @@ namespace StarterAssets
 
 		public void OnLeftClick(InputValue value)
 		{
-			if (_TabMenuOpen || _EscMenuOpen)
+			if (IsMenuOpen())
 			{
 				return;
 			}
@@ -76,7 +76,7 @@ namespace StarterAssets
 
 		public void OnRightClick(InputValue value)
 		{
-			if (_TabMenuOpen || _EscMenuOpen)
+			if (IsMenuOpen())
 			{
 				return;
 			}
@@ -102,7 +102,7 @@ namespace StarterAssets
 
 		public void MoveInput(Vector2 newMoveDirection)
 		{
-			if (!_TabMenuOpen && EventSystem.current.currentSelectedGameObject != null)
+			if (!IsMenuOpen() && EventSystem.current.currentSelectedGameObject != null)
 			{
 				EventSystem.current.SetSelectedGameObject(null);
 			}
@@ -126,28 +126,62 @@ namespace StarterAssets
 
 		public void OnEscMenu(InputValue value)
 		{
-            GameObject esc_menu = GameObject.Find("UIEscMenu");
-            EscMenuCtrl escMenuCtrl = esc_menu.GetComponent<EscMenuCtrl>();
-            _esc_menu_window = esc_menu.transform.Find("menuWindow").gameObject;
-            ToggleEscMenuWindow(!_esc_menu_window.activeSelf, escMenuCtrl);
+            _escMenuCtrl = GetEscMenuCtrl();
+            _escMenuCtrl.ToggleEscMenuWindow(!_escMenuCtrl.GetEscMenuWindowStatus());
         }
 
-        private void ToggleEscMenuWindow(bool isOn, EscMenuCtrl escMenuCtrl)
-        {
-            if (_esc_menu_window != null)
-            {
-				// _TabMenuOpen = !isOn;
-                escMenuCtrl.ToggleEscMenuWindow(isOn);
-				_EscMenuOpen = escMenuCtrl.GetEscMenuWindowStatus();
-            }
-        }
+		private EscMenuCtrl GetEscMenuCtrl()
+		{
+			if (_escMenuCtrl != null)
+			{
+				return _escMenuCtrl;
+			}
+            GameObject esc_menu = GameObject.Find("UIEscMenu");
+            _escMenuCtrl = esc_menu.GetComponent<EscMenuCtrl>();
+			return _escMenuCtrl;
+		}
+
+		private TabMenuCtrl GetTabMenuCtrl()
+		{
+			if (_tabMenuCtrl != null)
+			{
+				return _tabMenuCtrl;
+			}
+            GameObject tab_menu = GameObject.Find("UITabMenu");
+            _tabMenuCtrl = tab_menu.GetComponent<TabMenuCtrl>();
+			return _tabMenuCtrl;
+		}
+
+		internal bool IsMenuOpen()
+		{
+			bool tabMenuOpen = false;
+			if (_tabMenuCtrl == null)
+			{
+				_tabMenuCtrl = GetTabMenuCtrl();
+			}
+			if (_tabMenuCtrl != null)
+			{
+				tabMenuOpen = _tabMenuCtrl.GetTabMenuWindowStatus();
+			}
+
+			bool escMenuOpen = false;
+			if (_escMenuCtrl != null)
+			{
+				escMenuOpen = _escMenuCtrl.GetEscMenuWindowStatus();
+			}
+
+			if (tabMenuOpen || escMenuOpen)
+			{
+				return true;
+			}
+			return false;
+		}
+
 
 		public void OnTabMenu(InputValue value)
 		{
-            GameObject tab_menu = GameObject.Find("UITabMenu");
-            TabMenuCtrl tabMenuCtrl = tab_menu.GetComponent<TabMenuCtrl>();
-            tabMenuCtrl.ToggleTabMenuWindow();
-			_TabMenuOpen = tabMenuCtrl.GetTabMenuWindowStatus();
+			_tabMenuCtrl = GetTabMenuCtrl();
+			_tabMenuCtrl.ToggleTabMenuWindow();
 		}
 
 		public void OnMenuShortCut(InputValue value)
@@ -213,7 +247,6 @@ namespace StarterAssets
 			// カーソル管理の初期化
 			CursorManager.Initialize();
 		}
-
 
 	}
 	

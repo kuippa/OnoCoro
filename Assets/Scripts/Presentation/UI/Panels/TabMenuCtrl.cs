@@ -6,11 +6,35 @@ using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using CommonsUtility;
 
-public class TabMenuCtrl : MonoBehaviour
+/// <summary>
+/// タブメニューコントローラー
+/// UIControllerBase を継承し、初期化フラグで状態を管理
+/// </summary>
+public class TabMenuCtrl : UIControllerBase
 {
     internal bool _item_box_open = true;
     private ItemCreateCtrl _item_create_window = null;
     private InfoWindowCtrl _infoWindowCtrl = null;
+
+    /// <summary>
+    /// 参照取得と初期状態設定
+    /// </summary>
+    protected override void Awake()
+    {
+        base.Awake();
+        
+        // [重要] メニュー初期化を Awake で実行（元の実装）
+        ToggleTabMenuWindow();
+    }
+
+    /// <summary>
+    /// Initialize コルーチン - 遅延初期化処理（あれば）
+    /// </summary>
+    protected override IEnumerator Initialize()
+    {
+        // 現在は遅延初期化処理なし
+        yield return null;
+    }
 
     public void ToggleTabMenuWindow()
     {
@@ -100,8 +124,8 @@ public class TabMenuCtrl : MonoBehaviour
 
     }
 
-    void Awake()
+    void OnDestroy()
     {
-        ToggleTabMenuWindow();
+        // UIControllerBase の後処理が必要な場合はここに追加
     }
 }

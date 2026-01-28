@@ -1,10 +1,11 @@
 using System;
+using System.Collections;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EventLogCtrl : MonoBehaviour
+public class EventLogCtrl : UIControllerBase
 {
     private const float _FADE_TIME_INTERVAL = 0.1f;
     private const float _FADE_OUT_ALPHA = 0.06f;
@@ -64,12 +65,13 @@ public class EventLogCtrl : MonoBehaviour
         ToggleWindow();
     }
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        
         if (Instance == null)
         {
             Instance = this;
-            // DontDestroyOnLoad(gameObject);
         }
         _eventLog = this.transform.Find("EventLog").gameObject;
         _txtLog = _eventLog.transform.Find("txtLog").gameObject;
@@ -79,9 +81,9 @@ public class EventLogCtrl : MonoBehaviour
         ToggleWindow(isOn: false);
     }
 
-    void Start()
+    protected override IEnumerator Initialize()
     {
-        // ShowEventLog("EventLogCtrl Start test");
+        yield return null;
     }
 
     void Update()

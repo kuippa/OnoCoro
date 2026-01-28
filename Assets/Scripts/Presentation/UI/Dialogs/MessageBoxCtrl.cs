@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System;
+using System.Collections;
 using TMPro;
 
-public class MessageBoxCtrl : MonoBehaviour
+public class MessageBoxCtrl : UIControllerBase
 {
     private GameObject _messageBox = null;
     private TextMeshProUGUI _txtMessage = null;
@@ -33,8 +34,10 @@ public class MessageBoxCtrl : MonoBehaviour
         ToggleMsgBox(true);
     }
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        
         _messageBox = this.gameObject.transform.Find("MessageBox").gameObject;
         Button btnOK = _messageBox.transform.Find("btnOK").gameObject.GetComponent<Button>();
         Button btnCancel = _messageBox.transform.Find("btnCancel").gameObject.GetComponent<Button>();
@@ -44,24 +47,8 @@ public class MessageBoxCtrl : MonoBehaviour
         ToggleMsgBox(false);
     }
 
-    void Start()
+    protected override IEnumerator Initialize()
     {
-        // MessageBoxCtrl messageBox = this.gameObject.GetComponent<MessageBoxCtrl>();
-        // messageBox.Show("Hello, World!", (result) => 
-        // {
-        //     if (result)
-        //     {
-        //         Debug.Log("Yesが選択されました");
-        //     }
-        //     else
-        //     {
-        //         Debug.Log("Noが選択されました");
-        //     }
-        // });
-    }
-
-    void Update()
-    {
-        
+        yield return null;
     }
 }

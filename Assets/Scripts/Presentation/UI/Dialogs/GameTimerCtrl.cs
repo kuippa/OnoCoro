@@ -5,10 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// txtGameTime にアタッチされている
-
-
-public class GameTimerCtrl : MonoBehaviour
+public class GameTimerCtrl : UIControllerBase
 {
     public static GameTimerCtrl instance = null;
     public float _time = 0.0f;
@@ -31,22 +28,23 @@ public class GameTimerCtrl : MonoBehaviour
     [SerializeField] bool _countdown = true; // カウントダウンモード
 
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        
         if (instance == null)
         {
             instance = this;
-            // DontDestroyOnLoad(this.gameObject);
         }
-        else
-        {
-            // Destroy(this.gameObject);
-        }
-
         if (_text == null)
         {
             _text = this.gameObject.GetComponent<TextMeshProUGUI>();
         }
+    }
+
+    protected override IEnumerator Initialize()
+    {
+        yield return null;
     }
 
 

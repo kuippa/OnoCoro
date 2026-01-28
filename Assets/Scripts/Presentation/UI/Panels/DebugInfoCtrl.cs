@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
@@ -6,12 +7,36 @@ using UnityEngine.Profiling;    // Profiler
 using UnityEngine.SceneManagement;
 using CommonsUtility;
 
-public class DebugInfoCtrl : MonoBehaviour
+/// <summary>
+/// デバッグ情報パネルコントローラー
+/// UIControllerBase を継承し、初期化フラグで状態を管理
+/// </summary>
+public class DebugInfoCtrl : UIControllerBase
 {
     private static string _app_version = "";
     private float _time = 0;
     private float _fps = 0;
     private const float _updateInterval = 1.5f;
+
+    /// <summary>
+    /// ゲーム設定初期化と デバッグウィンドウ初期化
+    /// </summary>
+    protected override void Awake()
+    {
+        base.Awake();
+        
+        GameConfig.InitGameConfig();
+        InitDebugWindow();
+    }
+
+    /// <summary>
+    /// Initialize コルーチン
+    /// </summary>
+    protected override IEnumerator Initialize()
+    {
+        // 初期化処理なし（Update で FPS 更新）
+        yield return null;
+    }
 
     private string GetAppVer()
     {
@@ -152,13 +177,6 @@ public class DebugInfoCtrl : MonoBehaviour
         }
     }
 
-
-    private void Awake()
-    {
-        GameConfig.InitGameConfig();
-        InitDebugWindow();
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-    }
 
     private void Update()
     {

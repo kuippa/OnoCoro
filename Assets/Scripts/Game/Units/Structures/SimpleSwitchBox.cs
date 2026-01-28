@@ -22,6 +22,7 @@ public class SimpleSwitchBox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // TODO: 対象をプレイヤーのみに限定する？
         ToggleSwitchBox();
     }
 

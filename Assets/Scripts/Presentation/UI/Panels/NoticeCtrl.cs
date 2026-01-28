@@ -4,12 +4,41 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using CommonsUtility;
 
-public class NoticeCtrl : MonoBehaviour
+/// <summary>
+/// 通知ポップアップコントローラー
+/// UIControllerBase を継承し、初期化フラグで状態を管理
+/// </summary>
+public class NoticeCtrl : UIControllerBase
 {
     private GameObject _UINotice = null;
     private GameObject _notice_window = null;
     private GameObject _txtNotice = null;
+
+    /// <summary>
+    /// 参照取得と初期非表示
+    /// </summary>
+    protected override void Awake()
+    {
+        base.Awake();
+        
+        _UINotice = this.gameObject;
+        _notice_window = _UINotice.transform.Find("noticeWindow").gameObject;
+        _txtNotice = _notice_window.transform.Find("txtNotice").gameObject;
+
+        // [重要] 初期非表示を Awake で実行
+        ToggleNoticeWindow(false);
+    }
+
+    /// <summary>
+    /// Initialize コルーチン
+    /// </summary>
+    protected override IEnumerator Initialize()
+    {
+        // 初期化処理なし
+        yield return null;
+    }
 
     internal void ShowNotice(string notice)
     {
@@ -25,28 +54,6 @@ public class NoticeCtrl : MonoBehaviour
      
     //     _UINotice.SetActive(false);
     // }
-
-    void Awake()
-    {
-        //    Debug.Log($"NoticeCtrl Awake called on {gameObject.name} (InstanceID: {gameObject.GetInstanceID()})");
-        _UINotice = this.gameObject;
-        // Debug.Log("NoticeCtrl Awake" + this.gameObject.name);
-        // if (_UINotice.transform.Find("noticeWindow") == null)
-        // {
-        //     Debug.Log("NoticeCtrl noticeWindow is null");
-        //     return;
-        // }
-
-        _notice_window = _UINotice.transform.Find("noticeWindow").gameObject;
-        _txtNotice = _notice_window.transform.Find("txtNotice").gameObject;
-
-        // _UINotice.SetActive(false);
-        ToggleNoticeWindow(false);
-
-        // GameObject noticeWindow = _UINotice.transform.Find("noticeWindow").gameObject;
-        // noticeWindow.GetComponent<Button>().onClick.AddListener(OnClickPanel);
-        // ShowNotice("NoticeCtrl Awake");
-    }
 
     public bool IsNoticeWindowActive()
     {

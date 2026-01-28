@@ -1,12 +1,17 @@
 using TMPro;
 using System;
+using System.Collections;
 using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
 using Debug = UnityEngine.Debug;
 
-public class SpawnMarkerPointerCtrl : MonoBehaviour
+/// <summary>
+/// スポーンマーカーポインターコントローラー
+/// UIControllerBase を継承し、初期化フラグで状態を管理
+/// </summary>
+public class SpawnMarkerPointerCtrl : UIControllerBase
 {
     public static SpawnMarkerPointerCtrl instance;
     private static GameObject _marker;
@@ -26,6 +31,30 @@ public class SpawnMarkerPointerCtrl : MonoBehaviour
     
     // Log Constants
     private const string _LOG_PREFIX = "[SpawnMarker]";
+
+    /// <summary>
+    /// インスタンス参照設定とマーカー初期化
+    /// </summary>
+    protected override void Awake()
+    {
+        base.Awake();
+        
+        if (instance == null)
+        {
+            instance = this;
+        }
+        _marker = gameObject;
+        SetMarkerActive(false);
+    }
+
+    /// <summary>
+    /// Initialize コルーチン
+    /// </summary>
+    protected override IEnumerator Initialize()
+    {
+        // 初期化処理なし（Update で処理）
+        yield return null;
+    }
 
     private void SetPositionTMP(Vector3 pos)
     {
@@ -175,16 +204,6 @@ public class SpawnMarkerPointerCtrl : MonoBehaviour
         {
             instance = null;
         }
-    }
-
-    private void Awake()
-    {
-        if (instance == null)
-        {
-            instance = this;
-        }
-        _marker = gameObject;
-        SetMarkerActive(false);
     }
 
     private void Update()
