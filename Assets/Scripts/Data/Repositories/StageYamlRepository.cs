@@ -40,25 +40,43 @@ public class StageYamlRepository : MonoBehaviour
     private void SetGoalsRequirements(YamlStream yaml)
     {
         YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "goals");
-        Dictionary<string, string> goals_req = new Dictionary<string, string>();
         if (YSeqNode == null)
         {
             return;
         }
 
+        // Dictionary<string, string> のリストに変換
+        var yamlDataList = new List<Dictionary<string, string>>();
         foreach (YamlMappingNode yamlevent in YSeqNode)
         {
+            var goalData = new Dictionary<string, string>();
             foreach (var entry in yamlevent.Children)
             {
-                goals_req.Add(
-                    ((YamlScalarNode)entry.Key).Value
-                    , ((YamlScalarNode)entry.Value).Value
+                goalData.Add(
+                    ((YamlScalarNode)entry.Key).Value,
+                    ((YamlScalarNode)entry.Value).Value
                 );
-                Debug.Log(((YamlScalarNode)entry.Key).Value + " : " + ((YamlScalarNode)entry.Value).Value);
             }
+            yamlDataList.Add(goalData);
         }
-        if (goals_req.Count > 0)
+
+        // YamlCommandManager 経由で GoalCommand に変換
+        var goalCommands = YamlCommandManager.ParseGoalCommands(yamlDataList);
+        
+        if (goalCommands.Count > 0)
         {
+            // GoalCommand を Dictionary に変換して StageGoalController に渡す
+            var goals_req = new Dictionary<string, string>();
+            foreach (var cmd in goalCommands)
+            {
+                goals_req.Add("goal_type", cmd.Type.ToString());
+                goals_req.Add("threshold", cmd.Threshold.ToString());
+                if (!string.IsNullOrEmpty(cmd.Description))
+                {
+                    goals_req.Add("description", cmd.Description);
+                }
+            }
+            
             StageGoalController._dict_req = goals_req;
             StageGoalController.StartCheckStageGoal(this);
         }
@@ -67,25 +85,39 @@ public class StageYamlRepository : MonoBehaviour
     private void SetGameOversRequirements(YamlStream yaml)
     {
         YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "gameovers");
-        Dictionary<string, string> gameover_req = new Dictionary<string, string>();
         if (YSeqNode == null)
         {
             return;
         }
 
+        // Dictionary<string, string> のリストに変換
+        var yamlDataList = new List<Dictionary<string, string>>();
         foreach (YamlMappingNode yamlevent in YSeqNode)
         {
+            var gameoverData = new Dictionary<string, string>();
             foreach (var entry in yamlevent.Children)
             {
-                gameover_req.Add(
-                    ((YamlScalarNode)entry.Key).Value
-                    , ((YamlScalarNode)entry.Value).Value
+                gameoverData.Add(
+                    ((YamlScalarNode)entry.Key).Value,
+                    ((YamlScalarNode)entry.Value).Value
                 );
-                Debug.Log(((YamlScalarNode)entry.Key).Value + " : " + ((YamlScalarNode)entry.Value).Value);
             }
+            yamlDataList.Add(gameoverData);
         }
-        if (gameover_req.Count > 0)
+
+        // YamlCommandManager 経由で GameOverCommand に変換
+        var gameoverCommands = YamlCommandManager.ParseGameOverCommands(yamlDataList);
+        
+        if (gameoverCommands.Count > 0)
         {
+            // GameOverCommand を Dictionary に変換して StageGoalController に渡す
+            var gameover_req = new Dictionary<string, string>();
+            foreach (var cmd in gameoverCommands)
+            {
+                gameover_req.Add("gameover_type", cmd.Type.ToString());
+                gameover_req.Add("threshold", cmd.Threshold.ToString());
+            }
+            
             StageGoalController._dict_fail = gameover_req;
             StageGoalController.StartCheckStageFail(this);
         }
@@ -213,25 +245,34 @@ public class StageYamlRepository : MonoBehaviour
             return;
         }
 
-        Dictionary<string, string> board_data = new Dictionary<string, string>();
+        // Dictionary<string, string> のリストに変換
+        var yamlDataList = new List<Dictionary<string, string>>();
         foreach (YamlMappingNode yamlevent in YSeqNode)
         {
-            string board_code = "";
+            var boardData = new Dictionary<string, string>();
             foreach (var entry in yamlevent.Children)
             {
-                if (((YamlScalarNode)entry.Key).Value == "code")
-                {
-                    board_code = ((YamlScalarNode)entry.Value).Value;
-                }
-                else
-                {
-                    board_data.Add(board_code, ((YamlScalarNode)entry.Value).Value);
-                }
+                boardData.Add(
+                    ((YamlScalarNode)entry.Key).Value,
+                    ((YamlScalarNode)entry.Value).Value
+                );
             }
+            yamlDataList.Add(boardData);
         }
-        if (board_data.Count > 0)
+
+        // YamlCommandManager 経由で BoardCommand に変換
+        var boardCommands = YamlCommandManager.ParseBoardCommands(yamlDataList);
+        
+        if (boardCommands.Count > 0)
         {
-            _eventLoader._board_data = new Dictionary<string, string>(board_data);
+            // BoardCommand を Dictionary に変換して _eventLoader に渡す
+            var board_data = new Dictionary<string, string>();
+            foreach (var cmd in boardCommands)
+            {
+                board_data[cmd.ConfigType.ToString()] = cmd.Value;
+            }
+            
+            _eventLoader._board_data = board_data;
         }
     }
 
@@ -270,45 +311,44 @@ public class StageYamlRepository : MonoBehaviour
         {
             return;
         }
+
+        // Dictionary<string, string> のリストに変換
+        var yamlDataList = new List<Dictionary<string, string>>();
         foreach (YamlMappingNode yamlevent in YSeqNode)
         {
-            float event_time = -1f;
-            Dictionary<string, string> event_data = new Dictionary<string, string>();
+            var eventData = new Dictionary<string, string>();
             foreach (var entry in yamlevent.Children)
             {
-                if (((YamlScalarNode)entry.Key).Value == "time")
-                {
-                    event_time = float.Parse(((YamlScalarNode)entry.Value).Value);
-                }
-                else
-                {
-                    event_data.Add(((YamlScalarNode)entry.Key).Value, ((YamlScalarNode)entry.Value).Value);
-                }
+                eventData.Add(
+                    ((YamlScalarNode)entry.Key).Value,
+                    ((YamlScalarNode)entry.Value).Value
+                );
             }
-            if (!(event_time >= 0f))
-            {
-                continue;
-            }
-            List<Dictionary<string, string>> event_list;
-            if (_eventLoader._timer_events.ContainsKey(event_time))
-            {
-                _eventLoader._timer_events.TryGetValue(event_time, out event_list);
-                if (event_list == null)
-                {
-                    Debug.Log("event_list is null ");
-                    event_list = new List<Dictionary<string, string>>();
-                }
-                event_list.Add(event_data);
-                _eventLoader._timer_events[event_time] = event_list;
-            }
-            else
-            {
-                event_list = new List<Dictionary<string, string>>();
-                event_list.Add(event_data);
-                _eventLoader._timer_events.Add(event_time, event_list);
-            }
+            yamlDataList.Add(eventData);
         }
-        _eventLoader.SetEventToTimer();
+
+        // YamlCommandManager 経由で EventCommand に変換（時間キー付き Dictionary で返される）
+        var eventCommandsByTime = YamlCommandManager.ParseTimedEventCommands(yamlDataList);
+        
+        if (eventCommandsByTime.Count > 0)
+        {
+            // EventCommand を Dictionary<float, List<Dictionary<string, string>>> に変換して _eventLoader に渡す
+            foreach (var timeEntry in eventCommandsByTime)
+            {
+                float eventTime = timeEntry.Key;
+                var eventList = new List<Dictionary<string, string>>();
+                
+                foreach (var eventCmd in timeEntry.Value)
+                {
+                    var eventDict = new Dictionary<string, string>(eventCmd.Parameters);
+                    eventList.Add(eventDict);
+                }
+                
+                _eventLoader._timer_events[eventTime] = eventList;
+            }
+            
+            _eventLoader.SetEventToTimer();
+        }
     }
 
     void Awake()

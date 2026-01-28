@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using CommonsUtility;
 using Debug = CommonsUtility.Debug;
 // using UnityEngine.Rendering.Universal.Internal;
@@ -166,7 +167,7 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
         Canvas canvas = canvasRect.GetComponent<Canvas>();
         // Canvas canvas = canvasRect.GetComponentInChildren<Canvas>();
         Vector2 MousePos = Vector2.zero;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Input.mousePosition, canvas.worldCamera, out MousePos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Mouse.current.position.ReadValue(), canvas.worldCamera, out MousePos);
         _pointer.GetComponent<RectTransform>().anchoredPosition = new Vector2(MousePos.x, MousePos.y);
 
         // Debug.Log("_pointer: " + Input.mousePosition + " setPos: " + setPos);
@@ -180,7 +181,7 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
         Canvas canvas = canvasRect.GetComponent<Canvas>();
         Vector2 MousePos = Vector2.zero;
         // TODO: Input.mousePosition でいいのか？
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Input.mousePosition, canvas.worldCamera, out MousePos);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Mouse.current.position.ReadValue(), canvas.worldCamera, out MousePos);
         // _pointer.GetComponent<RectTransform>().anchoredPosition = new Vector2(MousePos.x, MousePos.y);
 
         return MousePos;

@@ -589,3 +589,45 @@ docs/
 
 **æœ€çµ‚æ›´æ–°**: 2026-01-23
 **ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ**: OnoCoro (Unity 6.3 Geospatial Visualization)
+
+---
+
+## ƒAƒ‹ƒtƒ@”ÅŒöŠJ‘O‚Éíœ‚·‚×‚«ƒtƒ@ƒCƒ‹
+
+### ˆê“I‚ÈƒoƒbƒNƒAƒbƒvƒeƒXƒgƒtƒ@ƒCƒ‹
+
+ˆÈ‰º‚Ìƒtƒ@ƒCƒ‹ƒtƒHƒ‹ƒ_‚ÍŠJ”­‰ß’ö‚Å¶¬‚³‚ê‚½ˆêƒtƒ@ƒCƒ‹‚Å‚ ‚èA**ƒAƒ‹ƒtƒ@”ÅŒöŠJ‘O‚Éíœ‚ª•K{**‚Å‚·F
+
+- [ ] \Assets/StreamingAssets/staging/ver2024/resources_backup_20260127_235817/\
+  - **à–¾**: ŒÃ‚¢ Resources\staging ƒtƒHƒ‹ƒ_‚©‚ç‚ÌƒoƒbƒNƒAƒbƒvi”äŠr—pj
+  - **íœŠú**: ƒAƒ‹ƒtƒ@”Å v0.1.0-alpha ƒŠƒŠ[ƒX‘O
+  - **ƒoƒbƒNƒAƒbƒvó‹µ**: Šù‚Éd—vƒf[ƒ^‚ÍŠm”FÏ‚İi”äŠrŠ®—¹ 2026-01-28j
+
+- [ ] \Assets/Resources/staging/\
+  - **à–¾**: ŒÃ‚¢ƒXƒe[ƒWƒtƒ@ƒCƒ‹ƒfƒBƒŒƒNƒgƒŠiStreamingAssets ‚ªÅV”Åj
+  - **íœŠú**: ƒAƒ‹ƒtƒ@”Å v0.1.0-alpha ƒŠƒŠ[ƒX‘O
+  - **Šm”F**: ‘Sƒtƒ@ƒCƒ‹‚Í StreamingAssets\staging ‚ÉV‚µ‚¢ƒo[ƒWƒ‡ƒ“‚ª‘¶İ
+
+- [ ] \Assets/Scripts/UnitTest/YamlFileValidationTest.cs\
+  - **à–¾**: ŠJ”­—p YAML ƒtƒ@ƒCƒ‹ŒŸØƒeƒXƒgƒXƒNƒŠƒvƒg
+  - **íœŠú**: ƒAƒ‹ƒtƒ@”ÅƒŠƒŠ[ƒX‘O
+  - **ƒA[ƒJƒCƒuæ**: \Assets/Scripts/Core/Editor/YamlFileValidationTest.cs\
+
+- [ ] \Assets/Scripts/UnitTest/YamlCommandValidationTest.cs\
+  - **à–¾**: ŠJ”­—p YAML ƒRƒ}ƒ“ƒhƒoƒŠƒf[ƒVƒ‡ƒ“ƒeƒXƒgƒXƒNƒŠƒvƒg
+  - **íœŠú**: ƒAƒ‹ƒtƒ@”ÅƒŠƒŠ[ƒX‘O
+  - **ƒA[ƒJƒCƒuæ**: \Assets/Scripts/Core/Editor/YamlCommandValidationTest.cs\
+
+### íœƒ`ƒFƒbƒNƒŠƒXƒg
+
+**ƒŠƒŠ[ƒX‘OŠm”F–€**:
+
+- [ ] \esources_backup_20260127_235817\ ƒtƒHƒ‹ƒ_‚ğíœ
+- [ ] \Assets/Resources/staging/\ ƒfƒBƒŒƒNƒgƒŠ‚ğíœ
+- [ ] \Assets/Scripts/UnitTest/\ ƒtƒHƒ‹ƒ_‚ğŠ®‘S‚Éíœ
+- [ ] git commit ‚Å‚±‚ê‚ç‚Ìíœ‚ğ‹L˜^
+
+---
+
+**ÅIXV**: 2026-01-28
+**ƒvƒƒWƒFƒNƒg**: OnoCoro (Unity 6.3 Geospatial Visualization)

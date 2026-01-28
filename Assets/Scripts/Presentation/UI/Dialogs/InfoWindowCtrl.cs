@@ -2,6 +2,7 @@
 using CommonsUtility;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Debug = CommonsUtility.Debug;
 using UnityEngine.UI;
 
@@ -130,7 +131,7 @@ public class InfoWindowCtrl : MonoBehaviour
 
     internal void GetTargetUnit()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
         int layerMask = ~LayerMask.GetMask(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
         
         RaycastHit hit;

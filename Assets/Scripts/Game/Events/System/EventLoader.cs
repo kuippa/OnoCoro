@@ -80,48 +80,51 @@ public class EventLoader : MonoBehaviour
     {
         Debug.Log("ActionEvent " + event_name + " : " + event_value);
 
+        // イベント名は YamlEventType enum の値と一致
+        // バリデーション: YamlCommandManager.CreateEventCommand() で enum.TryParse() チェック済み
         switch (event_name)
         {
-            case "spawn_unit":
+            case nameof(YamlEventType.spawn_unit):
                 SpawnUnit(event_value);
                 break;
-            case "spawn_enemy_unit":
+            case nameof(YamlEventType.spawn_enemy_unit):
                 SpawnEnemyUnit(event_value);
                 break;
-            case "notice":
+            case nameof(YamlEventType.notice):
                 ShowNotice(event_value);
                 break;
-            case "earthquake":
+            case nameof(YamlEventType.earthquake):
                 CallEarthquake(event_value);
                 break;
-            case "building_break":
+            case nameof(YamlEventType.building_break):
                 CallBuildingBreak(event_value);
                 break;
-            case "telop":
+            case nameof(YamlEventType.telop):
                 CallTelopShow(event_value);
                 break;
-            case "subtelop":
+            case nameof(YamlEventType.subtelop):
                 CallTelopShow(event_value, isSubTelop: true);
                 break;
-            case "wind":
+            case nameof(YamlEventType.wind):
                 CallWind(event_value);
                 break;
-            case "weather":
+            case nameof(YamlEventType.weather):
                 CallWeather(event_value);
                 break;
-            case "solar":
+            case nameof(YamlEventType.solar):
                 CallSolar(event_value);
                 break;
-            case "watersurface":
+            case nameof(YamlEventType.watersurface):
                 CallWaterSurface(event_value);
                 break;
-            case "bloom_path":
+            case nameof(YamlEventType.bloom_path):
                 CallBloomPath(event_value);
                 break;
-            case "off_bloom_path":
+            case nameof(YamlEventType.off_bloom_path):
                 CallBloomPath(event_value, isBloom: false);
                 break;
-            case "volcano":
+            case nameof(YamlEventType.volcano):
+                // 未実装
                 break;
             default:
                 Debug.Log("ActionEvent: else");

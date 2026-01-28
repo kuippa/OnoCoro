@@ -48,7 +48,7 @@ public class TooltipInfoCtrl : MonoBehaviour
     {
         _idle_time += Time.deltaTime;
         // マウスが動いたかチェック
-        if (Input.anyKey || Mouse.current.delta.x.ReadValue() != 0 || Mouse.current.delta.y.ReadValue() != 0)
+        if (Keyboard.current.anyKey.isPressed || Mouse.current.delta.ReadValue() != Vector2.zero)
         {
             _idle_time = 0f;
             ToggleTooltip(false);
