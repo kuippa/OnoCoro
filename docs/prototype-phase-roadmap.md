@@ -16,6 +16,7 @@
 | **Phase 1.1 ログシステム** | LogUtility実装・統一 | 2026-01-27 | DebugLevel enum、ファイル出力、テストスクリプト完備 |
 | **Phase 1.2 YAML バリデーション** | YamlValidator実装・検証 | 2026-01-29 | 5ファイル形式検証、Editor統合、既存YAML修復 |
 | **Phase 1.3 Resources.Load統一化** | TextureLoader/TextAssetLoader/MaterialManager | 2026-01-29 | TextureResourceLoader、TextAssetLoader、CursorManager、MaterialManager統合 |
+| **Phase 1.5 UI初期化順序管理** | UIControllerBase実装、Panels/Dialogs統合 | 2026-01-29 | IInitializable、IsInitializationRequired、9/22コンポーネント完成 |
 
 ---
 
@@ -27,11 +28,12 @@
    - ビルド検証：コンパイルエラー排除
    - PlayMode 検証：ゲーム基本動作確認
 
-✅ Phase 1: コア機能整備 (2026-01-27 ～ 2026-01-29)
+✅ Phase 1: コア機能整備 (2026-01-27 ～ 2026-01-29 完了)
    - ✅ ログシステム統一化（完了）
    - ✅ YAML バリデーション実装（完了）
    - ✅ Resources.Load 統一化（完了）
-   - UI 改善（1920×1080標準化）
+   - ✅ UI 初期化順序管理（完了）
+   - UI 改善（1920×1080標準化） - 計画中
 
 📋 Phase 2: ステージ設計 & ゲーム性調整 (2026-03-初旬 ～ 2026-03-中旬)
    - 5ステージレベルデザイン
@@ -142,28 +144,70 @@
 
 ---
 
-### 1.4 UI 改善（1920×1080 標準化）
+### 1.5 UI 初期化順序管理 [完了]
 
-**目的**: UI レイアウト最適化（プロトタイプは標準解像度に絞る）  
-**優先度**:  🟡 高  
-**想定工数**: 2-3 人日  
-**期間**: 2026-02-初旬
+**目的**: UI コンポーネント統一初期化、InitializationManager との自動連携  
+**優先度**:  🔴 最高  
+**実施工数**: 4-5 人日  
+**期間**: 2026-01-29  
+**完了日**: 2026-01-29 ✅
 
 #### 実装内容
 
-| タスク | 詳細 | 期間 |
+| タスク | 詳細 | 状態 |
 |--------|------|------|
-| **キャンバスレイアウト改善** | Canvas 配置の見栄え調整 | 1-2日 |
-| **1920×1080 最適化テスト** | 標準解像度での表示確認 | 1日 |
+| **IInitializable インターフェース** | 初期化管理インターフェース実装 | ✅ 完了 |
+| **UIControllerBase クラス** | UI コントローラー共通基底クラス実装 | ✅ 完了 |
+| **IsInitializationRequired プロパティ** | 初期化戦略制御（必須 vs オンデマンド） | ✅ 完了 |
+| **Panels（5個）統合** | EscMenuCtrl, TabMenuCtrl, NoticeCtrl, DebugInfoCtrl, SpawnMarkerPointerCtrl | ✅ 完了 |
+| **Dialogs（4個）統合** | EventLogCtrl, GameTimerCtrl, InfoWindowCtrl, MessageBoxCtrl | ✅ 完了 |
+| **ドキュメント** | ui-initialization-reference.md（リファレンス）作成 | ✅ 完了 |
+| **PlayerInputs 修正** | WASD入力バグ修正（SetEscMenuOpen 追加） | ✅ 完了 |
 
-**テスト項目**:
-- [ ] 1920×1080 での表示確認完了
-- [ ] UI 配置の最適化完了
-- [ ] フォントサイズの適正化完了
+#### 完了事項
 
-**注記**: 
-- 複数解像度対応（1280×720、タブレット）は本版以降に延期
-- プロトタイプ版はテストユーザーの開発環境（1920×1080）に最適化
+- [x] IInitializable インターフェース実装完了
+- [x] UIControllerBase 基底クラス実装完了（IsInitializationRequired デフォルト true）
+- [x] Panels 5個すべてを UIControllerBase 継承に統合完了
+- [x] Dialogs 4個すべてを UIControllerBase 継承に統合完了
+- [x] 動的検出ロジック（GetComponentsInChildren<IInitializable>）実装完了
+- [x] ui-initialization-reference.md リファレンスドキュメント作成完了
+- [x] PlayerInputs.SetEscMenuOpen() メソッド追加（EscMenuCtrl との連携）
+
+#### 実装統計
+
+```
+完成したコンポーネント: 9/22 (41%)
+├─ Panels: 5/5 ✅
+├─ Dialogs: 4/4 ✅
+├─ HUD: 0/8 （プロトタイプ対象外）
+└─ Controls: 0/5 （プロトタイプ対象外）
+
+ドキュメント:
+├─ ui-initialization-reference.md（リファレンス）
+└─ prototype-phase-roadmap.md（本ドキュメント）
+
+初期化フロー:
+Awake（参照取得）→ Start（Initialize）→ IsInitialized = true（自動）
+```
+
+#### デバッグ方法
+
+コンソール出力で初期化状況を確認:
+
+```
+[UIControllerBase] EscMenuCtrl 初期化完了
+[UIControllerBase] TabMenuCtrl 初期化完了
+[UIControllerBase] NoticeCtrl 初期化完了
+[UIControllerBase] DebugInfoCtrl 初期化完了
+[UIControllerBase] SpawnMarkerPointerCtrl 初期化完了
+[UIControllerBase] EventLogCtrl 初期化完了
+[UIControllerBase] GameTimerCtrl 初期化完了
+[UIControllerBase] InfoWindowCtrl 初期化完了
+[UIControllerBase] MessageBoxCtrl 初期化完了
+```
+
+**参照**: [docs/ui-initialization-reference.md](ui-initialization-reference.md)
 
 ---
 
@@ -388,6 +432,10 @@ Development Build で実行
 ✅ Phase 1.3: Resources.Load 統一化 [完了]
   - TextureResourceLoader + TextAssetLoader + MaterialManager: 6-8人日
 
+✅ Phase 1.5: UI 初期化順序管理 [完了]
+  - UIControllerBase + IInitializable 実装: 3-4人日
+  - Panels（5個）+ Dialogs（4個）統合: 1-2人日
+
 🔄 Phase 1.4: UI 改善 (約 2-3 人日)
   - キャンバスレイアウト改善: 1-2人日
   - 1920×1080 標準化テスト: 1人日
@@ -403,9 +451,9 @@ Development Build で実行
   - リリース: 2-3人日
   - 最終チェック: 3-4人日
 
-【進行中までの実績】約 21-30 人日
+【進行中までの実績】約 25-36 人日
 【残り工程】約 56-72 人日
-【合計】約 77-102 人日（1人チームで 3-5 週間）
+【合計】約 81-108 人日（1人チームで 3-5 週間）
 ```
 
 ---
@@ -432,6 +480,7 @@ Development Build で実行
 | [docs/architecture.md](architecture.md) | システムアーキテクチャ（4層構造） |
 | [docs/coding-standards.md](coding-standards.md) | C# コーディング規約 |
 | [docs/scripts-folder-structure-completed.md](scripts-folder-structure-completed.md) | フォルダ構成 |
+| [docs/ui-initialization-reference.md](ui-initialization-reference.md) | UI初期化リファレンス（Phase 1.5） |
 
 ---
 
@@ -443,11 +492,19 @@ Development Build で実行
 | **Phase 1.1 (ログシステム)** | ✅ 完了 | 100% |
 | **Phase 1.2 (YAML バリデーション)** | ✅ 完了 | 100% |
 | **Phase 1.3 (Resources.Load)** | ✅ 完了 | 100% |
+| **Phase 1.5 (UI初期化順序管理)** | ✅ 完了 | 100% |
 | **Phase 1.4 (UI改善)** | 🔄 計画中 | 0% |
 | **Phase 2 (ステージ)** | 📋 計画中 | 0% |
 | **Phase 3 (QA/リリース)** | 📋 計画中 | 0% |
-| **総合進捗** | - | ~25-30% |
+| **総合進捗** | - | ~32-35% |
 
-**次のマイルストーン**: 2026-02-初旬に Phase 1.4 開始（UI改善）
+**Phase 1.5 完成内容**:
+- UIControllerBase + IInitializable インターフェース実装
+- Panels（5個）+ Dialogs（4個）統合完了
+- 動的検出ロジック（GetComponentsInChildren）実装
+- WASD入力バグ修正（PlayerInputs.SetEscMenuOpen）
+- ui-initialization-reference.md ドキュメント作成
+
+**次のマイルストーン**: 2026-02-初旬に Phase 1.4 開始（UI改善：1920×1080標準化）
 
 **ロードマップ最終更新**: 2026-01-29
