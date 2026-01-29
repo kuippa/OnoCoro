@@ -437,9 +437,12 @@ Development Build で実行
   - UIControllerBase + IInitializable 実装: 3-4人日
   - Panels（5個）+ Dialogs（4個）統合: 1-2人日
 
-🔄 Phase 1.4: UI 改善 (約 2-3 人日)
-  - キャンバスレイアウト改善: 1-2人日
-  - 1920×1080 標準化テスト: 1人日
+🔄 Phase 1.4: UI 改善 (約 10-14 人日)
+  - Canvas Scaler 整頓: 2-3人日
+  - フォントサイズ規定化: 3-4人日
+  - UI 配置標準化: 3-4人日
+  - UIUtility カプセル化: 2-3人日
+  - 詳細は [ui-improvement-phase-1-4.md](ui-improvement-phase-1-4.md) 参照
 
 📋 Phase 2: ステージ & ゲーム性 (約 30-37 人日)
   - ステージレベルデザイン: 20-25人日
@@ -453,8 +456,8 @@ Development Build で実行
   - 最終チェック: 3-4人日
 
 【進行中までの実績】約 25-36 人日
-【残り工程】約 56-72 人日
-【合計】約 81-108 人日（1人チームで 3-5 週間）
+【残り工程】約 64-83 人日
+【合計】約 89-119 人日（1人チームで 4-6 週間）
 ```
 
 ---
@@ -482,6 +485,7 @@ Development Build で実行
 | [docs/coding-standards.md](coding-standards.md) | C# コーディング規約 |
 | [docs/scripts-folder-structure-completed.md](scripts-folder-structure-completed.md) | フォルダ構成 |
 | [docs/ui-initialization-reference.md](ui-initialization-reference.md) | UI初期化リファレンス（Phase 1.5） |
+| [docs/ui-improvement-phase-1-4.md](ui-improvement-phase-1-4.md) | UI改善詳細計画（Phase 1.4） |
 
 ---
 
