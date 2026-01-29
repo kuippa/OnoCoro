@@ -621,23 +621,20 @@ public static readonly Vector2 REFERENCE_RESOLUTION = new Vector2(2560, 1440);
 
 ## 実装チェックリスト
 
-### Phase 1.4.4 更新版
+### Phase 1.4.4 実装状況
 
-- [ ] UICanvasManager クラス実装完了
-- [ ] REFERENCE_RESOLUTION, MATCH_WIDTH_OR_HEIGHT を定数化完了
-- [ ] ApplyStandardScalerSettings() メソッド実装完了
-- [ ] GetCurrentCanvasScale() メソッド実装完了
-- [ ] UpdateAllCanvasesForResolution() メソッド実装完了
-- [ ] UIUtility を汎用ヘルパーのみに修正完了
-- [ ] EscMenuCtrl へ UICanvasManager を適用完了
+- [x] UICanvasManager クラス実装完了
+- [x] REFERENCE_RESOLUTION, MATCH_WIDTH_OR_HEIGHT を定数化完了
+- [x] ApplyStandardScalerSettings() メソッド実装完了
+- [x] GetCurrentCanvasScale() メソッド実装完了
+- [x] UpdateAllCanvasesForResolution() メソッド実装完了
+- [x] UIUtility を汎用ヘルパー実装完了（EventSystem 安全化）
+- [x] EscMenuCtrl へ UIUtility を適用完了
+- [x] UICanvasManagerTest テストスクリプト実装完了
 - [ ] 複数解像度テスト完了（1920×1080, 1280×720, 2560×1440）
-- [ ] ドキュメント更新完了
+- [ ] ドキュメント最終確認完了
 
----
-
-## チェックリスト
-
-### Phase 1.4.1 (Canvas Scaler 整頓)
+### Phase 1.4.1 実装状況
 
 - [ ] Canvas 現況調査完了
 - [ ] Editor スクリプト実装完了
@@ -692,18 +689,44 @@ public static readonly Vector2 REFERENCE_RESOLUTION = new Vector2(2560, 1440);
 
 ## 工数見積もり
 
-| フェーズ | 内容 | 日数 | 進捗 |
-|---------|------|------|------|
-| 1.4.1 | Canvas Scaler 整頓 | 2-3日 | 0% |
-| 1.4.2 | フォントサイズ規定化 | 3-4日 | 0% |
-| 1.4.3 | UI 配置標準化 | 3-4日 | 0% |
-| 1.4.4 | UIUtility カプセル化 | 2-3日 | 0% |
-| **合計** | **UI 改善** | **10-14日** | **0%** |
+| フェーズ | 内容 | 日数 | 進捗 | 状態 |
+|---------|------|------|------|------|
+| 1.4.4 | UICanvasManager + UIUtility | 2-3日 | 100% | [完了] |
+| 1.4.1 | Canvas Scaler 整頓 | 2-3日 | 0% | [保留中] |
+| 1.4.2 | フォントサイズ規定化 | 3-4日 | 0% | [保留中] |
+| 1.4.3 | UI 配置標準化 | 3-4日 | 0% | [保留中] |
+| **合計** | **UI 改善** | **10-14日** | **25%** | **進行中** |
 
 **リソース**: 1 人チーム  
 **期間**: 2026-02-初旬 ～ 2026-02-末（2週間）
 
 ---
 
-**ドキュメント作成日**: 2026-01-30  
-**最終更新**: 2026-01-30
+## 実装完了項目（2026-01-30）
+
+### UICanvasManager (Core/Managers/UICanvasManager.cs)
+- [x] Singleton パターン実装
+- [x] ResolutionPreset enum（HD/FullHD/TwoK/iPad）
+- [x] RESOLUTION_MAP dictionary
+- [x] ApplyStandardScalerSettings() メソッド
+- [x] GetCurrentCanvasScale() メソッド
+- [x] UpdateAllCanvasesForResolution() メソッド
+
+### UIUtility (Core/Utilities/UIUtility.cs)
+- [x] ClearEventSystemSelection() メソッド
+- [x] SetEventSystemSelection() メソッド
+- [x] null チェック含む安全な実装
+
+### UICanvasManagerTest (UnitTest/UICanvasManagerTest.cs)
+- [x] テストスクリプト実装
+- [x] プレファブプリセット enum（EscMenu/TabMenu/DebugInfo/Notice）
+- [x] Inspector からのプレファブ選択（プルダウン＋直接参照）
+- [x] ダミーマネージャー作成機能
+- [x] UI パネル表示機能（TryShowUIPanel）
+- [x] Canvas Scaler 設定検証
+- [x] 複数解像度スケーリング検証
+
+### EscMenuCtrl (Presentation/UI/Panels/EscMenuCtrl.cs)
+- [x] UIUtility を使用した EventSystem 安全化
+- [x] null チェック追加（SetSelectedGameObject）
+- [ ] UICanvasManager の適用（テスト段階）

@@ -14,7 +14,6 @@ using CommonsUtility;
 public class EscMenuCtrl : UIControllerBase
 {
     private GameObject _esc_menu_window = null;
-    private GameObject _environment = null;
     private GameTimerCtrl _gameTimerCtrl = null;
 
     /// <summary>
@@ -25,12 +24,6 @@ public class EscMenuCtrl : UIControllerBase
     {
         base.Awake();
         
-        _environment = GameObject.Find("Environment").gameObject;
-        if (_environment == null)
-        {
-            Debug.Log("Environment is not found");
-        }
-
         GameObject txtGameTime = GameObject.Find("txtGameTime");
         if (txtGameTime != null)
         {
@@ -97,7 +90,7 @@ public class EscMenuCtrl : UIControllerBase
         // UnityEngine.SceneManagement.SceneManager.LoadScene("OptionScene");
         Debug.Log("OnClickOptions:: これはまだ未実装です");
         ToggleEscMenuWindow(false);
-        EventSystem.current.SetSelectedGameObject(null);
+        UIUtility.ClearEventSystemSelection();
     }    
 
     public void OnClickBackToTitle()
@@ -106,7 +99,7 @@ public class EscMenuCtrl : UIControllerBase
         // TODO:
         SceneLoaderManager.LoadScene(SceneLoaderManager.LoadSceneName.TitleScene.ToString());
         ToggleEscMenuWindow(false);
-        EventSystem.current.SetSelectedGameObject(null);
+        UIUtility.ClearEventSystemSelection();
     }
 
     public void OnClickBackToWindows()
@@ -120,7 +113,7 @@ public class EscMenuCtrl : UIControllerBase
     public void OnClickBackToGame()
     {
         ToggleEscMenuWindow(false);
-        EventSystem.current.SetSelectedGameObject(null);
+        UIUtility.ClearEventSystemSelection();
     }
 
     public bool GetEscMenuWindowStatus()
@@ -137,27 +130,13 @@ public class EscMenuCtrl : UIControllerBase
     {
         if (_esc_menu_window != null)
         {
-            // buttonのselectedを解除する
-            EventSystem.current.SetSelectedGameObject(null);
+            // buttonのselectedを解除する（EventSystem が存在する場合のみ）
+            UIUtility.ClearEventSystemSelection();
             _esc_menu_window.SetActive(isOn);
         }
 
         // ゲーム内時間を一時停止
-        // Environment
-        // _environment.SetActive(isOn ? false : true);
-
-        // Invalid AABB aabb でアニメーション関係でバグが発生するため、Time.timeScaleを使わない
-        // // Physics.autoSimulation = isOn ? false : true;
-        // Time.timeScale = isOn ? 0 : 1;
-        // Time.fixedDeltaTime = 0.02f * Time.timeScale;
-        // // Animator animator = GetComponent<Animator>();
-        // // animator.speed = isOn ? 0 : 1;
-
-        // ゲーム内時間を一時停止
         Time.timeScale = isOn ? 0.0001f : 1;
-
-        // GameTimerCtrl gameTimerCtrl = this.gameObject.AddComponent<GameTimerCtrl>();
-        // gameTimerCtrl._buf_time = Time.time;
 
         // 時計の進行だけを止めているのでマウスカーソルや他のイベントは動いてしまう
         // TODO: 他のイベントも止める
@@ -166,7 +145,6 @@ public class EscMenuCtrl : UIControllerBase
             _gameTimerCtrl._isPaused = isOn;
             Debug.Log("_gameTimerCtrl._isPaused" + isOn);
         }
-
     }
 
     

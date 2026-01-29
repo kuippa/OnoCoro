@@ -18,6 +18,7 @@
 | **Phase 1.3 Resources.Load統一化** | TextureLoader/TextAssetLoader/MaterialManager | 2026-01-29 | TextureResourceLoader、TextAssetLoader、CursorManager、MaterialManager統合 |
 | **Phase 1.5 UI初期化順序管理** | UIControllerBase実装、Panels/Dialogs統合 | 2026-01-29 | IInitializable、IsInitializationRequired、9/22コンポーネント完成 |
 | **Phase 1.6 ゲーム速度制御** | GameSpeedManager.Time.timeScale連携 | 2026-01-30 | Time.timeScale実装、SetGameSpeed()コールバック、デバッグパネル自動更新 |
+| **Phase 1.4 UI改善 (進行中)** | UICanvasManager + UIUtility実装 | 2026-01-30 | UICanvasManager Singleton、複数解像度enum対応、UIUtility安全化、UICanvasManagerTest実装 |
 
 ---
 
@@ -29,12 +30,13 @@
    - ビルド検証：コンパイルエラー排除
    - PlayMode 検証：ゲーム基本動作確認
 
-✅ Phase 1: コア機能整備 (2026-01-27 ～ 2026-01-29 完了)
+✅ Phase 1: コア機能整備 (2026-01-27 ～ 2026-01-29 完了 + 1.4進行中)
    - ✅ ログシステム統一化（完了）
    - ✅ YAML バリデーション実装（完了）
    - ✅ Resources.Load 統一化（完了）
    - ✅ UI 初期化順序管理（完了）
-   - UI 改善（1920×1080標準化） - 計画中
+   - ✅ ゲーム速度制御（完了）
+   - 🔄 UI 改善 Phase 1.4（進行中：UICanvasManager + UIUtility実装完了）
 
 📋 Phase 2: ステージ設計 & ゲーム性調整 (2026-03-初旬 ～ 2026-03-中旬)
    - 5ステージレベルデザイン
