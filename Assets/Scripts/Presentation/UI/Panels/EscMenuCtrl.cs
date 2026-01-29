@@ -153,6 +153,8 @@ public class EscMenuCtrl : UIControllerBase
         // // Animator animator = GetComponent<Animator>();
         // // animator.speed = isOn ? 0 : 1;
 
+        // ゲーム内時間を一時停止
+        Time.timeScale = isOn ? 0.0001f : 1;
 
         // GameTimerCtrl gameTimerCtrl = this.gameObject.AddComponent<GameTimerCtrl>();
         // gameTimerCtrl._buf_time = Time.time;

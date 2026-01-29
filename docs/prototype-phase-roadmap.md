@@ -4,7 +4,7 @@
 
 **目標リリース**: 2026-03-末  
 **現在段階**: Phase 0 完了 → Phase 1 開始  
-**最終更新**: 2026-01-27
+**最終更新**: 2026-01-30
 
 ## ✅ 完了済みフェーズ
 
@@ -17,6 +17,7 @@
 | **Phase 1.2 YAML バリデーション** | YamlValidator実装・検証 | 2026-01-29 | 5ファイル形式検証、Editor統合、既存YAML修復 |
 | **Phase 1.3 Resources.Load統一化** | TextureLoader/TextAssetLoader/MaterialManager | 2026-01-29 | TextureResourceLoader、TextAssetLoader、CursorManager、MaterialManager統合 |
 | **Phase 1.5 UI初期化順序管理** | UIControllerBase実装、Panels/Dialogs統合 | 2026-01-29 | IInitializable、IsInitializationRequired、9/22コンポーネント完成 |
+| **Phase 1.6 ゲーム速度制御** | GameSpeedManager.Time.timeScale連携 | 2026-01-30 | Time.timeScale実装、SetGameSpeed()コールバック、デバッグパネル自動更新 |
 
 ---
 
@@ -493,10 +494,11 @@ Development Build で実行
 | **Phase 1.2 (YAML バリデーション)** | ✅ 完了 | 100% |
 | **Phase 1.3 (Resources.Load)** | ✅ 完了 | 100% |
 | **Phase 1.5 (UI初期化順序管理)** | ✅ 完了 | 100% |
+| **Phase 1.6 (ゲーム速度制御)** | ✅ 完了 | 100% |
 | **Phase 1.4 (UI改善)** | 🔄 計画中 | 0% |
 | **Phase 2 (ステージ)** | 📋 計画中 | 0% |
 | **Phase 3 (QA/リリース)** | 📋 計画中 | 0% |
-| **総合進捗** | - | ~32-35% |
+| **総合進捗** | - | ~35-38% |
 
 **Phase 1.5 完成内容**:
 - UIControllerBase + IInitializable インターフェース実装
@@ -505,6 +507,14 @@ Development Build で実行
 - WASD入力バグ修正（PlayerInputs.SetEscMenuOpen）
 - ui-initialization-reference.md ドキュメント作成
 
+**Phase 1.6 完成内容**:
+- GameSpeedManager に Time.timeScale 連携機能を追加
+- SetGameSpeed() で Time.timeScale を同期更新
+- コールバック機構実装（OnGameSpeedChanged()）
+- DebugInfoCtrl で自動更新（SetGameSpeed() 直後）
+- null チェック追加（オブジェクト破棄対応）
+- F3/F4/F5 キーで等速/2倍速/20倍速を操作可能
+
 **次のマイルストーン**: 2026-02-初旬に Phase 1.4 開始（UI改善：1920×1080標準化）
 
-**ロードマップ最終更新**: 2026-01-29
+**ロードマップ最終更新**: 2026-01-30

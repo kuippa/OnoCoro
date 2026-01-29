@@ -233,7 +233,11 @@ namespace StarterAssets
 			Keyboard current = Keyboard.current;
 			if (current != null)
 			{
-				if (current[Key.F3].wasPressedThisFrame)
+				if (current[Key.F2].wasPressedThisFrame)
+				{
+					GameSpeedManager.SetGameSpeed(0);
+				}
+				else if (current[Key.F3].wasPressedThisFrame)
 				{
 					GameSpeedManager.SetGameSpeed(1f);
 				}

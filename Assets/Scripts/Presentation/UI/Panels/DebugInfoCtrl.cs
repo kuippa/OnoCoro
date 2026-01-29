@@ -34,7 +34,9 @@ public class DebugInfoCtrl : UIControllerBase
     /// </summary>
     protected override IEnumerator Initialize()
     {
-        // 初期化処理なし（Update で FPS 更新）
+        // SetGameSpeed() が呼ばれたときに InitDebugWindow() を実行
+        GameSpeedManager.OnGameSpeedChanged(InitDebugWindow);
+        
         yield return null;
     }
 
@@ -144,6 +146,12 @@ public class DebugInfoCtrl : UIControllerBase
 
     private void InitDebugWindow()
     {
+        // オブジェクトが破棄されている場合はスキップ
+        if (this == null)
+        {
+            return;
+        }
+        
         if (GameConfig._APP_GAME_MODE != GlobalConst.GAME_MODE_DEBUG)
         {
             this.gameObject.SetActive(false);
@@ -189,6 +197,5 @@ public class DebugInfoCtrl : UIControllerBase
             _time = 0;
         }
     }
-
 
 }

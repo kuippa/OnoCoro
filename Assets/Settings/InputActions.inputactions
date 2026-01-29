@@ -395,6 +395,17 @@
                 },
                 {
                     "name": "",
+                    "id": "5a66ff1d-8a9c-4913-ad47-7a218551c26c",
+                    "path": "<Keyboard>/f2",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";KeyboardMouse",
+                    "action": "FunctionMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "fec8628f-0bc7-4f1f-be87-c26fd0d4d0e9",
                     "path": "",
                     "interactions": "",

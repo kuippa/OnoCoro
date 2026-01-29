@@ -43,6 +43,11 @@ namespace CommonsUtility
         internal const string GAME_MODE_GOD = "god";
         internal const string GAME_MODE_CHEAT = "cheat";
 
+        // ゲームスピードモード
+        // シミュレーションモード がtrueのときは、Time.scaleの変更はおこなわない。
+        // 延焼イベントなどの処理だけが早くなる。物理演算まで止める場合にはfalse
+        internal const bool GAME_SPEED_SIMULATION_MODE = false; 
+
         // ゲームオブジェクトの設定値
         internal const float GARBAGE_BASE_SLICE_SIZE = 0.4f;    // 一回のスライスで切り取るサイズ
         internal const float GARBAGE_MINIMUM_SIZE = 0.2f;     // 最小サイズ    

@@ -70,7 +70,7 @@ public class NoticeCtrl : UIControllerBase
             _notice_window.SetActive(isOn);
         }
         // ゲーム内時間を一時停止
-        Time.timeScale = isOn ? 0 : 1;
+        Time.timeScale = isOn ? 0.0001f : 1;
     }
 
 
