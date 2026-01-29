@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// タブメニューコントローラー
@@ -28,11 +29,10 @@ public class TabMenuCtrl : UIControllerBase
     }
 
     /// <summary>
-    /// Initialize コルーチン - 遅延初期化処理（あれば）
+    /// Initialize コルーチン - 初期化処理
     /// </summary>
     protected override IEnumerator Initialize()
     {
-        // 現在は遅延初期化処理なし
         yield return null;
     }
 

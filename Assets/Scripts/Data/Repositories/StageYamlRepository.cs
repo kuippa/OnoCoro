@@ -340,7 +340,9 @@ public class StageYamlRepository : MonoBehaviour
                 
                 foreach (var eventCmd in timeEntry.Value)
                 {
+                    // EventCommand.Type をイベント名として parameters に追加
                     var eventDict = new Dictionary<string, string>(eventCmd.Parameters);
+                    eventDict["event"] = eventCmd.Type.ToString();
                     eventList.Add(eventDict);
                 }
                 

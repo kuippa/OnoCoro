@@ -169,7 +169,6 @@ public abstract class UIControllerBase : MonoBehaviour, IInitializable
         if (!IsInitializationRequired)
         {
             IsInitialized = true;
-            Debug.Log($"[UIControllerBase] {this.GetType().Name} (オンデマンド初期化) スキップ");
             return;
         }
 
@@ -197,8 +196,6 @@ public abstract class UIControllerBase : MonoBehaviour, IInitializable
 
         // 初期化完了フラグを設定
         IsInitialized = true;
-
-        Debug.Log($"[UIControllerBase] {this.GetType().Name} 初期化完了");
     }
 
     /// <summary>

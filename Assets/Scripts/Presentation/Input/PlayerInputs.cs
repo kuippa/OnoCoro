@@ -34,14 +34,26 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 		public void OnMove(InputValue value)
 		{
+			// [重要] InitializationManager による初期化制御
+			// 初期化が完了するまで入力を無視
+			if (!InitializationManager.IsInitialized)
+			{
+				return;
+			}
+			
 			// 他の移動キーを押しながら移動中にさらに呼び出された場合
 			CursorManager.SetCursorLockMode(false);
 			MoveInput(value.Get<Vector2>());
 		}
 
 		public void OnLook(InputValue value)
-		{
-			CursorManager.SetCursorLockMode(true);
+		{			// [重要] InitializationManager による初期化制御
+			// 初期化が完了するまで入力を無視
+			if (!InitializationManager.IsInitialized)
+			{
+				return;
+			}
+						CursorManager.SetCursorLockMode(true);
 			// マウスカーソルがゲーム画面外の場合は LookInput を発火させない
 			if (!IsMouseInGameWindow())
 			{
@@ -57,11 +69,25 @@ namespace StarterAssets
 
 		public void OnJump(InputValue value)
 		{
+			// [重要] InitializationManager による初期化制御
+			// 初期化が完了するまで入力を無視
+			if (!InitializationManager.IsInitialized)
+			{
+				return;
+			}
+			
 			JumpInput(value.isPressed);
 		}
 
 		public void OnSprint(InputValue value)
 		{
+			// [重要] InitializationManager による初期化制御
+			// 初期化が完了するまで入力を無視
+			if (!InitializationManager.IsInitialized)
+			{
+				return;
+			}
+			
 			SprintInput(value.isPressed);
 		}
 

@@ -44,6 +44,23 @@ public class GameTimerCtrl : UIControllerBase
 
     protected override IEnumerator Initialize()
     {
+        // EventLoader の初期化待機（YAML ロード完了）
+        int timeout = 0;
+        
+        while (!EventLoader.instance.IsInitialized && timeout < 100)
+        {
+            yield return new WaitForSeconds(0.1f);
+            timeout++;
+        }
+        
+        if (timeout >= 100)
+        {
+            Debug.LogWarning("[GameTimerCtrl.Initialize] EventLoader の初期化がタイムアウト (10秒以上)");
+        }
+        
+        // イベント時間リストは StageYamlRepository -> EventLoader.SetEventToTimer() で設定済み
+        // ここでは二重呼び出しを避けるため、SetTimerEvent() は呼ばない
+        
         yield return null;
     }
 
@@ -112,8 +129,6 @@ public class GameTimerCtrl : UIControllerBase
             foreach (var gevent in _eventLoader._timer_events)
             {
                 float event_time = gevent.Key;
-                // Debug.Log(gevent.Key);
-                // Dictionary<string, string>[] event_data = gevent.Value;
                 _eventTimeList.Add(event_time);
             }
             // _eventTimeList を時間でソートする
@@ -126,27 +141,20 @@ public class GameTimerCtrl : UIControllerBase
     {
         bool ret = false;
         List<Dictionary<string, string>> event_data_list;
-        // Dictionary<string, string> event_data;
-        // その時刻に発生するイベントを実行する
         if (_eventLoader != null)
         {
-            // if (_eventLoader._timer_events.TryGetValue(time, out event_data))
             if (_eventLoader._timer_events.TryGetValue(time, out event_data_list))
             {
                 foreach (var event_data in event_data_list)
                 {
-                    // Debug.Log("ActionEventイベント発生:" + time + event_data);
                     string event_name = "";
                     string event_value = "";
                     event_data.TryGetValue("event", out event_name);
                     event_data.TryGetValue("value", out event_value);
+                    
                     _eventLoader.ActionEvent(event_name, event_value);
                 }
-                // string event_name = "";
-                // string event_value = "";
-                // event_data.TryGetValue("event", out event_name);
-                // event_data.TryGetValue("value", out event_value);
-                // _eventLoader.ActionEvent(event_name, event_value);
+                
                 return true;
             }
         }
@@ -156,6 +164,19 @@ public class GameTimerCtrl : UIControllerBase
 
     void Update()
     {
+        // [重要] システム全体の初期化が完了するまでタイマーを進めない
+        // InitializationManager が全コンポーネント初期化完了まで待機
+        if (!InitializationManager.IsInitialized)
+        {
+            return;
+        }
+
+        // [重要] GameTimerCtrl 自身の初期化も確認
+        if (!IsInitialized)
+        {
+            return;
+        }
+
         if (_isPaused)
         {
             return;
@@ -174,7 +195,6 @@ public class GameTimerCtrl : UIControllerBase
             {
                 if (_time > _eventTimeList[0])
                 {
-                    // Debug.Log("イベント発生" + _eventTimeList[0]);
                     if (ActionEvent(_eventTimeList[0]))
                     {
                         _eventTimeList.RemoveAt(0);

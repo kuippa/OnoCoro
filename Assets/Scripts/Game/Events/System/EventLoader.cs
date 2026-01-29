@@ -1,10 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using CommonsUtility;
 using UnityEngine;
 using Debug = CommonsUtility.Debug;
 
-public class EventLoader : MonoBehaviour
+/// <summary>
+/// イベントローダー
+/// 
+/// Phase 1.5 で IInitializable インターフェース対応
+/// InitializationManager による初期化順序制御に統合
+/// </summary>
+public class EventLoader : MonoBehaviour, IInitializable
 {
     public static EventLoader instance = null;
 
@@ -20,6 +27,12 @@ public class EventLoader : MonoBehaviour
     internal Dictionary<string, string> _board_data = new Dictionary<string, string>();
 
     private GameTimerCtrl _gameTimerCtrl = null;
+    
+    /// <summary>
+    /// 初期化完了フラグ（IInitializable）
+    /// InitializationManager が IsInitialized = true を待機して制御進行
+    /// </summary>
+    public bool IsInitialized { get; private set; } = false;
 
     // internal void debug_events()
     // {
@@ -399,5 +412,31 @@ public class EventLoader : MonoBehaviour
             _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
             // txtGameTime.GetComponent<GameTimerCtrl>()._time = 0.0f;
         }
+        
+        // [重要] Awake では IsInitialized = false
+        IsInitialized = false;
+    }
+    
+    /// <summary>
+    /// 初期化コルーチン
+    /// InitializationManager が呼び出し、完了を待機
+    /// 
+    /// ゲーム進行制御：
+    /// - IsInitialized = true まで、EventLoader の機能を制御
+    /// - ゲーム開始時にこのフラグが完了するまで待機
+    /// </summary>
+    void Start()
+    {
+        // InitializationManager が IsInitialized = true を待機
+        IsInitialized = true;
+    }
+    
+    /// <summary>
+    /// IInitializable インターフェース実装
+    /// コンポーネント名を取得（ログ出力用）
+    /// </summary>
+    public string GetComponentName()
+    {
+        return this.GetType().Name;
     }
 }

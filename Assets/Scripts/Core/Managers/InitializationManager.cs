@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using CommonsUtility;
 using UnityEngine;
 using Debug = CommonsUtility.Debug;
@@ -176,56 +177,70 @@ internal class InitializationManager : MonoBehaviour
     /// </summary>
     private IEnumerator InitializeResourceLoaders()
     {
-        Debug.Log("[InitializationManager] リソース初期化中...");
         yield return null;
     }
     
     /// <summary>
     /// 各種マネージャークラスの初期化
-    /// Phase 1.5 では GamePrefabs のコントローラーを動的に検出・監視
+    /// Phase 1.5 では IInitializable を実装したすべてのコンポーネントを検出・監視
     /// 
-    /// 動的管理により：
-    /// - 新規コントローラー追加時に InitializationManager を修正不要
-    /// - コントローラー削除時に自動的に反映
-    /// - GetComponentsInChildren で実行時に検出
+    /// 検出対象：
+    /// - シーン内のすべての Canvas と その配下の UIControllerBase 継承クラス
+    /// - GamePrefabs オブジェクト配下のすべてのコンポーネント（EventLoader など）
     /// </summary>
     private IEnumerator InitializeManagers()
     {
-        Debug.Log("[InitializationManager] GamePrefabs のコントローラーを自動検出");
-        
-        // GamePrefabs オブジェクト取得
-        // GameObjectTreat は Presentation/View にあるため注意
-        GameObject gamePrefabsObj = GameObjectTreat.GetGameManagerObject();
-        if (gamePrefabsObj == null)
-        {
-            Debug.LogWarning("[InitializationManager] GamePrefabs が見つかりません");
-            yield break;
-        }
-        
         // [1] IInitializable を実装したすべてのコンポーネントを検出
-        // GetComponentsInChildren は Awake 完了後であれば確実に検出可能
-        IInitializable[] controllers = gamePrefabsObj.GetComponentsInChildren<IInitializable>();
+        List<IInitializable> allControllers = new List<IInitializable>();
         
-        if (controllers.Length == 0)
+        // シーン内のすべての IInitializable インターフェース実装オブジェクトを検出
+        IInitializable[] allInitializables = UnityEngine.Object.FindObjectsOfType<MonoBehaviour>()
+            .OfType<IInitializable>()
+            .ToArray();
+        
+        allControllers.AddRange(allInitializables);
+        
+        int totalCount = allControllers.Count;
+        
+        if (totalCount == 0)
         {
-            Debug.LogWarning("[InitializationManager] IInitializable を実装したコンポーネントがありません");
+            Debug.LogWarning("[InitializationManager] [警告] IInitializable を実装したコンポーネントがありません。" +
+                "\n  - Canvas の下に UIControllerBase を継承したコンポーネントがありますか？" +
+                "\n  - GamePrefabs オブジェクト下に EventLoader などがありますか？");
             yield break;
         }
-        
-        Debug.Log($"[InitializationManager] {controllers.Length} 個のコントローラーを検出しました");
         
         // [2] 各コントローラーの初期化完了を個別に監視
-        foreach (IInitializable controller in controllers)
+        foreach (IInitializable controller in allControllers)
         {
-            // 個別に初期化完了を待機
-            yield return new WaitUntil(() => controller.IsInitialized);
-            
             string componentName = controller.GetComponentName();
-            MarkStepAsInitialized(componentName);
-            Debug.Log($"[InitializationManager] [OK] {componentName} 初期化完了");
+            
+            // すでに初期化完了している場合はスキップ
+            if (controller.IsInitialized)
+            {
+                MarkStepAsInitialized(componentName);
+                continue;
+            }
+            
+            // 個別に初期化完了を待機（最大 30 秒のタイムアウト）
+            float timeout = 30f;
+            float elapsed = 0f;
+            
+            while (!controller.IsInitialized && elapsed < timeout)
+            {
+                yield return new WaitForSeconds(0.1f);
+                elapsed += 0.1f;
+            }
+            
+            if (controller.IsInitialized)
+            {
+                MarkStepAsInitialized(componentName);
+            }
+            else
+            {
+                Debug.LogWarning($"[InitializationManager] [WARNING] {componentName} が {timeout} 秒以内に初期化できませんでした");
+            }
         }
-        
-        Debug.Log("[InitializationManager] すべてのコントローラー初期化完了");
     }
     
     /// <summary>
@@ -234,7 +249,6 @@ internal class InitializationManager : MonoBehaviour
     /// </summary>
     private IEnumerator InitializeUIComponents()
     {
-        Debug.Log("[InitializationManager] UI初期化中...");
         yield return null;
     }
     
@@ -247,11 +261,6 @@ internal class InitializationManager : MonoBehaviour
         if (_initializationSteps.ContainsKey(stepName))
         {
             _initializationSteps[stepName] = true;
-            Debug.Log($"[InitializationManager] {stepName} の初期化が完了しました");
-        }
-        else
-        {
-            Debug.LogWarning($"[InitializationManager] ステップ '{stepName}' が登録されていません");
         }
     }
     

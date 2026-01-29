@@ -3,6 +3,7 @@
 using UnityEngine.InputSystem;
 #endif
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 /* Note: animations are called via the controller for both the character and capsule using animator null checks
  */
@@ -151,6 +152,36 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+            
+            // [重要] InitializationManager による初期化制御
+            // 初期化完了まで InputController を完全に無効化
+            if (!InitializationManager.IsInitialized)
+            {
+                // 自分自身を Disable（Update/LateUpdate が呼ばれない）
+                this.enabled = false;
+                Debug.Log("[InputController] 初期化待機中 - コンポーネント Disabled");
+                
+                // 初期化完了を監視して再有効化するコルーチン開始
+                // enabled = false でも StartCoroutine は機能する
+                StartCoroutine(WaitForInitializationAndEnable());
+            }
+            else
+            {
+                Debug.Log("[InputController] 初期化完了 - コンポーネント有効");
+            }
+        }
+        
+        /// <summary>
+        /// 初期化完了を待機して InputController を再有効化
+        /// </summary>
+        private System.Collections.IEnumerator WaitForInitializationAndEnable()
+        {
+            // InitializationManager.IsInitialized = true になるまで待機
+            yield return new UnityEngine.WaitUntil(() => InitializationManager.IsInitialized);
+            
+            // 初期化完了 → コンポーネント再有効化
+            this.enabled = true;
+            Debug.Log("[InputController] 初期化完了 - コンポーネント Enabled（入力受付開始）");
         }
 
         private void Update()
