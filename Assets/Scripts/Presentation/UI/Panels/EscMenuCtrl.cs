@@ -96,8 +96,7 @@ public class EscMenuCtrl : UIControllerBase
     public void OnClickBackToTitle()
     {
         // タイトル画面に戻る
-        // TODO:
-        SceneLoaderManager.LoadScene(SceneLoaderManager.LoadSceneName.TitleScene.ToString());
+        SceneLoaderManager.LoadScene(SceneLoaderManager.LoadSceneName.TitlteStart.ToString());
         ToggleEscMenuWindow(false);
         UIUtility.ClearEventSystemSelection();
     }

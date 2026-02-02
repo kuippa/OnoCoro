@@ -219,7 +219,14 @@ public class TitleStartController : MonoBehaviour
 
     private void OnClickAboutGame()
     {
-        _pnlAboutThisGame.SetActive(value: true);
+        _pnlStageEditor.SetActive(value: false);
+        _pnlStageSelector.SetActive(value: false);
+        bool isActive = _pnlAboutThisGame.activeSelf;
+        _pnlAboutThisGame.SetActive(!isActive);
+        if (isActive)
+        {
+            return;
+        }
         TextMeshProUGUI component = GameObject.Find("tmpGameInfo").GetComponent<TextMeshProUGUI>();
         string text = LoadStreamingAsset.AllTextStream(LoadStreamingAsset.ABOUT_GAME_FILE_NAME, LoadStreamingAsset._PUBLIC_DOC_SUB_FOLDER);
         if (text == null)
@@ -286,12 +293,15 @@ public class TitleStartController : MonoBehaviour
     private void OnClickStageEditor()
     {
         _pnlStageSelector.SetActive(value: false);
+        _pnlAboutThisGame.SetActive(value: false);
         _pnlStageEditor.SetActive(!_pnlStageEditor.activeSelf);
         UIHelper.ResetScrollbarInPanel(_pnlStageEditor);
     }
 
     private void OnClickStageSelect()
     {
+        _pnlAboutThisGame.SetActive(value: false);
+        _pnlStageEditor.SetActive(value: false);
         _pnlStageSelector.SetActive(!_pnlStageSelector.activeSelf);
         UIHelper.ResetScrollbarInPanel(_pnlStageSelector);
     }
@@ -306,6 +316,20 @@ public class TitleStartController : MonoBehaviour
         InitializeVersionInfo(missingObjects);
         InitializeNotice(missingObjects);
         CheckMissingObjects(missingObjects);
+        
+        // [Phase 1.4] UI 初期化を StartCoroutine で実行
+        // Canvas Scaler + フォント スケーリング初期化
+        // 詳細: UIInitializationService.cs 参照
+        StartCoroutine(InitializeUI());
+    }
+    
+    /// <summary>
+    /// UI 初期化（Canvas Scaler + フォント）
+    /// UIInitializationService を使用して、シーン横断的な UI 設定を適用
+    /// </summary>
+    private IEnumerator InitializeUI()
+    {
+        yield return UIInitializationService.InitializeUIForScene();
     }
     private void InitializeLoadingCanvas(List<string> missingObjects)
     {

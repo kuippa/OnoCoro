@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// プレファブ選択用 Enum
@@ -20,6 +21,10 @@ public enum UIPrefabPreset
     
     [InspectorName("Notice")]
     Notice,
+
+    [InspectorName("UIItemCreate")]
+    UIItemCreate,
+    
 }
 
 /// <summary>
@@ -94,8 +99,11 @@ public class UICanvasManagerTest : MonoBehaviour
 
     /// <summary>
     /// テスト結果をログに出力するか
+    /// 
+    /// false = 重要な情報のみ表示（Canvas階層診断、エラーメッセージのみ）
+    /// true = 詳細なステップログをすべて表示
     /// </summary>
-    private const bool ENABLE_DETAILED_LOGGING = true;
+    private const bool ENABLE_DETAILED_LOGGING = false;
 
     /// <summary>
     /// テスト終了後にプレファブを削除するか
@@ -150,8 +158,15 @@ public class UICanvasManagerTest : MonoBehaviour
             yield break;
         }
 
+        // ステップ1.5: Canvas 構造を診断
+        LogCanvasHierarchy();
+
         // ステップ2: UICanvasManager の設定適用
         yield return ApplyCanvasSettings();
+
+        // ステップ2.5: 設定後の Canvas 構造を診断
+        Debug.Log("[UICanvasManagerTest] Canvas Hierarchy AFTER ApplyStandardScalerSettings:");
+        LogCanvasHierarchy();
 
         // ステップ3: Canvas Scaler 設定検証
         yield return ValidateCanvasScalerSettings();
@@ -201,6 +216,7 @@ public class UICanvasManagerTest : MonoBehaviour
             UIPrefabPreset.TabMenu => "Prefabs/UI/UITabMenu",
             UIPrefabPreset.DebugInfo => "Prefabs/UI/UIDebugInfo",
             UIPrefabPreset.Notice => "Prefabs/UI/UINotice",
+            UIPrefabPreset.UIItemCreate => "Prefabs/UI/UIItemCreate",
             _ => "Prefabs/UI/UIEscMenu"
         };
     }
@@ -279,14 +295,15 @@ public class UICanvasManagerTest : MonoBehaviour
             {
                 RemoveFunctionalScripts(_testPrefabInstance);
             }
-            else
-            {
-                // コントローラー保持：初期化エラーがあっても無視
-                LogTest("  Controller scripts kept for interaction testing");
-            }
 
             // 親をアクティブ化（この時点で Awake() が呼ばれる）
             inactiveParent.SetActive(true);
+            
+            // UIItemCreate(Clone) も明示的にアクティブ化
+            _testPrefabInstance.SetActive(true);
+            
+            // テスト用に親をスクリーン中央に配置（目視確認用）
+            inactiveParent.transform.position = Vector3.zero;
 
             _targetCanvas = _testPrefabInstance.GetComponent<Canvas>();
 
@@ -484,6 +501,46 @@ public class UICanvasManagerTest : MonoBehaviour
         LogTest($"  Current Resolution Preset: {UICanvasManager.CURRENT_RESOLUTION_PRESET}");
 
         yield return null;
+    }
+
+    /// <summary>
+    /// Canvas 階層構造を簡潔にログ出力
+    /// UIItemCreate などの複雑な構造を診断するため（重要情報のみ）
+    /// </summary>
+    private void LogCanvasHierarchy()
+    {
+        if (_testPrefabInstance == null)
+        {
+            return;
+        }
+
+        Debug.Log("[UICanvasManagerTest] ═══════════════════════════════════");
+        Debug.Log("[UICanvasManagerTest] Canvas Hierarchy Diagnostic");
+        Debug.Log("[UICanvasManagerTest] ═══════════════════════════════════");
+
+        // Canvas をすべて検索
+        Canvas[] allCanvases = _testPrefabInstance.GetComponentsInChildren<Canvas>(includeInactive: true);
+        Debug.Log($"[UICanvasManagerTest] Total Canvas count: {allCanvases.Length}");
+
+        foreach (Canvas canvas in allCanvases)
+        {
+            CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+            string scalerInfo = scaler != null ? $" (ScaleMode: {scaler.uiScaleMode})" : "";
+            Debug.Log($"[UICanvasManagerTest] - Canvas: {canvas.gameObject.name}{scalerInfo}");
+        }
+
+        // TMPコンポーネント を全検索して、各々の親 Canvas を確認
+        TextMeshProUGUI[] allTMPs = _testPrefabInstance.GetComponentsInChildren<TextMeshProUGUI>(includeInactive: true);
+        Debug.Log($"[UICanvasManagerTest] Total TextMeshProUGUI count: {allTMPs.Length}");
+
+        foreach (TextMeshProUGUI tmp in allTMPs)
+        {
+            Canvas parentCanvas = tmp.GetComponentInParent<Canvas>();
+            string parentInfo = parentCanvas != null ? parentCanvas.gameObject.name : "NOT FOUND";
+            Debug.Log($"[UICanvasManagerTest] - TMP: {tmp.gameObject.name} → Parent Canvas: {parentInfo}");
+        }
+
+        Debug.Log("[UICanvasManagerTest] ═══════════════════════════════════");
     }
 
     // ═══════════════════════════════════════════════════════════

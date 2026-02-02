@@ -11,9 +11,10 @@ public static class SceneLoaderManager
 {
     internal enum LoadSceneName
     {
-        TitleScene,
-        MainGameScene,
-        OptionScene
+        TitlteStart,
+        UnitFireDisaster,
+        UnitEnemy,
+        UnitUITest
     }
 
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CommonsUtility;
 using UnityEngine;
+using UnityEngine.UI;
 using Debug = CommonsUtility.Debug;
 
 /// <summary>
@@ -113,7 +114,8 @@ internal class InitializationManager : MonoBehaviour
         if (_instance == null)
         {
             _instance = this;
-            DontDestroyOnLoad(this.gameObject);
+            // [注意] GamePrefabs に attached している場合は DontDestroyOnLoad を付けない
+            // GamePrefabs はシーン固有のリソースなので、シーン遷移時に削除される
         }
         else if (_instance != this)
         {
@@ -245,11 +247,32 @@ internal class InitializationManager : MonoBehaviour
     
     /// <summary>
     /// UIコンポーネントの初期化
-    /// Phase 1.4 で UI 改善時に実装
+    /// 
+    /// UIInitializationService に委譲して、
+    /// 統一された UI 初期化フロー（Canvas Scaler + フォント）を実行
+    /// 
+    /// 実行順序:
+    /// 1. Canvas Scaler 設定（UICanvasManager）
+    /// 2. フォント初期化（UIFontManager）
+    /// 3. その他 UI グローバル設定（拡張ポイント）
+    /// 
+    /// 依存関係:
+    /// - フォント処理は Canvas Scaler 設定に依存
+    /// - Canvas Scaler の変更は全 Canvas に波及するため、最初に実行
+    /// 
+    /// 担当: UIInitializationService.InitializeUIForScene()
     /// </summary>
     private IEnumerator InitializeUIComponents()
     {
-        yield return null;
+        Debug.Log("[InitializationManager] UI コンポーネント初期化開始");
+        
+        // UIInitializationService で Canvas Scaler + フォント初期化を実行
+        yield return UIInitializationService.InitializeUIForScene();
+        
+        // ステップ3: その他 UI 設定
+        // yield return InitializeOtherUISettings();  // 拡張ポイント
+        
+        Debug.Log("[InitializationManager] UI コンポーネント初期化完了");
     }
     
     /// <summary>

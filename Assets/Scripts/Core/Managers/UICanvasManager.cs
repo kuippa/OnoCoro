@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using Debug = CommonsUtility.Debug;
 
 /// <summary>
-/// UI Canvas 一元管理（Singleton）
+/// UI Canvas 一元管理（Static Utility）
 /// 全 Canvas の Scaler 設定と解像度対応を統一
 /// 
 /// 責務:
@@ -19,11 +19,15 @@ using Debug = CommonsUtility.Debug;
 /// - Canvas Scaler 設定の分散を防止
 /// - 将来の解像度追加に対応可能
 /// 
+/// 実装パターン: Static Utility（Singleton ではない）
+/// - MonoBehaviour に attach する必要はない
+/// - すべてのメソッドは static
+/// - InitializationManager から呼び出される
+/// 
 /// 参照: docs/ui-improvement-phase-1-4.md (Phase 1.4.4)
 /// </summary>
-internal class UICanvasManager : MonoBehaviour
+internal static class UICanvasManager
 {
-    private static UICanvasManager _instance;
 
     // ═══════════════════════════════════════════════════════════
     // 解像度プリセット定義
@@ -34,17 +38,20 @@ internal class UICanvasManager : MonoBehaviour
     /// </summary>
     public enum ResolutionPreset
     {
+        /// <summary>Low Res (800×600) - レガシー対応・UI 設計基準</summary>
+        LowRes = 0,
+
         /// <summary>HD (1280×720) - モバイル・小型画面対応</summary>
-        HD = 0,
+        HD = 1,
 
         /// <summary>Full HD (1920×1080) - スタンダード解像度（現在使用中）</summary>
-        FullHD = 1,
+        FullHD = 2,
 
         /// <summary>2K (2560×1440) - 高解像度画面対応</summary>
-        TwoK = 2,
+        TwoK = 3,
 
         /// <summary>iPad 4:3 (1024×768) - タブレット対応</summary>
-        iPad = 3,
+        iPad = 4,
     }
 
     /// <summary>
@@ -53,6 +60,7 @@ internal class UICanvasManager : MonoBehaviour
     private static readonly Dictionary<ResolutionPreset, Vector2> RESOLUTION_MAP = 
         new Dictionary<ResolutionPreset, Vector2>()
         {
+            { ResolutionPreset.LowRes, new Vector2(800, 600) },
             { ResolutionPreset.HD, new Vector2(1280, 720) },
             { ResolutionPreset.FullHD, new Vector2(1920, 1080) },
             { ResolutionPreset.TwoK, new Vector2(2560, 1440) },
@@ -82,6 +90,12 @@ internal class UICanvasManager : MonoBehaviour
     internal static Vector2 REFERENCE_RESOLUTION => RESOLUTION_MAP[CURRENT_RESOLUTION_PRESET];
 
     /// <summary>
+    /// UI 設計用の基準解像度（LowRes = 800×600）
+    /// TextMeshPro などのフォントスケーリング計算に使用
+    /// </summary>
+    internal static Vector2 UI_DESIGN_BASE_RESOLUTION => RESOLUTION_MAP[ResolutionPreset.LowRes];
+
+    /// <summary>
     /// Canvas Scaler の幅・高さマッチ設定
     /// 
     /// 0.0 = 幅優先（横長画面対応）
@@ -95,11 +109,6 @@ internal class UICanvasManager : MonoBehaviour
     /// </summary>
     internal static readonly RenderMode DEFAULT_RENDER_MODE = RenderMode.ScreenSpaceOverlay;
 
-    /// <summary>
-    /// シングルトンインスタンス取得
-    /// </summary>
-    internal static UICanvasManager Instance => _instance;
-
     // ═══════════════════════════════════════════════════════════
     // Canvas Scaler 管理メソッド
     // ═══════════════════════════════════════════════════════════
@@ -107,8 +116,18 @@ internal class UICanvasManager : MonoBehaviour
     /// <summary>
     /// Canvas に標準 Scaler 設定を自動適用
     /// 
-    /// 全ての UI Canvas でこのメソッドを呼び出すことで、
-    /// Canvas Scaler 設定が統一される
+    /// 対象: スクリーン空間 Canvas のうち、カスタム ScaleMode 設定がないもの
+    /// - ScreenSpaceOverlay
+    /// - ScreenSpaceCameraCanvas
+    /// 
+    /// 非対象:
+    /// - WorldSpace Canvas（RenderMode を変更しない）
+    /// - 既に ScaleMode != ScaleWithScreenSize が設定されている Canvas（カスタム設定を尊重）
+    /// 
+    /// 処理フロー:
+    /// 1. Canvas の RenderMode を確認 → WorldSpace ならスキップ
+    /// 2. 既存 CanvasScaler を確認 → ScaleMode が ScaleWithScreenSize 以外なら尊重してスキップ
+    /// 3. それ以外の ScreenSpace Canvas に標準設定を適用
     /// 
     /// 使用例:
     /// protected override IEnumerator Initialize()
@@ -122,11 +141,25 @@ internal class UICanvasManager : MonoBehaviour
     {
         if (canvas == null)
         {
-            Debug.LogWarning("[UICanvasManager] Canvas is null");
+            // Debug.LogWarning("[UICanvasManager] Canvas is null");
             return;
         }
 
-        // Render Mode を統一
+        // [重要] WorldSpace Canvas は Render Mode を変更しない
+            if (canvas.renderMode == RenderMode.WorldSpace)
+            {
+                return;
+            }
+
+        // [重要] 既に CanvasScaler が存在していて、カスタムな ScaleMode 設定がある場合はスキップ
+        // 例: PixelPerfect (ConstantPixelSize) な Canvas など
+        CanvasScaler existingScaler = canvas.GetComponent<CanvasScaler>();
+        if (existingScaler != null && existingScaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize)
+        {
+            return;
+        }
+
+        // Render Mode を統一（ScreenSpace Canvas のみ）
         canvas.renderMode = DEFAULT_RENDER_MODE;
 
         // Canvas Scaler を取得または作成
@@ -142,9 +175,6 @@ internal class UICanvasManager : MonoBehaviour
         scaler.matchWidthOrHeight = MATCH_WIDTH_OR_HEIGHT;
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
 
-        Debug.Log($"[UICanvasManager] Canvas '{canvas.name}' - Standard Scaler Settings Applied");
-        Debug.Log($"[UICanvasManager]   Reference Resolution: {REFERENCE_RESOLUTION}");
-        Debug.Log($"[UICanvasManager]   Match Width Or Height: {MATCH_WIDTH_OR_HEIGHT}");
     }
 
     /// <summary>
@@ -179,7 +209,7 @@ internal class UICanvasManager : MonoBehaviour
     /// </summary>
     internal static void UpdateAllCanvasesForResolution(Vector2 newResolution)
     {
-        Canvas[] allCanvases = FindObjectsOfType<Canvas>();
+        Canvas[] allCanvases = UnityEngine.Object.FindObjectsOfType<Canvas>();
 
         int updatedCount = 0;
         foreach (Canvas canvas in allCanvases)
@@ -192,7 +222,43 @@ internal class UICanvasManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"[UICanvasManager] Updated {updatedCount} Canvas(es) to resolution: {newResolution}");
+        // Debug.Log($"[UICanvasManager] Updated {updatedCount} Canvas(es) to resolution: {newResolution}");
+    }
+
+    /// <summary>
+    /// Canvas Scaler の一括初期化
+    /// 
+    /// シーン内のすべての Canvas を検出し、統一された Scaler 設定を適用
+    /// InitializationManager から呼び出される（フェーズ: ステップ3 UI初期化）
+    /// 
+    /// 処理:
+    /// 1. シーン内の全 Canvas を検出
+    /// 2. 各 Canvas に ApplyStandardScalerSettings() を適用
+    /// 3. ログ出力（解像度情報）
+    /// 
+    /// 注意: Singleton 初期化とは別プロセス
+    /// </summary>
+    internal static void InitializeCanvasSettings()
+    {
+        Canvas[] allCanvases = UnityEngine.Object.FindObjectsOfType<Canvas>();
+        
+        if (allCanvases.Length == 0)
+        {
+            // Debug.LogWarning("[UICanvasManager] No Canvas found in scene");
+            return;
+        }
+        
+        int appliedCount = 0;
+        foreach (Canvas canvas in allCanvases)
+        {
+            if (canvas == null) continue;
+            
+            ApplyStandardScalerSettings(canvas);
+            appliedCount++;
+        }
+        
+        // Debug.Log($"[UICanvasManager] Applied standard Scaler settings to {appliedCount} Canvas(es)");
+        LogCurrentResolutionInfo();
     }
 
     /// <summary>
@@ -203,45 +269,17 @@ internal class UICanvasManager : MonoBehaviour
         float canvasScale = GetCurrentCanvasScale();
         Vector2 refResolution = REFERENCE_RESOLUTION;
         
-        Debug.Log("[UICanvasManager] ─────────────────────────────────");
-        Debug.Log($"[UICanvasManager] Current Preset: {CURRENT_RESOLUTION_PRESET}");
-        Debug.Log($"[UICanvasManager] Reference Resolution: {refResolution}");
-        Debug.Log($"[UICanvasManager] Current Screen Resolution: {Screen.width}×{Screen.height}");
-        Debug.Log($"[UICanvasManager] Current Canvas Scale: {canvasScale:F2}x");
-        Debug.Log("[UICanvasManager] ─────────────────────────────────");
+        // Debug.Log("[UICanvasManager] ─────────────────────────────────");
+        // Debug.Log($"[UICanvasManager] Current Preset: {CURRENT_RESOLUTION_PRESET}");
+        // Debug.Log($"[UICanvasManager] Reference Resolution: {refResolution}");
+        // Debug.Log($"[UICanvasManager] Current Screen Resolution: {Screen.width}×{Screen.height}");
+        // Debug.Log($"[UICanvasManager] Current Canvas Scale: {canvasScale:F2}x");
+        // Debug.Log("[UICanvasManager] ─────────────────────────────────");
     }
 
     // ═══════════════════════════════════════════════════════════
-    // Singleton 管理
+    // Static Utility（MonoBehaviour 不要）
     // ═══════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Singleton 初期化
-    /// </summary>
-    private void Awake()
-    {
-        if (_instance != null)
-        {
-            Debug.LogWarning("[UICanvasManager] Singleton instance already exists. Destroying duplicate.");
-            Destroy(gameObject);
-            return;
-        }
-
-        _instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        Debug.Log("[UICanvasManager] Initialized (Singleton)");
-        LogCurrentResolutionInfo();
-    }
-
-    /// <summary>
-    /// シーン遷移時の参照クリア（オプション）
-    /// </summary>
-    private void OnDestroy()
-    {
-        if (_instance == this)
-        {
-            _instance = null;
-        }
-    }
+    
+    // Static class のためコンストラクタやライフサイクルメソッドなし
 }
