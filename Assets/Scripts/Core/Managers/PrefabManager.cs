@@ -65,7 +65,7 @@ public class PrefabManager
 		{ PrefabType.PathMaker, "Prefabs/Marker/path_marker" },
 		{ PrefabType.PathBloom, "Prefabs/Marker/path_bloom" },
 		{ PrefabType.SignPowerOutage, "Prefabs/Marker/SignPowerOutage" },
-		{ PrefabType.CircularIndicator, "Prefabs/Marker/CircularIndicator" },
+		{ PrefabType.CircularIndicator, "Prefabs/UI/UICircularIndicator" },
 		
 		// UI
 		{ PrefabType.UIStageInfoBox, "Prefabs/UI/UIStageInfoBox" },

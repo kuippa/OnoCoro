@@ -5,6 +5,7 @@ using System.Collections;
 using System;
 using CommonsUtility;
 using TMPro;
+using Debug = UnityEngine.Debug;
 
 public class CircularIndicator : MonoBehaviour
 {
@@ -24,23 +25,54 @@ public class CircularIndicator : MonoBehaviour
 
     private void Awake()
     {
-        // GameObject txtTime = this.gameObject.transform.Find("Canvas/txtTime").gameObject;
-        // txtTime.SetActive(false);
-        // _timeText = txtTime.GetComponent<Text>();
-        // _timeText.text = _duration.ToString("F1");
-
-        GameObject cvsTime = this.gameObject.transform.Find("tmpMesh").gameObject;        
+        // tmpMesh を検索
+        GameObject cvsTime = this.gameObject.transform.Find("tmpMesh")?.gameObject;
+        if (cvsTime == null)
+        {
+            Debug.LogError($"[CircularIndicator] Failed to find 'tmpMesh' child object");
+            enabled = false;
+            return;
+        }
+        
         cvsTime.SetActive(false);
+        
+        // 注記：3D ワールド空間内に表示されるインディケーターなので TextMeshPro（3D 用）を使用
+        // UI Canvas 内なら TextMeshProUGUI を使用
         _textMesh = cvsTime.GetComponent<TextMeshPro>();
+        if (_textMesh == null)
+        {
+            Debug.LogError($"[CircularIndicator] TextMeshPro component not found on {cvsTime.name}");
+            enabled = false;
+            return;
+        }
+        
         _textMesh.text = _duration.ToString("F1");
 
+        // MeshFilter 取得
+        MeshFilter meshFilter = this.GetComponent<MeshFilter>();
+        if (meshFilter == null)
+        {
+            Debug.LogError($"[CircularIndicator] MeshFilter component not found");
+            enabled = false;
+            return;
+        }
+        
         _mesh = new Mesh();
         _mesh.name = "CircularRibbonMesh";
-        this.GetComponent<MeshFilter>().mesh = _mesh;
+        meshFilter.mesh = _mesh;
+        
+        // MeshRenderer 取得
         _meshRenderer = this.GetComponent<MeshRenderer>();
+        if (_meshRenderer == null)
+        {
+            Debug.LogError($"[CircularIndicator] MeshRenderer component not found");
+            enabled = false;
+            return;
+        }
+        
         _filledColor = _meshRenderer.material.color;
         CreateMesh();
-
+        
         StartIndicator(_duration, null, this.gameObject);
     }
 
