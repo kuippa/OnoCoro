@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using CommonsUtility;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 public class UnitFireDisaster : MonoBehaviour
 {

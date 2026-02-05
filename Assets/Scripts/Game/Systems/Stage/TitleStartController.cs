@@ -9,7 +9,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 using System.IO;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 public class TitleStartController : MonoBehaviour
 {

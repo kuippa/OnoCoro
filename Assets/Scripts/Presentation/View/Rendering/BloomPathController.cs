@@ -4,7 +4,7 @@ using System.Diagnostics;
 using CommonsUtility;
 using UnityEngine;
 using UnityEngine.AI;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// Bloom Path システム（NavMesh ベースの動的パス表示）を管理

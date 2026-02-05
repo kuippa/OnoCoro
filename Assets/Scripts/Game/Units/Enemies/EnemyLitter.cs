@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using CommonsUtility;
 using UnityEngine;
 using UnityEngine.AI;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 public class EnemyLitter : MonoBehaviour
 {

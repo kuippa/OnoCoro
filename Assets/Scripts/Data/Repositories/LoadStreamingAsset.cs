@@ -6,7 +6,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using YamlDotNet.RepresentationModel;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 public static class LoadStreamingAsset
 {

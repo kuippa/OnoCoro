@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using CommonsUtility;
 using System;
 using System.Diagnostics;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 public class FireCubeCtrl : MonoBehaviour
 {

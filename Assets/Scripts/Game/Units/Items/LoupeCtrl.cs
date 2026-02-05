@@ -40,20 +40,22 @@ public class LoupeCtrl : MonoBehaviour
     internal static void ActLoupe()
     {
         _loupeMode = false;
-        GameObject plateauInfo  = GameObject.Find(GlobalConst.PLATEAU_OBJ_NAME);
+        GameObject plateauInfo = GameObject.Find(GlobalConst.PLATEAU_OBJ_NAME);
         if (plateauInfo == null)
         {
             return;
         }
-        // Plateau 建物情報表示
-        // bool boolplateau = plateauInfo.GetComponent<PlateauInfo>().GetPlateauInfo();
 
-        bool boolplateau = plateauInfo.GetComponent<PlateauInfoManager>().IsPlateauObject();
-        // Plateau 以外のユニットなどの情報を表示
-        // if (!boolplateau)
+        PlateauInfoManager plateauInfoManager = plateauInfo.GetComponent<PlateauInfoManager>();
+        if (plateauInfoManager == null)
+        {
+            return;
+        }
+
+        bool boolplateau = plateauInfoManager.IsPlateauObject();
         if (boolplateau)
         {
-            plateauInfo.GetComponent<PlateauInfoManager>().DisplayPlateauInfo();
+            plateauInfoManager.DisplayPlateauInfo();
         }
         else
         {
@@ -61,9 +63,18 @@ public class LoupeCtrl : MonoBehaviour
             if (uiInfo != null)
             {
                 uiInfo.GetComponent<InfoWindowCtrl>().GetTargetUnit();
-                // uiInfo.GetComponent<InfoWindowCtrl>().ToggleInfoWindow(true);
             }
-            return;
+        }
+
+        DeselectLoupe();
+    }
+
+    private static void DeselectLoupe()
+    {
+        string selectedItemName = ItemAction.GetSelectedItemName();
+        if (selectedItemName != null && selectedItemName == _item.Name)
+        {
+            ItemAction.DeselectItem();
         }
     }
 

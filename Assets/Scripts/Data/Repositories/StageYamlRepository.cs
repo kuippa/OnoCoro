@@ -245,34 +245,65 @@ public class StageYamlRepository : MonoBehaviour
             return;
         }
 
-        // Dictionary<string, string> のリストに変換
-        var yamlDataList = new List<Dictionary<string, string>>();
+        var board_data = new Dictionary<string, string>();
+        var signboard_data = new Dictionary<string, (string text, Vector3 pos)>();
+        
+        string codeField = BoardCommandFields.code.ToString();
+        string textField = BoardCommandFields.text.ToString();
+        string posField = BoardCommandFields.pos.ToString();
+        
         foreach (YamlMappingNode yamlevent in YSeqNode)
         {
-            var boardData = new Dictionary<string, string>();
+            string code = "";
+            string text = "";
+            string posStr = "";
+            
             foreach (var entry in yamlevent.Children)
             {
-                boardData.Add(
-                    ((YamlScalarNode)entry.Key).Value,
-                    ((YamlScalarNode)entry.Value).Value
-                );
-            }
-            yamlDataList.Add(boardData);
-        }
-
-        // YamlCommandManager 経由で BoardCommand に変換
-        var boardCommands = YamlCommandManager.ParseBoardCommands(yamlDataList);
-        
-        if (boardCommands.Count > 0)
-        {
-            // BoardCommand を Dictionary に変換して _eventLoader に渡す
-            var board_data = new Dictionary<string, string>();
-            foreach (var cmd in boardCommands)
-            {
-                board_data[cmd.ConfigType.ToString()] = cmd.Value;
+                string key = ((YamlScalarNode)entry.Key).Value;
+                string value = ((YamlScalarNode)entry.Value).Value;
+                
+                if (key == codeField)
+                {
+                    code = value;
+                }
+                else if (key == textField)
+                {
+                    text = value;
+                }
+                else if (key == posField)
+                {
+                    posStr = value;
+                }
             }
             
+            // code と text は必須
+            if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(text))
+            {
+                continue;
+            }
+            
+            // pos が指定されている場合：signboard_data へ
+            if (!string.IsNullOrEmpty(posStr))
+            {
+                Vector3 position = Utility.StringToVector3(posStr);
+                signboard_data[code] = (text, position);
+            }
+            else
+            {
+                // pos がない場合：board_data へ（既存の立て看板用）
+                board_data[code] = text;
+            }
+        }
+        
+        if (board_data.Count > 0)
+        {
             _eventLoader._board_data = board_data;
+        }
+        
+        if (signboard_data.Count > 0)
+        {
+            _eventLoader._signboard_data = signboard_data;
         }
     }
 

@@ -1,7 +1,7 @@
 using UnityEngine;
 using Unity.Cinemachine;
 using System.Diagnostics;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 namespace CommonsUtility
 {

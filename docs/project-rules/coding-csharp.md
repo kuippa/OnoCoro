@@ -247,7 +247,7 @@ _currentWaveIndex++;  // 次のウェーブ開始時に再スポーン判定を�
 
 ```csharp
 using System.Diagnostics;
-using Debug = UnityEngine.Debug;  // 必須
+using Debug = CommonsUtility.Debug;  // 必須
 
 // [OK] Unity のログ
 Debug.Log("Unity のデバッグログ");

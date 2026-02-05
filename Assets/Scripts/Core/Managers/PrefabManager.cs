@@ -37,7 +37,9 @@ public class PrefabManager
 		UIBuildingInfo,
 		UIToolTips,
 		ItemHolder,
-		NowLoading
+		NowLoading,
+		UIBoard,
+		Signboard
 	}
 
 	private static readonly Dictionary<PrefabType, string> _paths = new Dictionary<PrefabType, string>
@@ -65,14 +67,20 @@ public class PrefabManager
 		{ PrefabType.PathMaker, "Prefabs/Marker/path_marker" },
 		{ PrefabType.PathBloom, "Prefabs/Marker/path_bloom" },
 		{ PrefabType.SignPowerOutage, "Prefabs/Marker/SignPowerOutage" },
-		{ PrefabType.CircularIndicator, "Prefabs/UI/UICircularIndicator" },
 		
 		// UI
 		{ PrefabType.UIStageInfoBox, "Prefabs/UI/UIStageInfoBox" },
 		{ PrefabType.UIBuildingInfo, "Prefabs/UI/UIBuildingInfo" },
 		{ PrefabType.UIToolTips, "Prefabs/UI/UIToolTips" },
 		{ PrefabType.ItemHolder, "Prefabs/UI/Item_holder" },
-		{ PrefabType.NowLoading, "Prefabs/UI/nowloading" }
+		{ PrefabType.NowLoading, "Prefabs/UI/nowloading" },
+		{ PrefabType.UIBoard, "Prefabs/UI/UIBoard" },
+		{ PrefabType.CircularIndicator, "Prefabs/UI/UICircularIndicator" },
+
+		// Ornament
+		// { PrefabType.Signboard, "Prefabs/Ornament/SimpleSwichBox" },
+		{ PrefabType.Signboard, "Prefabs/Ornament/StandingSignboard" }
+
 	};
 
 	private static readonly Dictionary<PrefabType, GameObject> _cache = new Dictionary<PrefabType, GameObject>();
@@ -142,6 +150,8 @@ public class PrefabManager
 	internal static GameObject UIToolTipsPrefab => GetPrefab(PrefabType.UIToolTips);
 	internal static GameObject ItemHolderPrefab => GetPrefab(PrefabType.ItemHolder);
 	internal static GameObject NowLoadingPrefab => GetPrefab(PrefabType.NowLoading);
+	internal static GameObject UIBoardPrefab => GetPrefab(PrefabType.UIBoard);
+	internal static GameObject SignboardPrefab => GetPrefab(PrefabType.Signboard);
 
 	internal static int GarbageCubeUID => GetNextUID(PrefabType.GarbageCube);
 	internal static int FireCubeUID => GetNextUID(PrefabType.FireCube);

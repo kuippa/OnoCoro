@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// Unity UI操作に関する汎用ヘルパークラス

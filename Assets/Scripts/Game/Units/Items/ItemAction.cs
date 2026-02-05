@@ -1,6 +1,9 @@
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using Debug = CommonsUtility.Debug;
+
 
 /// <summary>
 /// アイテムの選択と使用を管理するクラス
@@ -11,6 +14,22 @@ public class ItemAction : MonoBehaviour
     private static SpawnController _spawnCtrl = null;
     private static ItemHolderCtrl _itemHolderCtrl = null;
     private static ItemStruct _item = new ItemStruct();
+
+    /// <summary>
+    /// 選択されているアイテムを解除します
+    /// </summary>
+    internal static void DeselectItem()
+    {
+        if (_itemHolderCtrl != null)
+        {
+            _itemHolderCtrl.SetActiveImageFlag(false);
+        }
+        _item = new ItemStruct();
+        _itemHolderCtrl = null;
+        EventSystem.current.SetSelectedGameObject(null);
+        SpawnMarkerPointerCtrl.SetMarkerActive(false);
+        Debug.Log($"ItemAction DeselectItem: item deselected");
+    }
 
     /// <summary>
     /// 番号指定でアイテムを選択します

@@ -44,6 +44,12 @@ public class ClickCtrl : MonoBehaviour
 
     public static void OnRightClick(InputValue value)
     {
+        if (IsPointerOverUIObject())
+        {
+            Debug.Log("UI上での右クリック - 処理をスキップ");
+            return;
+        }
+
         if (!Instance._isProcessingClick)
         {
             Instance._isProcessingClick = true;
@@ -53,25 +59,28 @@ public class ClickCtrl : MonoBehaviour
 
     private IEnumerator ProcessRightClickNextFrame()
     {
-        // await Task.Yield(); // 次のフレームまで待機 C#の標準的な非同期プログラミングモデル
-        yield return null; // 次のフレームまで待機
+        yield return null;
 
-        if (!CheckAndCloseNoticeWindow()){
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
-        }
-        if (IsPointerOverUIObject())
-        {
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了
-        }
-        LoupeCtrl.ActLoupe();
         Instance._isProcessingClick = false;
+
+        if (!CheckAndCloseNoticeWindow())
+        {
+            yield break;
+        }
+
+        SelectTargetObjectForLoupe();
+        LoupeCtrl.ActLoupe();
     }
 
     // マウス押下時ではなく、リリース時に発火する
     public static void OnLeftClick(InputValue value)
     {
+        if (IsPointerOverUIObject())
+        {
+            Debug.Log("UI上でのクリック - 処理をスキップ");
+            return;
+        }
+
         if (!Instance._isProcessingClick)
         {
             Instance._isProcessingClick = true;
@@ -81,19 +90,16 @@ public class ClickCtrl : MonoBehaviour
 
     private IEnumerator ProcessLeftClickNextFrame()
     {
-        // await Task.Yield(); // 次のフレームまで待機 C#の標準的な非同期プログラミングモデル
-        yield return null; // 次のフレームまで待機
+        yield return null;
 
-        if (!CheckAndCloseNoticeWindow()){
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了            
-        }
-        if (IsPointerOverUIObject())
+        Instance._isProcessingClick = false;
+
+        if (!CheckAndCloseNoticeWindow())
         {
-            Debug.Log("UI上でのクリック");
-            Instance._isProcessingClick = false;
-            yield break; // コルーチンを終了
+            yield break;
         }
+
+        SelectTargetObjectForLoupe();
 
         if (LoupeCtrl.IsLoupe(ItemAction.GetSelectedItemName()))
         {
@@ -109,10 +115,30 @@ public class ClickCtrl : MonoBehaviour
         {
             Debug.Log("マーカー非アクティブ中のクリック");
         }
-        Instance._isProcessingClick = false;
     }
 
-    private bool IsPointerOverUIObject()
+    private static void SelectTargetObjectForLoupe()
+    {
+        GameObject plateauInfo = GameObject.Find(GlobalConst.PLATEAU_OBJ_NAME);
+        if (plateauInfo == null)
+        {
+            return;
+        }
+
+        PlateauInfoManager plateauInfoManager = plateauInfo.GetComponent<PlateauInfoManager>();
+        if (plateauInfoManager == null)
+        {
+            return;
+        }
+
+        PlateauObjectSelector plateauObjectSelector = plateauInfo.GetComponent<PlateauObjectSelector>();
+        if (plateauObjectSelector != null)
+        {
+            plateauObjectSelector.SelectTargetObject();
+        }
+    }
+
+    private static bool IsPointerOverUIObject()
     {
         PointerEventData eventData = new PointerEventData(EventSystem.current)
         {

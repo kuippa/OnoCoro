@@ -1,5 +1,5 @@
 using UnityEngine;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 using CommonsUtility;
 
 namespace CommonsUtility

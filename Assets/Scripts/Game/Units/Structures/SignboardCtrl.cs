@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-// using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
+using Debug = CommonsUtility.Debug;
 
 public class SignboardCtrl : MonoBehaviour
 {
-    private Canvas _cvsBoard;
+    /// <summary>立て看板の内部パスコンポーネント</summary>
+    private const string BLOOM_PATH = "board/BloomQuad";
+    
+    private Canvas _uiBoard;
+    private GameObject _uiBoardInstance;
     private TextMeshProUGUI _txtBoard;
     private GameObject _bloomQuad;
     private EventLoader _eventLoader = EventLoader.instance;
@@ -20,12 +24,25 @@ public class SignboardCtrl : MonoBehaviour
     public string _boardCD = "firstReadMeText";
     public string _boardText = "ReadMeText!よんでね！";
 
+    /// <summary>
+    /// 動的生成用の立て看板セットアップメソッド
+    /// code と text を設定し、表示テキストを反映させます
+    /// </summary>
+    internal void SetupSignboard(string code, string text)
+    {
+        if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(text))
+        {
+            Debug.LogWarning("[SignboardCtrl.SetupSignboard] code or text is null/empty");
+            return;
+        }
+        
+        this._boardCD = code;
+        this._boardText = text;
+        SetBoardText(this._boardText);
+    }
 
     private void OnTriggerEnter(Collider other)
     {
-        // 接触側か、ボード側にもrigidbodyが必要
-        // Debug.Log("OnTriggerEnter" + other.gameObject.tag);
-
         if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
         {
             ToggleBoard(true);
@@ -44,61 +61,109 @@ public class SignboardCtrl : MonoBehaviour
 
     void Start()
     {
-        // Debug.Log("SignboardCtrl Start " + this.name + _boardCD);
         if (_eventLoader == null)
         {
             _eventLoader = EventLoader.instance;
         }
-        if (_eventLoader != null)
+        
+        if (_eventLoader == null)
         {
-            // EventLoader eventLoader = gamePrefabs.GetComponent<EventLoader>();
-            _boardText = _eventLoader.GetBoardText(_boardCD);
+            return;
+        }
+        
+        string eventText = _eventLoader.GetBoardText(_boardCD);
+        
+        if (!string.IsNullOrEmpty(eventText))
+        {
+            _boardText = eventText;
             SetBoardText(_boardText);
         }
-        // else
-        // {
-        //     Debug.Log("SignboardCtrl Start _eventLoader is null");
-        // }
     }
 
     private void SetBoardText(string boardText)
     {
-        if (_txtBoard == null)
+        TextMeshProUGUI txtComponent = GetBoardTextComponent();
+        if (txtComponent == null)
         {
-            GameObject tmpBoard = this.transform.Find("cvsBoard/backboardImage/tmpBoard").gameObject;
-            if (tmpBoard != null)
-            {
-                _txtBoard = tmpBoard.GetComponent<TextMeshProUGUI>();
-            }
+            return;
         }
+        
+        txtComponent.text = boardText;
+    }
+
+    private TextMeshProUGUI GetBoardTextComponent()
+    {
         if (_txtBoard != null)
         {
-            _txtBoard.text = boardText;
+            return _txtBoard;
         }
+        
+        if (_uiBoardInstance == null)
+        {
+            Debug.LogWarning("[SignboardCtrl.GetBoardTextComponent] _uiBoardInstance が null です");
+            return null;
+        }
+        
+        _txtBoard = _uiBoardInstance.GetComponentInChildren<TextMeshProUGUI>();
+        if (_txtBoard == null)
+        {
+            Debug.LogWarning("[SignboardCtrl.GetBoardTextComponent] UIBoard 内に TextMeshProUGUI コンポーネントが見つかりません");
+            return null;
+        }
+        
+        return _txtBoard;
     }
 
     void Awake()
     {
-        // Debug.Log("SignboardCtrl Awake" + this.name + " " + _boardCD);
-        GameObject objBoard = this.transform.Find("cvsBoard").gameObject;
-        if (objBoard != null)
-        {
-            _cvsBoard = objBoard.GetComponent<Canvas>();
-        }
+        InitializeCanvasBoard();
+        InitializeBloomQuad();
         SetBoardText(_boardText);
-
-        // ボードにイベントリスナーを追加
-        if (_cvsBoard != null)
-        {
-            _cvsBoard.gameObject.AddComponent<Button>().onClick.AddListener(ClickBoard);
-        }
-
-        _bloomQuad = this.transform.Find("board/BloomQuad").gameObject;
-        if (_bloomQuad != null)
-        {
-            ToggleBloom(true);
-        }
         ToggleBoard(false);
+    }
+
+    private void InitializeCanvasBoard()
+    {
+        GameObject uiBoardPrefab = PrefabManager.GetPrefab(PrefabManager.PrefabType.UIBoard);
+        if (uiBoardPrefab == null)
+        {
+            Debug.LogWarning("[SignboardCtrl.InitializeCanvasBoard] UIBoard プレファブが見つかりません");
+            return;
+        }
+        
+        _uiBoardInstance = Instantiate(uiBoardPrefab, transform);
+        if (_uiBoardInstance == null)
+        {
+            Debug.LogWarning("[SignboardCtrl.InitializeCanvasBoard] UIBoard インスタンス化に失敗しました");
+            return;
+        }
+        
+        _uiBoard = _uiBoardInstance.GetComponent<Canvas>();
+        if (_uiBoard == null)
+        {
+            Debug.LogWarning("[SignboardCtrl.InitializeCanvasBoard] UIBoard に Canvas コンポーネントが見つかりません");
+            return;
+        }
+        
+        Button button = _uiBoard.gameObject.GetComponent<Button>();
+        if (button == null)
+        {
+            button = _uiBoard.gameObject.AddComponent<Button>();
+        }
+        if (button != null)
+        {
+            button.onClick.AddListener(ClickBoard);
+        }
+    }
+
+    private void InitializeBloomQuad()
+    {
+        _bloomQuad = transform.Find(BLOOM_PATH)?.gameObject;
+        if (_bloomQuad == null)
+        {
+            Debug.LogWarning($"[SignboardCtrl.InitializeBloomQuad] Bloom オブジェクトが見つかりません: {BLOOM_PATH}");
+            return;
+        }
     }
 
     private void ClickBoard()
@@ -108,9 +173,9 @@ public class SignboardCtrl : MonoBehaviour
 
     private void ToggleBoard(bool isBoardActive = false)
     {
-        if (_cvsBoard != null)
+        if (_uiBoard != null)
         {
-            _cvsBoard.gameObject.SetActive(isBoardActive);
+            _uiBoard.gameObject.SetActive(isBoardActive);
         }
     }
 

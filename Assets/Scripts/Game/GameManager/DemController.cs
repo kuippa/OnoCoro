@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 public static class DemController
 {

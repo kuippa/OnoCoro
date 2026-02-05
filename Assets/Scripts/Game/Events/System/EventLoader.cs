@@ -25,6 +25,12 @@ public class EventLoader : MonoBehaviour, IInitializable
     internal Dictionary<float, List<Dictionary<string, string>>> _timer_events = new Dictionary<float, List<Dictionary<string, string>>>();
 
     internal Dictionary<string, string> _board_data = new Dictionary<string, string>();
+    
+    /// <summary>
+    /// 座標付き立て看板データ（code → (text, pos)）
+    /// 動的に生成される立て看板用（YAML の boards セクションで pos が指定されているもの）
+    /// </summary>
+    internal Dictionary<string, (string text, Vector3 pos)> _signboard_data = new Dictionary<string, (string, Vector3)>();
 
     private GameTimerCtrl _gameTimerCtrl = null;
     
@@ -53,17 +59,7 @@ public class EventLoader : MonoBehaviour, IInitializable
     //     Invoke("testInvoke", 10.0f);
     // }
 
-    internal void InitBoardData()
-    {
-        if (_board_data.Count > 0)
-        {
-            // BoardData読み込み済か確認
-            // Debug.Log("BoardData読み込み済" + _board_data.First().Key + " : " + _board_data.First().Value);
-            // Debug.Log("BoardData読み込み済LAST" + _board_data.Last().Key + " : " + _board_data.Last().Value);
-            // GamePrefabs
-        }
-        // _board_data.Add(board_name, board_text);
-    }
+
 
     internal string GetBoardText(string board_code)
     {
@@ -72,10 +68,19 @@ public class EventLoader : MonoBehaviour, IInitializable
         {
             if (_board_data.ContainsKey(board_code))
             {
-                // Debug.Log("GetBoardText " + board_code + " : " + _board_data[board_code]);
                 returndata = _board_data[board_code];
+                // Debug.Log($"[EventLoader.GetBoardText] FOUND: '{board_code}' -> '{returndata}'");
+            }
+            else
+            {
+                // Debug.LogWarning($"[EventLoader.GetBoardText] KEY NOT FOUND: '{board_code}' not in _board_data dictionary");
             }
         }
+        else
+        {
+            // Debug.LogError($"[EventLoader.GetBoardText] _board_data is EMPTY (Count=0) - YAML data not loaded");
+        }
+        
         return returndata;
     }
 
@@ -427,7 +432,11 @@ public class EventLoader : MonoBehaviour, IInitializable
     /// </summary>
     void Start()
     {
-        // InitializationManager が IsInitialized = true を待機
+        // StageYamlRepository が既に _board_data と _signboard_data を初期化済み
+        
+        // 座標付き立て看板を生成
+        SignboardManager.CreateSignboards(_signboard_data);
+        
         IsInitialized = true;
     }
     

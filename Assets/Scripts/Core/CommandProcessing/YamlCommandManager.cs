@@ -216,29 +216,25 @@ namespace CommonsUtility
         
         /// <summary>
         /// BoardCommand ファクトリーメソッド
+        /// YAML boards セクション: code (ボードコード), text (表示テキスト)
         /// </summary>
         private static BoardCommand CreateBoardCommand(Dictionary<string, string> yamlData)
         {
             var command = new BoardCommand();
             
-            string nameField = BoardCommandFields.name.ToString();
-            string valueField = BoardCommandFields.value.ToString();
+            string codeField = BoardCommandFields.code.ToString();
+            string textField = BoardCommandFields.text.ToString();
             
-            // name フィールドから BoardConfigType を判定
-            if (!yamlData.TryGetValue(nameField, out var nameStr))
+            // code フィールド (ReadMeText0 など)
+            if (yamlData.TryGetValue(codeField, out var codeStr))
             {
-                Debug.LogWarning(_MSG_MISSING_NAME_FIELD);
-                return command;
+                command.ConfigType = (BoardConfigType)Enum.Parse(typeof(BoardConfigType), codeStr, ignoreCase: true);
             }
             
-            // 型解析失敗時も黙って続行
-            Enum.TryParse<BoardConfigType>(nameStr, ignoreCase: true, out var configType);
-            command.ConfigType = configType;
-            
-            // value を解析
-            if (yamlData.TryGetValue(valueField, out var value))
+            // text フィールド (実際の表示テキスト)
+            if (yamlData.TryGetValue(textField, out var textStr))
             {
-                command.Value = value;
+                command.Value = textStr;
             }
             
             return command;

@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 namespace CommonsUtility
 {

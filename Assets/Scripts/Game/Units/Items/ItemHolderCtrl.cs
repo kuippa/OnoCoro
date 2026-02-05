@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// アイテムホルダーの制御クラス
@@ -290,7 +290,7 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
     /// 選択されたアイテムのみactive_Imageを表示
     /// </summary>
     /// <param name="active">表示する場合true</param>
-    private void SetActiveImageFlag(bool active)
+    internal void SetActiveImageFlag(bool active)
     {
         Transform pnlHolder = SafeFindChild(_PNL_HOLDER);
         Transform activeImageTransform = SafeFindChild(pnlHolder, _ACTIVE_IMAGE);

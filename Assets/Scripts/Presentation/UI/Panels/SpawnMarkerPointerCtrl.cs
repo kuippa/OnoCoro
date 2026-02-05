@@ -5,7 +5,7 @@ using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// スポーンマーカーポインターコントローラー

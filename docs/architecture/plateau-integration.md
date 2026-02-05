@@ -69,7 +69,7 @@ OnoCoro は **PLATEAU SDK** を使用して、日本の都市 3D データ（Cit
 ```csharp
 using PLATEAU.CityInfo;
 using PLATEAU.Dataset;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 public class PlateauLoader : MonoBehaviour
 {

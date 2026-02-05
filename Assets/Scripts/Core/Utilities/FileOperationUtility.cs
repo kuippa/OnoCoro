@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// ファイル操作に関する汎用ユーティリティクラス

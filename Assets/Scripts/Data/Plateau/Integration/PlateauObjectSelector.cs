@@ -23,6 +23,11 @@ public class PlateauObjectSelector : MonoBehaviour
         // }
     }
 
+    internal void SelectTargetObject()
+    {
+        GetTargetObject();
+    }
+
     private GameObject GetTargetObject()
     {
         _selectedObject = null;
@@ -43,12 +48,11 @@ public class PlateauObjectSelector : MonoBehaviour
     }
     internal bool IsPLATEAUObject()
     {
-        GameObject obj = GetTargetObject();
-        if (obj == null)
+        if (_selectedObject == null)
         {
             return false;
         }
-        return obj.GetComponent<PLATEAUCityObjectGroup>() != null;
+        return _selectedObject.GetComponent<PLATEAUCityObjectGroup>() != null;
     }
 
     internal bool IsPLATEAUObject(GameObject obj)

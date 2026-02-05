@@ -185,10 +185,13 @@ namespace CommonsUtility
     /// </summary>
     internal enum BoardCommandFields
     {
-        /// <summary>name - ボード設定項目の名前</summary>
-        name,
+        /// <summary>code - ボードコード（ReadMeText0 など）</summary>
+        code,
         
-        /// <summary>value - ボード設定項目の値</summary>
-        value
+        /// <summary>text - ボード表示テキスト</summary>
+        text,
+        
+        /// <summary>pos - 立て看板の座標（オプション、"x, y, z" 形式）</summary>
+        pos
     }
 }
