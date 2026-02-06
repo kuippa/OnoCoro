@@ -39,7 +39,7 @@ public class PlateauObjectSelector : MonoBehaviour
 
         Ray PointRay = Camera.main.ScreenPointToRay(mousePosition);
         RaycastHit hit;
-        if (Physics.Raycast(PointRay, out hit, _CLICK_MAX_DISTANCE))
+        if (Physics.Raycast(PointRay, out hit, _CLICK_MAX_DISTANCE, -1, QueryTriggerInteraction.Ignore))
         {
             _selectedObject = hit.collider.gameObject;
             return _selectedObject;

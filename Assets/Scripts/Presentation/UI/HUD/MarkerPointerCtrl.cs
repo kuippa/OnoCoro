@@ -21,7 +21,7 @@ public class MarkerPointerCtrl : MonoBehaviour
         Vector2 mousePosision = Mouse.current.position.ReadValue();
         Ray PointRay = Camera.main.ScreenPointToRay(mousePosision);
         RaycastHit hit;
-        if (Physics.Raycast(PointRay, out hit, GlobalConst.UI_RAYCAST_MAX_DISTANCE))
+        if (Physics.Raycast(PointRay, out hit, GlobalConst.UI_RAYCAST_MAX_DISTANCE, -1, QueryTriggerInteraction.Ignore))
         {
             if (hit.collider.gameObject.tag != GameEnum.LayerType.Ground.ToString())
             {

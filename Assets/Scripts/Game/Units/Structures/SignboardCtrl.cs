@@ -19,10 +19,12 @@ public class SignboardCtrl : MonoBehaviour
     private EventLoader _eventLoader = EventLoader.instance;
 
     [SerializeField]
-    public bool _isBoardActive = false;
-    public bool _isBoardBloom = false;
     public string _boardCD = "firstReadMeText";
     public string _boardText = "ReadMeText!よんでね！";
+    
+    private Coroutine _toggleBoardOffCoroutine = null;
+    
+    private const float TOGGLE_DELAY = 0.2f;
 
     /// <summary>
     /// 動的生成用の立て看板セットアップメソッド
@@ -39,14 +41,17 @@ public class SignboardCtrl : MonoBehaviour
         this._boardCD = code;
         this._boardText = text;
         SetBoardText(this._boardText);
+        SetBoardState(false, true);
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
         {
-            ToggleBoard(true);
-            ToggleBloom(true);
+            if (!_uiBoard.gameObject.activeSelf)
+            {
+                SetBoardState(true, true);
+            }
         }
     }
 
@@ -54,8 +59,29 @@ public class SignboardCtrl : MonoBehaviour
     {
         if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
         {
-            ToggleBoard(false);
-            ToggleBloom(false);
+            if (_uiBoard.gameObject.activeSelf)
+            {
+                _toggleBoardOffCoroutine = StartCoroutine(DelayedToggleBoardOff());
+            }
+        }
+    }
+    
+    private IEnumerator DelayedToggleBoardOff()
+    {
+        yield return new WaitForSeconds(TOGGLE_DELAY);
+        SetBoardState(false, false);
+        _toggleBoardOffCoroutine = null;
+    }
+
+    private void SetBoardState(bool boardActive, bool bloom)
+    {
+        if (_uiBoard != null)
+        {
+            _uiBoard.gameObject.SetActive(boardActive);
+        }
+        if (_bloomQuad != null)
+        {
+            _bloomQuad.gameObject.SetActive(bloom);
         }
     }
 
@@ -119,7 +145,7 @@ public class SignboardCtrl : MonoBehaviour
         InitializeCanvasBoard();
         InitializeBloomQuad();
         SetBoardText(_boardText);
-        ToggleBoard(false);
+        SetBoardState(false, true);
     }
 
     private void InitializeCanvasBoard()
@@ -145,6 +171,9 @@ public class SignboardCtrl : MonoBehaviour
             return;
         }
         
+        // 動的生成される Canvas に統一設定を適用
+        UICanvasManager.ApplyStandardScalerSettings(_uiBoard);
+        
         Button button = _uiBoard.gameObject.GetComponent<Button>();
         if (button == null)
         {
@@ -168,22 +197,9 @@ public class SignboardCtrl : MonoBehaviour
 
     private void ClickBoard()
     {
-        ToggleBoard(false);
-    }
-
-    private void ToggleBoard(bool isBoardActive = false)
-    {
-        if (_uiBoard != null)
+        if (_uiBoard.gameObject.activeSelf)
         {
-            _uiBoard.gameObject.SetActive(isBoardActive);
-        }
-    }
-
-    private void ToggleBloom(bool isBoardBloom = false)
-    {
-        if (_bloomQuad != null)
-        {
-            _bloomQuad.gameObject.SetActive(isBoardBloom);
+            SetBoardState(false, false);
         }
     }
 }

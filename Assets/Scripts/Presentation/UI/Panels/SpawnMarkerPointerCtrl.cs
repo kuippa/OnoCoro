@@ -99,7 +99,7 @@ public class SpawnMarkerPointerCtrl : UIControllerBase
         Ray ray = Camera.main.ScreenPointToRay(mousePosition);
         int layerMask = ~LayerMask.GetMask(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
 
-        if (Physics.Raycast(ray, out RaycastHit hitInfo, _MAX_RAYCAST_DISTANCE, layerMask))
+        if (Physics.Raycast(ray, out RaycastHit hitInfo, _MAX_RAYCAST_DISTANCE, layerMask, QueryTriggerInteraction.Ignore))
         {
             if (hitInfo.collider.gameObject.tag != GameEnum.LayerType.Ground.ToString())
             {

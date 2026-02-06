@@ -103,24 +103,21 @@ internal static class UIFontManager
     /// 現在のフォントサイズから最も近い UIFont を見つけてスケーリング
     /// （初期化時に既存フォントサイズを保持しつつスケーリングする際に使用）
     /// </summary>
-    private static void ApplyScaledFontSize(TextMeshProUGUI textMeshPro)
+    internal static void ApplyScaledFontSize(TextMeshProUGUI textMeshPro)
     {
         if (textMeshPro == null)
         {
-            // Debug.LogWarning("[UIFontManager] TextMeshProUGUI is null");
+            Debug.LogWarning("[UIFontManager.ApplyScaledFontSize] TextMeshProUGUI is null");
             return;
         }
-        
-        float originalSize = textMeshPro.fontSize;
         
         // 現在のフォントサイズから最も近い UIFont を見つける
         UIFont closestFont = FindClosestUIFont(textMeshPro.fontSize);
         
         float scaleFactor = GetCanvasScaleFactor();
+        
         int newFontSize = Mathf.RoundToInt((int)closestFont * scaleFactor);
         textMeshPro.fontSize = newFontSize;
-        
-        // Debug.Log($"[UIFontManager] ApplyScaledFontSize - Object: {textMeshPro.gameObject.name}, Original: {originalSize}px, Closest UIFont: {closestFont} ({(int)closestFont}px), Scale: {scaleFactor:F2}x, Final: {newFontSize}px");
     }
 
     /// <summary>
@@ -141,8 +138,6 @@ internal static class UIFontManager
         
         // 等比スケーリング
         float scale = Mathf.Lerp(scaleX, scaleY, UICanvasManager.MATCH_WIDTH_OR_HEIGHT);
-        
-        // Debug.Log($"[UIFontManager] Canvas Scale Factor: {scale:F2}x (Base: {baseResolution}, Ref: {referenceResolution})");
         
         return scale;
     }
@@ -168,8 +163,6 @@ internal static class UIFontManager
                 closestFont = font;
             }
         }
-        
-        // Debug.Log($"[UIFontManager] FindClosestUIFont - Input: {fontSize}px, Closest: {closestFont} ({(int)closestFont}px), Difference: {minDifference}px");
         
         return closestFont;
     }

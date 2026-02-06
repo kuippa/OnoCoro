@@ -257,11 +257,10 @@ public class EventLoader : MonoBehaviour, IInitializable
         string unit_name = TryGetCol0(event_value);
         Vector3 spawnPoint = tryGetPosition(TryGetColValue(event_value));
         
-        GameObject eventSystem = GameObjectTreat.GetEventSystem();
-        SpawnController spawnCtrl = eventSystem.GetComponent<SpawnController>();
+        SpawnController spawnCtrl = GameObjectTreat.GetSpawnController();
         if (spawnCtrl == null)
         {
-            spawnCtrl = eventSystem.AddComponent<SpawnController>();
+            return;
         }
         
         spawnCtrl.CallUnitByName(unit_name, spawnPoint);
@@ -273,11 +272,10 @@ public class EventLoader : MonoBehaviour, IInitializable
         string unit_name = TryGetCol0(event_value);
         string[] marker_names = event_value.Split(',').Skip(1).ToArray();
         
-        GameObject eventSystem = GameObjectTreat.GetEventSystem();
-        SpawnController spawnCtrl = eventSystem.GetComponent<SpawnController>();
+        SpawnController spawnCtrl = GameObjectTreat.GetSpawnController();
         if (spawnCtrl == null)
         {
-            spawnCtrl = eventSystem.AddComponent<SpawnController>();
+            return;
         }
         
         spawnCtrl.CallEnemyUnitByName(unit_name, marker_names);

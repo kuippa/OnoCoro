@@ -78,7 +78,7 @@ public static class DemController
         Vector3 rayStart = closestPoint + Vector3.up * _RAYCAST_DISTANCE;
         float rayDistance = _RAYCAST_DISTANCE;
         
-        if (Physics.Raycast(rayStart, Vector3.down, out hit, rayDistance, layerMask))
+        if (Physics.Raycast(rayStart, Vector3.down, out hit, rayDistance, layerMask, QueryTriggerInteraction.Ignore))
         {
             if (hit.collider.gameObject.name != other.gameObject.name)
             {

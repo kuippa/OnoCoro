@@ -212,6 +212,17 @@ namespace CommonsUtility
             return component;
         }
 
+        internal static SpawnController GetSpawnController()
+        {
+            GameObject eventSystem = GetEventSystem();
+            if (eventSystem == null)
+            {
+                return null;
+            }
+
+            return GetOrAddComponent<SpawnController>(eventSystem);
+        }
+
         internal static Transform GetHolderParentTransform(ref GameObject parent, string parentName)
         {
             string tag_name = GameEnum.TagType.Holder.ToString();

@@ -136,7 +136,7 @@ public class InfoWindowCtrl : UIControllerBase
         int layerMask = ~LayerMask.GetMask(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
         
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, float.PositiveInfinity, layerMask))
+        if (Physics.Raycast(ray, out hit, float.PositiveInfinity, layerMask, QueryTriggerInteraction.Ignore))
         {
             UnitStruct? unitStruct = GetUnitStruct(hit.collider.gameObject);
             int total_score = ScoreCtrl.GetTotalGarbageScore(hit.collider);
