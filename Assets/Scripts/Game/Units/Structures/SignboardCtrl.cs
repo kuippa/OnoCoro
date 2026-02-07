@@ -23,8 +23,9 @@ public class SignboardCtrl : MonoBehaviour
     public string _boardText = "ReadMeText!よんでね！";
     
     private Coroutine _toggleBoardOffCoroutine = null;
+    private HashSet<Collider> _playersInTrigger = new HashSet<Collider>();
     
-    private const float TOGGLE_DELAY = 0.2f;
+    private const float TOGGLE_DELAY = 0.1f;
 
     /// <summary>
     /// 動的生成用の立て看板セットアップメソッド
@@ -46,22 +47,39 @@ public class SignboardCtrl : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
+        if (other.CompareTag(GameEnum.UnitType.Player.ToString()))
         {
-            if (!_uiBoard.gameObject.activeSelf)
+            // すでに実行中の DelayedToggleBoardOff をキャンセル
+            CancelToggleBoardOffCoroutine();
+            bool isFirstPlayer = _playersInTrigger.Count == 0;
+            _playersInTrigger.Add(other);
+            if (isFirstPlayer)
             {
-                SetBoardState(true, true);
+                // Debug.Log("[SignboardCtrl.OnTriggerEnter] Player entered signboard trigger"
+                //  + this.transform.name
+                //  + other.gameObject.name);
+                if (!_uiBoard.gameObject.activeSelf)
+                {
+                    SetBoardState(true, true);
+                }
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
+        if (other.CompareTag(GameEnum.UnitType.Player.ToString()))
         {
-            if (_uiBoard.gameObject.activeSelf)
+            _playersInTrigger.Remove(other);
+            if (_playersInTrigger.Count == 0)
             {
-                _toggleBoardOffCoroutine = StartCoroutine(DelayedToggleBoardOff());
+                // Debug.Log("[SignboardCtrl.OnTriggerExit] Player exited signboard trigger"
+                //  + this.transform.name
+                //  + other.gameObject.name);
+                if (_uiBoard.gameObject.activeSelf)
+                {
+                    StartDelayedToggleBoardOff();
+                }
             }
         }
     }
@@ -69,7 +87,9 @@ public class SignboardCtrl : MonoBehaviour
     private IEnumerator DelayedToggleBoardOff()
     {
         yield return new WaitForSeconds(TOGGLE_DELAY);
+        // Debug.Log("[SignboardCtrl.DelayedToggleBoardOff] Toggling board off after delay");  
         SetBoardState(false, false);
+        _playersInTrigger.Clear();
         _toggleBoardOffCoroutine = null;
     }
 
@@ -197,9 +217,25 @@ public class SignboardCtrl : MonoBehaviour
 
     private void ClickBoard()
     {
+        // Debug.Log("[SignboardCtrl.ClickBoard] Signboard clicked");
         if (_uiBoard.gameObject.activeSelf)
         {
-            SetBoardState(false, false);
+            StartDelayedToggleBoardOff();
         }
+    }
+    
+    private void CancelToggleBoardOffCoroutine()
+    {
+        if (_toggleBoardOffCoroutine != null)
+        {
+            StopCoroutine(_toggleBoardOffCoroutine);
+            _toggleBoardOffCoroutine = null;
+        }
+    }
+    
+    private void StartDelayedToggleBoardOff()
+    {
+        CancelToggleBoardOffCoroutine();
+        _toggleBoardOffCoroutine = StartCoroutine(DelayedToggleBoardOff());
     }
 }

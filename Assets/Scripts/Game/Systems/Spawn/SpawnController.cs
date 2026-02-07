@@ -170,15 +170,36 @@ public class SpawnController : MonoBehaviour
 
     private bool SpawnWaterTurret(Vector3 spawnPoint = default(Vector3))
     {
-// TODO:
-        // float dropbuffer = 1.5f;
-        // GameObject waterTurretPrefab = PrefabManager.WaterTurretPrefab;
-        // if (waterTurretPrefab == null)
-        // {
-        //     waterTurretPrefab = Resources.Load<GameObject>("Prefabs/WorkUnit/WaterTurret");
-        // }
-        // spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
-        // Instantiate(waterTurretPrefab).GetComponent<WaterTurretCtrl>().CreateWaterTurretUnit(spawnPoint);
+        float dropbuffer = 1.5f;
+        GameObject waterTurretPrefab = PrefabManager.WaterTurretPrefab;
+        if (waterTurretPrefab == null)
+        {
+            Debug.LogWarning("WaterTurret prefab not found in PrefabManager");
+            return false;
+        }
+        
+        spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        Quaternion spawnRotation = Quaternion.identity;
+        
+        // Instantiate 結果をチェック
+        GameObject waterTurretInstance = Instantiate(waterTurretPrefab, spawnPoint, spawnRotation);
+        if (waterTurretInstance == null)
+        {
+            Debug.LogWarning("Failed to instantiate WaterTurret prefab");
+            return false;
+        }
+        
+        // GetComponent 結果をチェック
+        WaterTurretCtrl turretCtrl = waterTurretInstance.GetComponent<WaterTurretCtrl>();
+        if (turretCtrl == null)
+        {
+            Debug.LogWarning("WaterTurretCtrl component not found on instantiated WaterTurret prefab");
+            Destroy(waterTurretInstance);
+            return false;
+        }
+        
+        // CreateWaterTurretUnit を呼ぶ
+        turretCtrl.CreateWaterTurretUnit(spawnPoint);
         return true;
     }
 

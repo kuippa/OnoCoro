@@ -28,15 +28,16 @@ public class WaterTurretCtrl : MonoBehaviour
     /// </summary>
     private GameObject CreateWaterBullet()
     {
-        GameObject original = PrefabManager.WaterSpherePrefab;
+        GameObject prefabBullet = PrefabManager.WaterSpherePrefab;
         Vector3 position = _nozzle.transform.position;
         Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
-        GameObject obj = UnityEngine.Object.Instantiate(original, position, rotation);
-        obj.name = GameEnum.TagType.Water.ToString() + _waterUnitIndex++;
-        obj.tag = GameEnum.TagType.Water.ToString();
+        GameObject bullet = UnityEngine.Object.Instantiate(prefabBullet, position, rotation);
+        bullet.name = GameEnum.TagType.Water.ToString() + _waterUnitIndex++;
+        bullet.tag = GameEnum.TagType.Water.ToString();
         Transform holderParentTransform = GameObjectTreat.GetHolderParentTransform(ref _parent_holder, _WATER_SPHERE_PARENT_NAME);
-        obj.transform.SetParent(holderParentTransform);
-        return obj;
+        bullet.transform.SetParent(holderParentTransform);
+
+        return bullet;
     }
 
     /// <summary>
@@ -44,6 +45,7 @@ public class WaterTurretCtrl : MonoBehaviour
     /// </summary>
     private void WaterShoot()
     {
+        // Debug.Log("[WaterTurretCtrl.WaterShoot] Shooting water at target: " + _target.name);
         if (_sinValue > 360f)
         {
             _sinValue = 0f;
@@ -53,11 +55,11 @@ public class WaterTurretCtrl : MonoBehaviour
         float num = Mathf.Sin(_sinValue * (MathF.PI / 180f));
         if (!(num < 0f))
         {
-            GameObject gameObject = CreateWaterBullet();
-            Rigidbody rigidbody = gameObject.GetComponent<Rigidbody>();
+            GameObject bullet = CreateWaterBullet();
+            Rigidbody rigidbody = bullet.GetComponent<Rigidbody>();
             if (rigidbody == null)
             {
-                rigidbody = gameObject.AddComponent<Rigidbody>();
+                rigidbody = bullet.AddComponent<Rigidbody>();
             }
             rigidbody.useGravity = true;
             rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -65,7 +67,7 @@ public class WaterTurretCtrl : MonoBehaviour
             // 弾道計算
             Vector3 vector = new Vector3(0f, _target.transform.localScale.y - 0.2f, 0f);
             Vector3 vector2 = _target.transform.position - vector;
-            Vector3 position = gameObject.transform.position;
+            Vector3 position = bullet.transform.position;
             Vector3 vector3 = vector2 - position;
             float num2 = vector3.magnitude - (0.6f + 1f * num);
             float num3 = (45f + 20f * num) * (MathF.PI / 180f);
@@ -84,6 +86,7 @@ public class WaterTurretCtrl : MonoBehaviour
     {
         if (!(_target == null) && !(_target.transform == null))
         {
+            // Debug.Log("[WaterTurretCtrl.LookRotateTarget] Rotating to look at target: " + _target.name);    
             Vector3 forward = _target.transform.position - this.gameObject.transform.position;
             forward.y = 0f;
             Quaternion b = Quaternion.LookRotation(forward);
@@ -95,6 +98,7 @@ public class WaterTurretCtrl : MonoBehaviour
             }
             else
             {
+                // Debug.Log("[WaterTurretCtrl.LookRotateTarget] Rotating turret towards target " + forward.ToString());
                 this.gameObject.transform.rotation = Quaternion.Slerp(this.gameObject.transform.rotation, b, t);
             }
         }
@@ -139,19 +143,11 @@ public class WaterTurretCtrl : MonoBehaviour
     /// <summary>
     /// 放水タレットユニットを生成します
     /// </summary>
-    public void CreateWaterTurretUnit(Vector3 setPoint)
+    internal void CreateWaterTurretUnit(Vector3 setPoint)
     {
-        this.gameObject.tag = GameEnum.TagType.WaterTurret.ToString();
         int num = GameObjectTreat.IndexObjectByTag(this.gameObject.tag);
         this.gameObject.name = GameEnum.ModelsType.WaterTurret.ToString() + num;
-        
-        WaterTurret waterTurret = this.gameObject.GetComponent<WaterTurret>();
-        if (waterTurret == null)
-        {
-            waterTurret = this.gameObject.AddComponent<WaterTurret>();
-        }
-        waterTurret._item_struct.ItemID = this.name;
-        waterTurret._unit_struct.UnitID = this.name;
+        SetWaterTurretParameters();
         this.gameObject.transform.position = setPoint;
     }
 
@@ -202,7 +198,12 @@ public class WaterTurretCtrl : MonoBehaviour
     private void Awake()
     {
         _nozzle = this.gameObject.transform.Find("ExtinguishingCylinder/nozzle").gameObject;
-        
+        SetWaterTurretParameters();
+    }
+
+    private void SetWaterTurretParameters()
+    {
+        this.gameObject.tag = GameEnum.TagType.WaterTurret.ToString();
         WaterTurret waterTurret = this.gameObject.GetComponent<WaterTurret>();
         if (waterTurret == null)
         {
@@ -211,6 +212,7 @@ public class WaterTurretCtrl : MonoBehaviour
         waterTurret._item_struct.ItemID = this.gameObject.name;
         waterTurret._unit_struct.UnitID = this.gameObject.name;
     }
+
 
     private void Update()
     {

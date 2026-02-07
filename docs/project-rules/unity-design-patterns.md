@@ -465,6 +465,218 @@ Layers:
 - Trigger (トリガーのみ)
 ```
 
+### Collider トリガー（OnTriggerEnter/Exit）の注意点
+
+[NOTE] **複数 Collider での多重発火に注意**
+
+Unity の物理エンジンは、**Collider の組み合わせごとに OnTriggerEnter/Exit を独立して発火** します。
+
+#### 問題が起こるシナリオ
+
+```
+シナリオ：Player が SignboardCtrl のトリガーに出入りする
+
+Player（複数 Collider を持つ）
+  ├── Capsule (移動用)
+  └── Sphere (トリガー判定用)
+
+SignboardCtrl のトリガー Collider
+  └── Box (トリガー範囲)
+
+動作フロー：
+・Player Capsule がトリガーに進入 → OnTriggerEnter 発火
+・Player Sphere がトリガーに進入 → OnTriggerEnter 再発火 ← 複数回！
+
+カウント実装だとこうなる：
+  count++  // Capsule enter
+  count++  // Sphere enter
+  count--  // Capsule exit
+  count--  // Sphere exit より先に別の物体が進入
+  → count が 1 のまま → 状態不一致！
+```
+
+#### 危険なパターン [NG]
+
+```csharp
+private int _playerInTriggerCount = 0;  // カウンター方式
+
+private void OnTriggerEnter(Collider other)
+{
+    if (other.CompareTag("Player"))
+    {
+        _playerInTriggerCount++;  // [NG] インクリメント
+        if (_playerInTriggerCount == 1)
+        {
+            ShowBoard();
+        }
+    }
+}
+
+private void OnTriggerExit(Collider other)
+{
+    if (other.CompareTag("Player"))
+    {
+        _playerInTriggerCount--;  // [NG] デクリメント
+        if (_playerInTriggerCount == 0)
+        {
+            HideBoard();  // タイミング問題で起こる
+        }
+    }
+}
+// 複数発火 + 遅延処理でカウント不一致が発生しやすい
+```
+
+#### 推奨パターン [OK]
+
+```csharp
+private HashSet<Collider> _playersInTrigger = new HashSet<Collider>();
+
+private void OnTriggerEnter(Collider other)
+{
+    if (other.CompareTag("Player"))
+    {
+        // 既存のコルーチンをキャンセル（再進入対応）
+        CancelToggleBoardOffCoroutine();
+        
+        bool isFirstPlayer = _playersInTrigger.Count == 0;
+        _playersInTrigger.Add(other);  // [OK] Set に追加（冪等性あり）
+        
+        if (isFirstPlayer)  // 最初の進入だけ処理
+        {
+            SetBoardState(true, true);
+        }
+    }
+}
+
+private void OnTriggerExit(Collider other)
+{
+    if (other.CompareTag("Player"))
+    {
+        _playersInTrigger.Remove(other);  // [OK] Set から削除（冪等性あり）
+        
+        if (_playersInTrigger.Count == 0)  // 誰もいなくなったら処理
+        {
+            StartDelayedToggleBoardOff();
+        }
+    }
+}
+
+private void CancelToggleBoardOffCoroutine()
+{
+    if (_toggleBoardOffCoroutine != null)
+    {
+        StopCoroutine(_toggleBoardOffCoroutine);
+        _toggleBoardOffCoroutine = null;
+    }
+}
+
+private void StartDelayedToggleBoardOff()
+{
+    CancelToggleBoardOffCoroutine();
+    _toggleBoardOffCoroutine = StartCoroutine(DelayedToggleBoardOff());
+}
+```
+
+#### 重要な概念：冪等性
+
+**冪等性** = 何度実行しても同じ結果になる性質
+
+- `HashSet.Add(x)`: 既に存在すれば何もしない → 冪等性 [OK]
+- `int count++`: 実行するたびに増える → 冪等性なし [NG]
+
+#### ベストプラクティス
+
+| 要件 | パターン | 理由 |
+|------|---------|------|
+| 単一進入時の動作 | `Count == 0 → Count > 0` | 冪等性あり |
+| 最終離脱時の動作 | `Count > 0 → Count == 0` | 冪等性あり |
+| 再進入対応 | 既存コルーチンをキャンセル | 遅延処理中の再適用を防ぐ |
+| データ構造 | `HashSet<Collider>` | 重複排除 + 冪等性 |
+
+#### 実装チェックリスト
+
+- [ ] **複数 Collider 対応**: Player が複数 Collider を持つことを想定済み
+- [ ] **冪等性**: インクリメンタルなカウンター未使用
+- [ ] **コルーチン管理**: 二重開始・キャンセル漏れなし
+- [ ] **再進入対応**: OnTriggerEnter で既存コルーチンをキャンセル
+- [ ] **状態判定**: `Count == 0` など条件が明確
+
+### Physics.Raycast と トリガーコライダーの相互作用
+
+[NOTE] **QueryTriggerInteraction パラメータを明示的に指定**
+
+`Physics.Raycast` は、デフォルトでは **トリガーコライダーを無視** しますが、LayerMask との組み合わせによって予期しない挙動が起こります。
+
+#### 問題が起こるシナリオ
+
+```
+シナリオ：UI から Raycast でオブジェクトをクリック選択
+
+InfoWindow (UI) の位置に トリガーコライダーが存在
+  → マウスクリック時に Raycast が トリガーコライダーに引っかかる
+  → 意図した背後のオブジェクトが選択されない
+
+典型的なコード [NG]：
+  Ray ray = Camera.main.ScreenPointToRay(mousePos);
+  if (Physics.Raycast(ray, out hit, float.PositiveInfinity))
+  {
+      // トリガーコライダーが hit した場合もここに入る
+      SelectObject(hit.collider.gameObject);
+  }
+```
+
+#### QueryTriggerInteraction の選択肢
+
+| 値 | 説明 | 用途 |
+|---|-----|------|
+| **Ignore** | トリガーコライダーを無視 | UI クリック・NPC 選択（推奨） |
+| **Collide** | トリガーコライダーにも衝突判定 | 範囲判定・エリア検出 |
+| **UseGlobal** | RigidBody.isKinematic 設定に従う | 使用場面が限定的 |
+
+#### 危険なパターン [NG]
+
+```csharp
+private void GetTargetUnit()
+{
+    Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+    
+    // [NG] QueryTriggerInteraction を明示していない
+    if (Physics.Raycast(ray, out hit, float.PositiveInfinity))
+    {
+        // トリガーコライダーに引っかかってしまう
+        ProcessHit(hit);
+    }
+}
+```
+
+#### 推奨パターン [OK]
+
+```csharp
+private void GetTargetUnit()
+{
+    Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+    int layerMask = ~LayerMask.GetMask(GameEnum.LayerType.AreaIgnoreRaycast.ToString());
+    
+    // [OK] QueryTriggerInteraction.Ignore を明示的に指定
+    RaycastHit hit;
+    if (Physics.Raycast(ray, out hit, float.PositiveInfinity, layerMask, QueryTriggerInteraction.Ignore))
+    {
+        UnitStruct? unitStruct = GetUnitStruct(hit.collider.gameObject);
+        if (SetInfo(unitStruct))
+        {
+            ToggleInfoWindow(isActive: true);
+        }
+    }
+}
+```
+
+#### 実装チェックリスト
+
+- [ ] **QueryTriggerInteraction 明示**: `Ignore` / `Collide` / `UseGlobal` を明確に指定
+- [ ] **LayerMask 確認**: 不可視レイヤーが正しく除外されているか
+- [ ] **UI オブジェクト**: トリガーコライダーを持つ UI には Physics.Raycast を使わない
+- [ ] **背後のオブジェクト選択**: `QueryTriggerInteraction.Ignore` でトリガーを透視
+
 ---
 
 ## Pre-Commit チェックリスト
