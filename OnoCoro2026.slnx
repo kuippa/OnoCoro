@@ -29,13 +29,13 @@
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
   <Project Path="PlateauToolkit.Rendering.csproj" />
   <Project Path="Unity.Splines.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Recorder.Editor.csproj" />
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Unity.XR.CoreUtils.csproj" />
   <Project Path="YamlDotNet.csproj" />
   <Project Path="Unity.Searcher.Editor.csproj" />
   <Project Path="Unity.ResourceManager.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="UnityEditor.TestRunner.csproj" />
   <Project Path="glTFast.csproj" />
   <Project Path="Unity.VisualScripting.Core.csproj" />

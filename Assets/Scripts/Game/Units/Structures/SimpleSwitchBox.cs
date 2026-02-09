@@ -1,10 +1,10 @@
-using System;
 using UnityEngine;
+using CommonsUtility;
 
-public class SimpleSwitchBox : MonoBehaviour
+public class SimpleSwitchBox : TriggerHandler
 {
     // シリアライズされた変数はインスペクターから変更可能
-    [SerializeField] public Boolean _SwitchBoxState; 
+    [SerializeField] public bool _SwitchBoxState; 
 
     private GameObject _OnSwitchBox;
     private GameObject _OffSwitchBox;
@@ -20,16 +20,15 @@ public class SimpleSwitchBox : MonoBehaviour
         return new Vector3(x, y, z);
     }
 
-    private void OnTriggerEnter(Collider other)
+    protected override void OnTargetEnter()
     {
-        // TODO: 対象をプレイヤーのみに限定する？
         ToggleSwitchBox();
     }
 
-    // private void OnMouseDown()
-    // {
-    //     ToggleSwitchBox();
-    // }
+    protected override void OnTargetExit()
+    {
+        // スイッチはトグルなので離脱時は処理しない
+    }
 
     private void ToggleSwitchBox()
     {
@@ -46,8 +45,10 @@ public class SimpleSwitchBox : MonoBehaviour
         }
     }
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        SetDefaultTargetTag(GameEnum.UnitType.Player.ToString());
         
         _OnSwitchBox = transform.Find("btn_on").gameObject;
         _OffSwitchBox = transform.Find("btn_off").gameObject;

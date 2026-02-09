@@ -1,13 +1,13 @@
 using System.Collections;
-using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 using Debug = CommonsUtility.Debug;
+using CommonsUtility;
 
-public class SignboardCtrl : MonoBehaviour
+public class SignboardCtrl : TriggerHandler
 {
     /// <summary>立て看板の内部パスコンポーネント</summary>
     private const string BLOOM_PATH = "board/BloomQuad";
@@ -21,11 +21,6 @@ public class SignboardCtrl : MonoBehaviour
     [SerializeField]
     public string _boardCD = "firstReadMeText";
     public string _boardText = "ReadMeText!よんでね！";
-    
-    private Coroutine _toggleBoardOffCoroutine = null;
-    private HashSet<Collider> _playersInTrigger = new HashSet<Collider>();
-    
-    private const float TOGGLE_DELAY = 0.1f;
 
     /// <summary>
     /// 動的生成用の立て看板セットアップメソッド
@@ -43,54 +38,6 @@ public class SignboardCtrl : MonoBehaviour
         this._boardText = text;
         SetBoardText(this._boardText);
         SetBoardState(false, true);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag(GameEnum.UnitType.Player.ToString()))
-        {
-            // すでに実行中の DelayedToggleBoardOff をキャンセル
-            CancelToggleBoardOffCoroutine();
-            bool isFirstPlayer = _playersInTrigger.Count == 0;
-            _playersInTrigger.Add(other);
-            if (isFirstPlayer)
-            {
-                // Debug.Log("[SignboardCtrl.OnTriggerEnter] Player entered signboard trigger"
-                //  + this.transform.name
-                //  + other.gameObject.name);
-                if (!_uiBoard.gameObject.activeSelf)
-                {
-                    SetBoardState(true, true);
-                }
-            }
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag(GameEnum.UnitType.Player.ToString()))
-        {
-            _playersInTrigger.Remove(other);
-            if (_playersInTrigger.Count == 0)
-            {
-                // Debug.Log("[SignboardCtrl.OnTriggerExit] Player exited signboard trigger"
-                //  + this.transform.name
-                //  + other.gameObject.name);
-                if (_uiBoard.gameObject.activeSelf)
-                {
-                    StartDelayedToggleBoardOff();
-                }
-            }
-        }
-    }
-    
-    private IEnumerator DelayedToggleBoardOff()
-    {
-        yield return new WaitForSeconds(TOGGLE_DELAY);
-        // Debug.Log("[SignboardCtrl.DelayedToggleBoardOff] Toggling board off after delay");  
-        SetBoardState(false, false);
-        _playersInTrigger.Clear();
-        _toggleBoardOffCoroutine = null;
     }
 
     private void SetBoardState(bool boardActive, bool bloom)
@@ -160,8 +107,11 @@ public class SignboardCtrl : MonoBehaviour
         return _txtBoard;
     }
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        SetDefaultTargetTag(GameEnum.UnitType.Player.ToString());
+        SetDelayedExitTime(0.1f);
         InitializeCanvasBoard();
         InitializeBloomQuad();
         SetBoardText(_boardText);
@@ -217,25 +167,25 @@ public class SignboardCtrl : MonoBehaviour
 
     private void ClickBoard()
     {
-        // Debug.Log("[SignboardCtrl.ClickBoard] Signboard clicked");
         if (_uiBoard.gameObject.activeSelf)
         {
-            StartDelayedToggleBoardOff();
+            SetBoardState(false, false);
         }
     }
     
-    private void CancelToggleBoardOffCoroutine()
+    protected override void OnTargetEnter()
     {
-        if (_toggleBoardOffCoroutine != null)
+        if (!_uiBoard.gameObject.activeSelf)
         {
-            StopCoroutine(_toggleBoardOffCoroutine);
-            _toggleBoardOffCoroutine = null;
+            SetBoardState(true, true);
         }
     }
     
-    private void StartDelayedToggleBoardOff()
+    protected override void OnTargetExit()
     {
-        CancelToggleBoardOffCoroutine();
-        _toggleBoardOffCoroutine = StartCoroutine(DelayedToggleBoardOff());
+        if (_uiBoard.gameObject.activeSelf)
+        {
+            SetBoardState(false, false);
+        }
     }
 }

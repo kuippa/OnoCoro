@@ -26,59 +26,128 @@ public class Burning : MonoBehaviour
     private Dictionary<string, GameObject> _dict_ash = new Dictionary<string, GameObject>();
     private Dictionary<string, GameObject> _dict_burn_bldg = new Dictionary<string, GameObject>();
 
-
-    internal void OnTriggerExit(Collider other)
+    /// <summary>
+    /// ゴミがトリガーに進入した時に呼ばれます（BurningTriggerHandler から呼び出し）
+    /// </summary>
+    internal void OnGarbageEnter(Collider other)
     {
-        if (other.gameObject.tag == GameEnum.TagType.Garbage.ToString() && !_list_near_garbage.Contains(other.gameObject.name))
+        if (other == null)
         {
-            _list_near_garbage = _list_near_garbage.Where((string x) => x != other.gameObject.name).ToList();
+            return;
         }
-    }
 
-    internal void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.tag == GameEnum.TagType.Garbage.ToString())
+        string key = other.gameObject.name;
+        if (!_list_near_garbage.Contains(key))
         {
-            if (!_list_near_garbage.Contains(other.gameObject.name))
+            _list_near_garbage.Add(key);
+            // TryAdd で既存キーを保護（複数 FireCube が同じ Garbage を監視する場合対応）
+            if (!_dict_burn_garbage.ContainsKey(key))
             {
-                _list_near_garbage.Add(other.gameObject.name);
-                _dict_burn_garbage.Add(other.gameObject.name, other.gameObject);
-            }
-        }
-        else if (other.gameObject.tag == GameEnum.TagType.FireCube.ToString())
-        {
-            if (other.gameObject.GetComponent<FireCube>()._unit_struct.Lv <= base.gameObject.GetComponent<FireCube>()._unit_struct.Lv)
-            {
-                base.gameObject.GetComponent<FireCube>()._unit_struct.Lv += other.gameObject.GetComponent<FireCube>()._unit_struct.Lv;
-                ChangeFireLv(base.gameObject.GetComponent<FireCube>()._unit_struct.Lv);
-                // Y軸回転を固定（物理衝突による回転を回避）
-                FixFireCubeYAxisRotation();
-                GameObjectTreat.DestroyAll(other.gameObject);
-            }
-        }
-        else if (other.gameObject.tag == GameEnum.TagType.Untagged.ToString())
-        {
-            if (IsPlateauBuilding(other) && !_dict_burn_bldg.ContainsKey(other.gameObject.name))
-            {
-                _dict_burn_bldg.Add(other.gameObject.name, other.gameObject);
-            }
-        }
-        else if (other.gameObject.tag == GameEnum.TagType.Water.ToString())
-        {
-            _damage_buffer += 0.2f;
-            if (_damage_buffer > 1f)
-            {
-                _damage_buffer = 0f;
-                base.gameObject.GetComponent<FireCube>()._unit_struct.Lv--;
-                ChangeFireLv(base.gameObject.GetComponent<FireCube>()._unit_struct.Lv);
-                // Y軸回転を固定（水で弱体化した時）
-                FixFireCubeYAxisRotation();
+                _dict_burn_garbage.Add(key, other.gameObject);
             }
         }
     }
 
+    /// <summary>
+    /// ゴミがトリガーから離脱した時に呼ばれます（BurningTriggerHandler から呼び出し）
+    /// </summary>
+    internal void OnGarbageExit(Collider other)
+    {
+        if (other == null)
+        {
+            return;
+        }
+
+        string key = other.gameObject.name;
+        if (_list_near_garbage.Contains(key))
+        {
+            _list_near_garbage = _list_near_garbage.Where((string x) => x != key).ToList();
+        }
+        
+        // ✅ Dictionary からも削除（複数回衝突時の ArgumentException 防止）
+        if (_dict_burn_garbage.ContainsKey(key))
+        {
+            _dict_burn_garbage.Remove(key);
+        }
+    }
+
+    /// <summary>
+    /// 別の FireCube がトリガーに進入した時に呼ばれます（BurningTriggerHandler から呼び出し）
+    /// </summary>
+    internal void OnFireCubeEnter(Collider other)
+    {
+        if (other == null)
+        {
+            return;
+        }
+
+        FireCube otherFireCube = other.gameObject.GetComponent<FireCube>();
+        FireCube thisFireCube = base.gameObject.GetComponent<FireCube>();
+
+        if (otherFireCube == null || thisFireCube == null)
+        {
+            return;
+        }
+
+        if (otherFireCube._unit_struct.Lv <= thisFireCube._unit_struct.Lv)
+        {
+            thisFireCube._unit_struct.Lv += otherFireCube._unit_struct.Lv;
+            ChangeFireLv(thisFireCube._unit_struct.Lv);
+            FixFireCubeYAxisRotation();
+            GameObjectTreat.DestroyAll(other.gameObject);
+        }
+    }
+
+    /// <summary>
+    /// 水がトリガーに進入した時に呼ばれます（BurningTriggerHandler から呼び出し）
+    /// </summary>
+    internal void OnWaterEnter(Collider other)
+    {
+        if (other == null)
+        {
+            return;
+        }
+
+        _damage_buffer += 0.2f;
+        if (_damage_buffer > 1f)
+        {
+            _damage_buffer = 0f;
+            FireCube thisFireCube = base.gameObject.GetComponent<FireCube>();
+            if (thisFireCube != null)
+            {
+                thisFireCube._unit_struct.Lv--;
+                ChangeFireLv(thisFireCube._unit_struct.Lv);
+                FixFireCubeYAxisRotation();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Untagged オブジェクト（PLATEAU 建物）がトリガーに進入した時に呼ばれます（BurningTriggerHandler から呼び出し）
+    /// </summary>
+    internal void OnBuildingEnter(Collider other)
+    {
+        if (other == null)
+        {
+            return;
+        }
+
+        if (IsPlateauBuilding(other) && !_dict_burn_bldg.ContainsKey(other.gameObject.name))
+        {
+            _dict_burn_bldg.Add(other.gameObject.name, other.gameObject);
+        }
+    }
+
+    /// <summary>
+    /// オブジェクトが PLATEAU 建物かどうかを判定します
+    /// </summary>
     private bool IsPlateauBuilding(Collider obj)
     {
+        if (obj == null)
+        {
+            return false;
+        }
+
         return PlateauUtility.IsPlateauBuilding(obj);
     }
 

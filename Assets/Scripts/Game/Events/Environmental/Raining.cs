@@ -2,14 +2,11 @@ using UnityEngine;
 using PlateauToolkit.Rendering;
 using System.Linq;
 using CommonsUtility;
-
-// using Microsoft.Win32.SafeHandles;
-// using System.Numerics; // PlateauToolkit.Rendering  Environment を利用のために追加
+using Debug = UnityEngine.Debug;
 
 // downpour 土砂降り
 public class Raining : MonoBehaviour
 {
-    // TODO: ステージ内で一意の状態であるようにする
     private bool _is_rain = false; 
 
     private float _time = 0.0f;
@@ -52,6 +49,11 @@ public class Raining : MonoBehaviour
     internal void ToggleRain()
     {
         EnvironmentController env = GameObject.Find("Environment").GetComponent<EnvironmentController>();
+        if (env == null)
+        {
+            Debug.LogWarning("[Raining.ToggleRain] EnvironmentController not found");
+            return;
+        }
 
         if (env.m_Rain > 0.0f)
         {
@@ -69,7 +71,6 @@ public class Raining : MonoBehaviour
             env.m_FogDistance = RAINY_FOG_STRENGTH;
             _is_rain = true;
         }
-
     }
 
     private void DeleteAllRain()
@@ -93,30 +94,40 @@ public class Raining : MonoBehaviour
     private void RainDrops()
     {
         GameObject rainDropPrefab = PrefabManager.RainDropPrefab;
+        if (rainDropPrefab == null)
+        {
+            Debug.LogWarning("[Raining.RainDrops] RainDropPrefab is null");
+            return;
+        }
+
         Vector3 demRndAbovePosition = DemController.GetDemRndAbovePosition(ABOVE_POSITION);
         Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
+        
         GameObject obj = Object.Instantiate(rainDropPrefab, demRndAbovePosition, rotation);
+        if (obj == null)
+        {
+            Debug.LogWarning("[Raining.RainDrops] Failed to instantiate rain drop");
+            return;
+        }
+
         obj.tag = GameEnum.TagType.RainDrop.ToString();
         obj.name = GameEnum.TagType.RainDrop.ToString() + Time.time;
+        
         Transform holderParentTransform = GameObjectTreat.GetHolderParentTransform(ref _parent_holder, _RAIN_PARENT_NAME);
-        obj.transform.SetParent(holderParentTransform);
-    }
-
-
-    internal void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
+        if (holderParentTransform == null)
         {
-            _eventSystem = GameObjectTreat.GetEventSystem(_eventSystem);
-            WeatherController orAddComponent = GameObjectTreat.GetOrAddComponent<WeatherController>(_eventSystem);
-            float toggleRainStrength = orAddComponent.GetToggleRainStrength();
-            orAddComponent.ChangeWeather(toggleRainStrength);
+            Debug.LogWarning("[Raining.RainDrops] Holder parent transform is null");
+            return;
         }
+
+        obj.transform.SetParent(holderParentTransform);
     }
 
     private void Awake()
     {
     }
+
+
 
     private void Update()
     {
@@ -124,6 +135,7 @@ public class Raining : MonoBehaviour
         {
             float num = INTERVAL_RAIN / GameSpeedManager.GetGameSpeed();
             _time += Time.deltaTime;
+            
             if (_time > num)
             {
                 _time = 0f;

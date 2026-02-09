@@ -215,21 +215,6 @@ public class Earthquake : MonoBehaviour
         return null;
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
-        {
-            Debug.Log($"OnTriggerEnter {other.name} object:{other.gameObject.name}");
-
-            // TODO:
-            // マグニチュード2.5以上で、キャラなどが床抜けする
-
-            // EventEarthQuake(0.6f);
-            EventEarthQuake(1.8f);
-            // EventEarthQuake(2.8f);
-        }
-    }
-
 
     // Start is called before the first frame update
     private void Start()
