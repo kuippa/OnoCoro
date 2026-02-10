@@ -6,26 +6,36 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public class PowerCubeCtrl : MonoBehaviour
 {
     PowerCube _powerCube = null;
 
-    private void OnTriggerEnter(Collider other)
+    /// <summary>
+    /// Player が進入した時に呼ばれます
+    /// PowerCubeTriggerHandler から呼び出されます
+    /// </summary>
+    /// <param name="other">進入した Collider（Player）</param>
+    internal void OnPlayerEnter(Collider other)
     {
-        // Debug.Log("OnTriggerEnter" + other.gameObject.tag + " " + other.gameObject.name);
-
-        if (other.gameObject.tag == GameEnum.UnitType.Player.ToString())
+        if (other == null || other.gameObject == null)
         {
-            UnitStruct unitStruct = _powerCube.UnitStruct;
-            int score =  (int)unitStruct.BaseScore;
-            if (ScoreCtrl.IsScorePositiveInt(score, unitStruct.ScoreType))
-            {
-                ScoreCtrl.UpdateAndDisplayScore(score, unitStruct.ScoreType);
-                GameObjectTreat.DestroyAll(this.gameObject);
-                // return;
-            }
-            // Debug.Log("OnTriggerEnter" + other.gameObject.tag + " " + other.gameObject.name);
+            return;
+        }
+
+        if (_powerCube == null)
+        {
+            Debug.LogWarning("[PowerCubeCtrl] PowerCube component is null");
+            return;
+        }
+
+        UnitStruct unitStruct = _powerCube.UnitStruct;
+        int score = (int)unitStruct.BaseScore;
+        if (ScoreCtrl.IsScorePositiveInt(score, unitStruct.ScoreType))
+        {
+            ScoreCtrl.UpdateAndDisplayScore(score, unitStruct.ScoreType);
+            GameObjectTreat.DestroyAll(this.gameObject);
         }
     }
 
@@ -33,5 +43,7 @@ public class PowerCubeCtrl : MonoBehaviour
     {
         _powerCube = this.gameObject.AddComponent<PowerCube>();
 
+        // PowerCubeTriggerHandler をアタッチ
+        GameObjectTreat.GetOrAddComponent<PowerCubeTriggerHandler>(gameObject);
     }
 }

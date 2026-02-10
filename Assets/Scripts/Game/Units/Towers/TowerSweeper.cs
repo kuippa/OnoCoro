@@ -86,6 +86,9 @@ public class TowerSweeper : MonoBehaviour
         #endif
         // GameConfig.InitGameConfig();
 
+        // TowerSweeperTriggerHandler をアタッチ
+        GameObjectTreat.GetOrAddComponent<TowerSweeperTriggerHandler>(gameObject);
+
         // NavMeshAgentを取得
         _NavMeshAgent = this.GetComponent<NavMeshAgent>();
         if (_NavMeshAgent == null)
@@ -110,12 +113,17 @@ public class TowerSweeper : MonoBehaviour
         ChangeBatteryDockMode(false);
     }
 
-    private void OnTriggerEnter(Collider other)
+    /// <summary>
+    /// Garbage タグの Collider が進入した時に呼ばれます
+    /// TowerSweeperTriggerHandler から呼び出されます
+    /// </summary>
+    /// <param name="other">進入した Collider</param>
+    internal void OnGarbageEnter(Collider other)
     {
-        // #if UNITY_EDITOR
-        //     Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-        //     // Debug.Log(this.transform.position + " " + other.name);
-        // #endif
+        if (other == null || other.gameObject == null)
+        {
+            return;
+        }
 
         float currentTime = Time.time;
         if (currentTime - _lastTriggerStayTime <= _TRIGGER_STAY_INTERVAL)
@@ -124,13 +132,33 @@ public class TowerSweeper : MonoBehaviour
         }
         _lastTriggerStayTime = currentTime;
 
-        // 視界に入ったゴミをターゲットにする
-        if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
+        GameObject otherGameObject = other.gameObject;
+        GameObjectTreat.DebugColorChange(otherGameObject, Color.red);
+        SetTargetGarbage(otherGameObject);
+    }
+
+    /// <summary>
+    /// Ash タグの Collider が進入した時に呼ばれます
+    /// TowerSweeperTriggerHandler から呼び出されます
+    /// </summary>
+    /// <param name="other">進入した Collider</param>
+    internal void OnAshEnter(Collider other)
+    {
+        if (other == null || other.gameObject == null)
         {
-            GameObject otherGameObject = other.gameObject;
-            GameObjectTreat.DebugColorChange(otherGameObject, Color.red);
-            SetTargetGarbage(otherGameObject);
+            return;
         }
+
+        float currentTime = Time.time;
+        if (currentTime - _lastTriggerStayTime <= _TRIGGER_STAY_INTERVAL)
+        {
+            return;
+        }
+        _lastTriggerStayTime = currentTime;
+
+        GameObject otherGameObject = other.gameObject;
+        GameObjectTreat.DebugColorChange(otherGameObject, Color.red);
+        SetTargetGarbage(otherGameObject);
     }
 
     private void SetTargetGarbage(GameObject other)

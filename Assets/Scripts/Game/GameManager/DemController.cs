@@ -307,19 +307,25 @@ public static class DemController
             // Debug.Log("GetDemAbarbPosition " + "meshFilter is null");
             return abovePos;
         }
+        
         Vector3 meshSize = meshFilter.mesh.bounds.size;
+        Vector3 scale = _dem.transform.localScale;
+        
+        // スケールを考慮してランダムポジションを計算
+        float scaledMeshSizeX = meshSize.x * scale.x;
+        float scaledMeshSizeZ = meshSize.z * scale.z;
+        
         abovePos.x = Random.Range(
-            _dem_center_pos.x - meshSize.x / 2 + _MARGIN_DISTANCE
-            , _dem_center_pos.x + meshSize.x / 2 - _MARGIN_DISTANCE
+            _dem_center_pos.x - scaledMeshSizeX / 2 + _MARGIN_DISTANCE
+            , _dem_center_pos.x + scaledMeshSizeX / 2 - _MARGIN_DISTANCE
             );
 
         abovePos.z = Random.Range(
-            _dem_center_pos.z - meshSize.z / 2 + _MARGIN_DISTANCE
-            , _dem_center_pos.z + meshSize.z / 2 - _MARGIN_DISTANCE
+            _dem_center_pos.z - scaledMeshSizeZ / 2 + _MARGIN_DISTANCE
+            , _dem_center_pos.z + scaledMeshSizeZ / 2 - _MARGIN_DISTANCE
             );
 
-        float scaleY = _dem.transform.localScale.y;
-        float groundHeight = _dem_center_pos.y + meshSize.y * 0.5f * scaleY; // 地面の上面の高さ（スケール考慮）
+        float groundHeight = _dem_center_pos.y + meshSize.y * 0.5f * scale.y; // 地面の上面の高さ（スケール考慮）
         float minHeight = groundHeight + drop_distance;
         abovePos.y = minHeight;
 

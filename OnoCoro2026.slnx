@@ -25,11 +25,11 @@
   <Project Path="UnityEngine.TestRunner.csproj" />
   <Project Path="Unity.RenderPipelines.HighDefinition.Editor.csproj" />
   <Project Path="Unity.Burst.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.RenderPipelines.HighDefinition.Runtime.csproj" />
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
   <Project Path="PlateauToolkit.Rendering.csproj" />
   <Project Path="Unity.Splines.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Unity.Recorder.Editor.csproj" />
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Unity.XR.CoreUtils.csproj" />

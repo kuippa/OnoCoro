@@ -19,7 +19,7 @@ public class Raining : MonoBehaviour
 
     internal const float INTERVAL_RAIN = 0.02f;
 
-    internal const float ABOVE_POSITION = 280f;
+    internal const float ABOVE_POSITION = 120f;
 
     private const float RAINY_STRENGTH = 0.65f;    // 雨の強さ
     private const float RAINY_CLOUD_STRENGTH = 0.75f;    // 雨のときの雲の強さ
@@ -101,6 +101,23 @@ public class Raining : MonoBehaviour
         }
 
         Vector3 demRndAbovePosition = DemController.GetDemRndAbovePosition(ABOVE_POSITION);
+        
+        // DEM座標が返ってこない場合のみ、プレイヤー位置にフォールバック
+        if (demRndAbovePosition == Vector3.zero)
+        {
+            Debug.LogWarning("[Raining.RainDrops] DemController.GetDemRndAbovePosition() returned zero - using Player position fallback");
+            GameObject player = GameObject.FindGameObjectWithTag(GameEnum.UnitType.Player.ToString());
+            if (player != null)
+            {
+                demRndAbovePosition = player.transform.position + Vector3.up * ABOVE_POSITION;
+            }
+            else
+            {
+                Debug.LogWarning("[Raining.RainDrops] Player not found, cannot generate raindrop");
+                return;
+            }
+        }
+        
         Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
         
         GameObject obj = Object.Instantiate(rainDropPrefab, demRndAbovePosition, rotation);

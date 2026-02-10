@@ -1,18 +1,25 @@
 using System.Collections;
 using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 public class DustBoxCtrl : MonoBehaviour
 {
     private const float _DUST_CHECK_TIME = 2.5f;
 
-    private void OnTriggerEnter(Collider other)
+    /// <summary>
+    /// Garbage が進入した時に呼ばれます
+    /// DustBoxTriggerHandler から呼び出されます
+    /// </summary>
+    /// <param name="other">進入した Collider（Garbage）</param>
+    internal void OnGarbageEnter(Collider other)
     {
-        // ゴミがダストボックスに入ったら削除処理を開始
-        if (other.gameObject.tag == GameEnum.TagType.Garbage.ToString())
+        if (other == null)
         {
-            StartCoroutine(DeleteDust(other));
+            return;
         }
+
+        StartCoroutine(DeleteDust(other));
     }
 
     private IEnumerator DeleteDust(Collider other)
@@ -36,5 +43,11 @@ public class DustBoxCtrl : MonoBehaviour
         
         // ゴミオブジェクトを削除
         GameObjectTreat.DestroyAll(other.gameObject);
+    }
+
+    private void Awake()
+    {
+        // DustBoxTriggerHandler をアタッチ
+        GameObjectTreat.GetOrAddComponent<DustBoxTriggerHandler>(gameObject);
     }
 }

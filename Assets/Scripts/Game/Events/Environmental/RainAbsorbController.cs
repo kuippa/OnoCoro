@@ -1,24 +1,55 @@
 using System;
 using CommonsUtility;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 public class RainAbsorbController : MonoBehaviour
 {
 	private static float _BUILDING_BRAKE_SIZE = 20f;
 
-	internal void OnTriggerEnter(Collider other)
+	/// <summary>
+	/// RainDrop が進入した時に呼ばれます
+	/// RainAbsorbTriggerHandler から呼び出されます
+	/// </summary>
+	/// <param name="other">進入した Collider（RainDrop）</param>
+	internal void OnRainDropEnter(Collider other)
 	{
-		GameObject parentObject = GetParentObject();
-		if (!(parentObject == null))
+		if (other == null || other.gameObject == null)
 		{
-			if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString())
-			{
-				Absorb(parentObject, other.gameObject);
-			}
-			else if (other.gameObject.tag == GameEnum.TagType.Untagged.ToString() && parentObject.transform.localScale.x >= _BUILDING_BRAKE_SIZE && PlateauUtility.IsPlateauBuilding(other))
-			{
-				SinkingDownBuilding(other.gameObject);
-			}
+			return;
+		}
+
+		GameObject parentObject = GetParentObject();
+		if (parentObject == null)
+		{
+			return;
+		}
+
+		Absorb(parentObject, other.gameObject);
+	}
+
+	/// <summary>
+	/// 建物（Untagged）が進入した時に呼ばれます
+	/// RainAbsorbTriggerHandler から呼び出されます
+	/// </summary>
+	/// <param name="other">進入した Collider（建物）</param>
+	internal void OnBuildingEnter(Collider other)
+	{
+		if (other == null || other.gameObject == null)
+		{
+			return;
+		}
+
+		GameObject parentObject = GetParentObject();
+		if (parentObject == null)
+		{
+			return;
+		}
+
+		// 雨吸収オブジェクトが十分に大きく、PLATEAU建物の場合のみ沈下処理
+		if (parentObject.transform.localScale.x >= _BUILDING_BRAKE_SIZE && PlateauUtility.IsPlateauBuilding(other))
+		{
+			SinkingDownBuilding(other.gameObject);
 		}
 	}
 
@@ -70,5 +101,11 @@ public class RainAbsorbController : MonoBehaviour
 	internal void ChangeColliderSize(float size)
 	{
 		this.gameObject.GetComponent<SphereCollider>().radius = size;
+	}
+
+	private void Awake()
+	{
+		// RainAbsorbTriggerHandler をアタッチ
+		GameObjectTreat.GetOrAddComponent<RainAbsorbTriggerHandler>(gameObject);
 	}
 }

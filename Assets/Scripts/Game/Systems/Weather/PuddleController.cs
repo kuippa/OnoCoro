@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public class PuddleController : MonoBehaviour
 {
@@ -57,18 +58,40 @@ public class PuddleController : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    /// <summary>
+    /// RainDrop が進入した時に呼ばれます
+    /// PuddleTriggerHandler から呼び出されます
+    /// </summary>
+    /// <param name="other">進入した Collider（RainDrop）</param>
+    internal void OnRainDropEnter(Collider other)
     {
-        if (other.gameObject.tag == GameEnum.TagType.RainDrop.ToString())
+        if (other == null || other.gameObject == null)
         {
-            ChangePuddleSize();
-            GameObjectTreat.DestroyAll(other.gameObject);
+            return;
         }
-        else if (other.gameObject.tag == GameEnum.TagType.Puddle.ToString())
-        {
-            // Debug.Log("OnTriggerEnter " + other.name + " object:" + other.gameObject.name);
-            MergerPuddle(other.gameObject);
-        }
+
+        ChangePuddleSize();
+        GameObjectTreat.DestroyAll(other.gameObject);
     }
 
+    /// <summary>
+    /// 他の Puddle が進入した時に呼ばれます
+    /// PuddleTriggerHandler から呼び出されます
+    /// </summary>
+    /// <param name="other">進入した Collider（Puddle）</param>
+    internal void OnPuddleEnter(Collider other)
+    {
+        if (other == null || other.gameObject == null)
+        {
+            return;
+        }
+
+        MergerPuddle(other.gameObject);
+    }
+
+    private void Awake()
+    {
+        // PuddleTriggerHandler をアタッチ
+        GameObjectTreat.GetOrAddComponent<PuddleTriggerHandler>(gameObject);
+    }
 }
