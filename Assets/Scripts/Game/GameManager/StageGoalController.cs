@@ -14,6 +14,15 @@ public static class StageGoalController
 
     private const int CHECK_INTERVAL = 5;
 
+    /// <summary>
+    /// ステージ開始時にフラグをリセット
+    /// </summary>
+    internal static void ResetStageState()
+    {
+        _is_stage_goal = false;
+        _is_stage_fail = false;
+    }
+
     private static bool IsGoalTypeBuilding()
     {
         return _dict_req.ContainsKey("building");
@@ -36,20 +45,22 @@ public static class StageGoalController
 
     private static void BackToStartPage()
     {
-        MessageBoxCtrl messageBox = GameObject.Find("UIMessageBox").GetComponent<MessageBoxCtrl>();
-        messageBox.Show("Stage Cleared, want to back start page?", (result) =>
+        try
         {
-            if (result)
+            MessageBoxCtrl messageBox = GameObject.Find("UIMessageBox").GetComponent<MessageBoxCtrl>();
+            messageBox.Show("Stage Cleared, want to back start page?", (result) =>
             {
-                EscMenuCtrl escMenuCtrl = GameObject.Find("UIEscMenu").GetComponent<EscMenuCtrl>();
-                escMenuCtrl.OnClickBackToTitle();
-                Debug.Log("Yesが選択されました");
-            }
-            else
-            {
-                Debug.Log("Noが選択されました");
-            }
-        });
+                if (result)
+                {
+                    EscMenuCtrl escMenuCtrl = GameObject.Find("UIEscMenu").GetComponent<EscMenuCtrl>();
+                    escMenuCtrl.OnClickBackToTitle();
+                }
+            });
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[StageGoalController.BackToStartPage] Exception: {ex.Message}");
+        }
     }
 
     internal static void ActionStageGoal()
@@ -59,12 +70,27 @@ public static class StageGoalController
             return;
         }
 
-        TelopCtrl telopCtrl = GameObject.Find("UITelop").GetComponent<TelopCtrl>();
-        if (telopCtrl != null)
+        try
         {
+            GameObject telopObj = GameObject.Find("UITelop");
+            if (telopObj == null)
+            {
+                return;
+            }
+
+            TelopCtrl telopCtrl = telopObj.GetComponent<TelopCtrl>();
+            if (telopCtrl == null)
+            {
+                return;
+            }
+
             telopCtrl.ShowTelop("Stage Goal!! Clear");
             _is_stage_goal = true;
             ActionDelay(3000, () => BackToStartPage());
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[StageGoalController.ActionStageGoal] Exception: {ex.Message}");
         }
     }
 

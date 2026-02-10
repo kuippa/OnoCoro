@@ -41,9 +41,9 @@ pathmakers:
   #   pos: 9, 0, 15
 
 goals:
-  # - building: repair_all
+  - building: repair_all
   # - garbage: 10, 20  # ゴミの数がｘを超えずｙ秒経過したらステージクリア
-  - notfailtime: 100  # ゲームオーバーせずにｙ秒経過したらステージクリア
+  # - notfailtime: 100  # ゲームオーバーせずにｙ秒経過したらステージクリア
 
 gameovers:
   - garbage: 10  # ゴミの数がｘを超えたらゲームオーバー

@@ -15,6 +15,9 @@ public class NoticeCtrl : UIControllerBase
     private GameObject _UINotice = null;
     private GameObject _notice_window = null;
     private GameObject _txtNotice = null;
+    private Coroutine _autoCloseCoroutine = null;
+    
+    private const float AUTO_CLOSE_DELAY = 3f;
 
     /// <summary>
     /// 参照取得と初期非表示
@@ -46,7 +49,23 @@ public class NoticeCtrl : UIControllerBase
         {
             _txtNotice.GetComponent<Text>().text = notice;
             ToggleNoticeWindow(true);
+            
+            // 既存の自動閉じコルーチンがあればキャンセル
+            if (_autoCloseCoroutine != null)
+            {
+                StopCoroutine(_autoCloseCoroutine);
+            }
+            
+            // 新しい自動閉じコルーチンを開始
+            _autoCloseCoroutine = StartCoroutine(AutoCloseNotice());
         }
+    }
+
+    private IEnumerator AutoCloseNotice()
+    {
+        yield return new WaitForSecondsRealtime(AUTO_CLOSE_DELAY);
+        ToggleNoticeWindow(false);
+        _autoCloseCoroutine = null;
     }
 
     // private void OnClickPanel()

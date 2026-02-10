@@ -7,7 +7,8 @@ using Debug = CommonsUtility.Debug;
 public class PlateauBuildingInteractor : MonoBehaviour
 {
     private Dictionary<string, Material[]> _buildingMaterials = new Dictionary<string, Material[]>();
-    internal List<GameObject> _doomedBuildings = new List<GameObject>();    
+    internal List<GameObject> _doomedBuildings = new List<GameObject>();
+    private bool _isGoalAlreadyTriggered = false;  // ゴール判定が実行済みかチェック    
 
     internal void DeleteBuilding(GameObject building)
     {
@@ -28,18 +29,26 @@ public class PlateauBuildingInteractor : MonoBehaviour
 
     internal void RestoreBuildingMaterial(GameObject building)
     {
+        if (building == null)
+        {
+            return;
+        }
+        
         SetMaterialToOriginal(building);
         _doomedBuildings.Remove(building);
+        
         if (StageGoalController.IsBuildingAllRepair())
         {
             if (_doomedBuildings.Count == 0)
             {
-                Debug.Log("IsBuildingAllRepair");
+                // 既にゴール判定が実行済みなら、二重呼び出しを防ぐ
+                if (_isGoalAlreadyTriggered)
+                {
+                    return;
+                }
+                
+                _isGoalAlreadyTriggered = true;
                 StageGoalController.ActionStageGoal();
-            }
-            else
-            {
-                Debug.Log("NotBuildingAllRepair" + _doomedBuildings.Count);
             }
         }
     }

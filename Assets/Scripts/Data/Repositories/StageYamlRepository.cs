@@ -21,6 +21,9 @@ public class StageYamlRepository : MonoBehaviour
 
     internal void LoadYamlData(string stageName)
     {
+        // ステージゴール/ゲームオーバー判定をリセット
+        StageGoalController.ResetStageState();
+        
         YamlStream yaml = LoadStreamingAsset.LoadYamlFile(Path.GetFileName(stageName + LoadStreamingAsset.YAML_FILE_EXTENSION));
         if (yaml == null)
         {
@@ -63,17 +66,15 @@ public class StageYamlRepository : MonoBehaviour
         // YamlCommandManager 経由で GoalCommand に変換
         var goalCommands = YamlCommandManager.ParseGoalCommands(yamlDataList);
         
-        if (goalCommands.Count > 0)
+        if (yamlDataList.Count > 0)
         {
-            // GoalCommand を Dictionary に変換して StageGoalController に渡す
+            // 元の YAML データから直接キーを取得して _dict_req に保存
             var goals_req = new Dictionary<string, string>();
-            foreach (var cmd in goalCommands)
+            foreach (var goalData in yamlDataList)
             {
-                goals_req.Add("goal_type", cmd.Type.ToString());
-                goals_req.Add("threshold", cmd.Threshold.ToString());
-                if (!string.IsNullOrEmpty(cmd.Description))
+                foreach (var kvp in goalData)
                 {
-                    goals_req.Add("description", cmd.Description);
+                    goals_req.Add(kvp.Key, kvp.Value);
                 }
             }
             
