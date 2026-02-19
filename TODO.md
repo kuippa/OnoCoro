@@ -589,45 +589,118 @@ docs/
 
 **æœ€çµ‚æ›´æ–°**: 2026-01-23
 **ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ**: OnoCoro (Unity 6.3 Geospatial Visualization)
+---
+
+## ä½œæ¥­è¨˜éŒ²: 2026-02-20
+
+### Naraku è½ä¸‹æ¤œå‡ºãƒ»ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯æ”¹å–„
+
+#### èƒŒæ™¯
+
+æ± ã‚„ç©´ãªã© DEM ãƒ¡ãƒƒã‚·ãƒ¥ãŒå­˜åœ¨ã—ãªã„åœ°ç‚¹ã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒè½ä¸‹ã—ãŸå ´åˆã€
+`GetClosestPointOnBounds` ã® 20 å› Raycast è©¦è¡ŒãŒã™ã¹ã¦å¤±æ•—ã—ã€
+æ± ã®ä¸Šåº§æ¨™ã«é…ç½®ã•ã‚ŒãŸã¾ã¾å¾©å¸°ã§ããªã„å•é¡ŒãŒèµ·ãã¦ã„ãŸã€‚
+
+#### å®Ÿè£…å†…å®¹
+
+**SpawnOriginTracker.cs (æ–°è¦ä½œæˆ)**
+- `Assets/Scripts/Core/Handlers/SpawnOriginTracker.cs`
+- å„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ã‚¹ãƒãƒ¼ãƒ³åŸç‚¹ã‚’è¨˜æ†¶ã™ã‚‹æ±ç”¨ MonoBehaviour ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆ
+- `SetSpawnOrigin(Vector3)` / `HasSpawnOrigin()` / `SpawnOrigin` ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
+
+**DemController.cs (å¤‰æ›´)**
+- `GetClosestPointOnBounds(Collider, out bool succeeded)` overload ã‚’è¿½åŠ 
+  - 20 å›è©¦è¡ŒãŒå…¨å¤±æ•—ã—ãŸã¨ã `succeeded = false` ã‚’è¿”ã™
+- `GetDemCenterSafePosition(float objectHeight)` ã‚’è¿½åŠ 
+  - DEM ä¸­å¿ƒåº§æ¨™ã®å®‰å…¨ãªä»£æ›¿ä½ç½®ã‚’è¿”ã™ï¼ˆå…¨å¤±æ•—æ™‚ã®æœ€çµ‚ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ï¼‰
+- `MaxIteration` ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£è¿½åŠ ï¼ˆãƒ­ã‚°è¡¨ç¤ºç”¨ï¼‰
+
+**EnemyLitter.cs (å¤‰æ›´)**
+- `AgentJumpToStartPosition` ã§ Warp å¾Œã« `SpawnOriginTracker.SetSpawnOrigin()` ã‚’å‘¼ã³å‡ºã—
+- ã‚¹ãƒãƒ¼ãƒ³åŸç‚¹ã‚’ Naraku ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ç”¨ã«è¨˜éŒ²ã™ã‚‹ã‚ˆã†ã«ã—ãŸ
+
+**NarakuTriggerHandler.cs (å¤‰æ›´)**
+- `OnPlayerEnter` / `OnGenericObjectEnter` ã§ `out bool succeeded` overload ã‚’ä½¿ç”¨
+- `succeeded = false` ã®ã¨ã `GetFallbackPosition(other)` ã‚’å‘¼ã³å‡ºã™
+- `GetFallbackPosition`: SpawnOriginTracker ãŒã‚ã‚Œã° SpawnOriginã€ãªã‘ã‚Œã° DEM ã‚»ãƒ³ã‚¿ãƒ¼ã¸
+- `AdjustYPositionByPlayerSpawn()` ã‚’è¿½åŠ ï¼ˆå¾Œè¿°ï¼‰
+- `GetNarakuIndex()` ã‚’è¿½åŠ 
+
+#### PlayerArmature ã‚¹ãƒãƒ¼ãƒ³ä½ç½®ã®ç™»éŒ²
+
+**EventLoader.cs (å¤‰æ›´)**
+- `Start()` ã« `RegisterPlayerSpawnOrigin()` ã‚’è¿½åŠ 
+- `PlayerArmature` ã« `SpawnOriginTracker` ã‚’ä»˜ä¸ã—ã€ã‚·ãƒ¼ãƒ³é…ç½®æ™‚ã®åˆæœŸ Y ä½ç½®ã‚’è¨˜éŒ²
+- ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒæ± ã«è½ã¡ãŸéš›ã® Naraku ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯å¸°é‚„å…ˆã¨ã—ã¦å‚ç…§ã•ã‚Œã‚‹
+
+#### Naraku ã® Y ä½ç½®ã‚’ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¹ãƒãƒ¼ãƒ³ Y ã«è¿½å¾“
+
+**èƒŒæ™¯**: ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¹ãƒãƒ¼ãƒ³ Y ãŒé«˜ã„ã‚¹ãƒ†ãƒ¼ã‚¸ã§ Naraku ãŒé ã™ãã€è½ä¸‹æ¤œå‡ºã«æ™‚é–“ãŒã‹ã‹ã‚‹å•é¡Œã€‚
+
+**NarakuTriggerHandler.cs (å¤‰æ›´)**
+- `Awake()` ã‹ã‚‰ `AdjustYPositionByPlayerSpawn()` ã‚’å‘¼ã³å‡ºã—
+- `PlayerArmature.transform.position.y` ã‚’åŸºæº–ã«å„ Naraku ã® Y ã‚’å‹•çš„è¨­å®š
+  - Naraku   (idx=1): Y = playerSpawnY - 30
+  - Naraku_1 (idx=2): Y = playerSpawnY - 60ï¼ˆåŠ é€Ÿå¾Œã®è£œè¶³ç”¨äºˆå‚™ï¼‰
+
+**NarakuController.cs (å¤‰æ›´)**
+- å‰ã‚»ãƒƒã‚·ãƒ§ãƒ³ã§è¿½åŠ ã—ãŸ Y ä½ç½®èª¿æ•´ãƒ­ã‚¸ãƒƒã‚¯ã‚’å‰Šé™¤
+- ã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã‚‹ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆï¼ˆNarakuTriggerHandlerï¼‰å´ã«ç§»ã—ãŸ
+
+#### å¤‰æ›´ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§
+
+| ãƒ•ã‚¡ã‚¤ãƒ« | å¤‰æ›´ç¨®åˆ¥ |
+|---------|---------|
+| `Assets/Scripts/Core/Handlers/SpawnOriginTracker.cs` | æ–°è¦ä½œæˆ |
+| `Assets/Scripts/Core/Handlers/NarakuTriggerHandler.cs` | å¤‰æ›´ |
+| `Assets/Scripts/Game/GameManager/DemController.cs` | å¤‰æ›´ |
+| `Assets/Scripts/Game/GameManager/NarakuController.cs` | å¤‰æ›´ |
+| `Assets/Scripts/Game/Events/System/EventLoader.cs` | å¤‰æ›´ |
+| `Assets/Scripts/Game/Units/Enemies/EnemyLitter.cs` | å¤‰æ›´ |
 
 ---
 
-## ƒAƒ‹ƒtƒ@”ÅŒöŠJ‘O‚Éíœ‚·‚×‚«ƒtƒ@ƒCƒ‹
+**æœ€çµ‚æ›´æ–°**: 2026-02-20
+**ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ**: OnoCoro (Unity 6.3 Geospatial Visualization)
+---
 
-### ˆê“I‚ÈƒoƒbƒNƒAƒbƒvƒeƒXƒgƒtƒ@ƒCƒ‹
+## ï¿½Aï¿½ï¿½ï¿½tï¿½@ï¿½ÅŒï¿½ï¿½Jï¿½Oï¿½Éíœï¿½ï¿½ï¿½×‚ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½
 
-ˆÈ‰º‚Ìƒtƒ@ƒCƒ‹ƒtƒHƒ‹ƒ_‚ÍŠJ”­‰ß’ö‚Å¶¬‚³‚ê‚½ˆêƒtƒ@ƒCƒ‹‚Å‚ ‚èA**ƒAƒ‹ƒtƒ@”ÅŒöŠJ‘O‚Éíœ‚ª•K{**‚Å‚·F
+### ï¿½êï¿½Iï¿½Èƒoï¿½bï¿½Nï¿½Aï¿½bï¿½vï¿½eï¿½Xï¿½gï¿½tï¿½@ï¿½Cï¿½ï¿½
+
+ï¿½È‰ï¿½ï¿½Ìƒtï¿½@ï¿½Cï¿½ï¿½ï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ÍŠJï¿½ï¿½ï¿½ß’ï¿½ï¿½Åï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½êï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Å‚ï¿½ï¿½ï¿½A**ï¿½Aï¿½ï¿½ï¿½tï¿½@ï¿½ÅŒï¿½ï¿½Jï¿½Oï¿½Éíœï¿½ï¿½ï¿½Kï¿½{**ï¿½Å‚ï¿½ï¿½F
 
 - [ ] \Assets/StreamingAssets/staging/ver2024/resources_backup_20260127_235817/\
-  - **à–¾**: ŒÃ‚¢ Resources\staging ƒtƒHƒ‹ƒ_‚©‚ç‚ÌƒoƒbƒNƒAƒbƒvi”äŠr—pj
-  - **íœŠú**: ƒAƒ‹ƒtƒ@”Å v0.1.0-alpha ƒŠƒŠ[ƒX‘O
-  - **ƒoƒbƒNƒAƒbƒvó‹µ**: Šù‚Éd—vƒf[ƒ^‚ÍŠm”FÏ‚İi”äŠrŠ®—¹ 2026-01-28j
+  - **ï¿½ï¿½ï¿½ï¿½**: ï¿½Ã‚ï¿½ Resources\staging ï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½Ìƒoï¿½bï¿½Nï¿½Aï¿½bï¿½vï¿½iï¿½ï¿½rï¿½pï¿½j
+  - **ï¿½íœï¿½ï¿½ï¿½ï¿½**: ï¿½Aï¿½ï¿½ï¿½tï¿½@ï¿½ï¿½ v0.1.0-alpha ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Xï¿½O
+  - **ï¿½oï¿½bï¿½Nï¿½Aï¿½bï¿½vï¿½ï¿½**: ï¿½ï¿½ï¿½Édï¿½vï¿½fï¿½[ï¿½^ï¿½ÍŠmï¿½Fï¿½Ï‚İiï¿½ï¿½rï¿½ï¿½ï¿½ï¿½ 2026-01-28ï¿½j
 
 - [ ] \Assets/Resources/staging/\
-  - **à–¾**: ŒÃ‚¢ƒXƒe[ƒWƒtƒ@ƒCƒ‹ƒfƒBƒŒƒNƒgƒŠiStreamingAssets ‚ªÅV”Åj
-  - **íœŠú**: ƒAƒ‹ƒtƒ@”Å v0.1.0-alpha ƒŠƒŠ[ƒX‘O
-  - **Šm”F**: ‘Sƒtƒ@ƒCƒ‹‚Í StreamingAssets\staging ‚ÉV‚µ‚¢ƒo[ƒWƒ‡ƒ“‚ª‘¶İ
+  - **ï¿½ï¿½ï¿½ï¿½**: ï¿½Ã‚ï¿½ï¿½Xï¿½eï¿½[ï¿½Wï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½fï¿½Bï¿½ï¿½ï¿½Nï¿½gï¿½ï¿½ï¿½iStreamingAssets ï¿½ï¿½ï¿½ÅVï¿½Åj
+  - **ï¿½íœï¿½ï¿½ï¿½ï¿½**: ï¿½Aï¿½ï¿½ï¿½tï¿½@ï¿½ï¿½ v0.1.0-alpha ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Xï¿½O
+  - **ï¿½mï¿½F**: ï¿½Sï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ StreamingAssets\staging ï¿½ÉVï¿½ï¿½ï¿½ï¿½ï¿½oï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 - [ ] \Assets/Scripts/UnitTest/YamlFileValidationTest.cs\
-  - **à–¾**: ŠJ”­—p YAML ƒtƒ@ƒCƒ‹ŒŸØƒeƒXƒgƒXƒNƒŠƒvƒg
-  - **íœŠú**: ƒAƒ‹ƒtƒ@”ÅƒŠƒŠ[ƒX‘O
-  - **ƒA[ƒJƒCƒuæ**: \Assets/Scripts/Core/Editor/YamlFileValidationTest.cs\
+  - **ï¿½ï¿½ï¿½ï¿½**: ï¿½Jï¿½ï¿½ï¿½p YAML ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Øƒeï¿½Xï¿½gï¿½Xï¿½Nï¿½ï¿½ï¿½vï¿½g
+  - **ï¿½íœï¿½ï¿½ï¿½ï¿½**: ï¿½Aï¿½ï¿½ï¿½tï¿½@ï¿½Åƒï¿½ï¿½ï¿½ï¿½[ï¿½Xï¿½O
+  - **ï¿½Aï¿½[ï¿½Jï¿½Cï¿½uï¿½ï¿½**: \Assets/Scripts/Core/Editor/YamlFileValidationTest.cs\
 
 - [ ] \Assets/Scripts/UnitTest/YamlCommandValidationTest.cs\
-  - **à–¾**: ŠJ”­—p YAML ƒRƒ}ƒ“ƒhƒoƒŠƒf[ƒVƒ‡ƒ“ƒeƒXƒgƒXƒNƒŠƒvƒg
-  - **íœŠú**: ƒAƒ‹ƒtƒ@”ÅƒŠƒŠ[ƒX‘O
-  - **ƒA[ƒJƒCƒuæ**: \Assets/Scripts/Core/Editor/YamlCommandValidationTest.cs\
+  - **ï¿½ï¿½ï¿½ï¿½**: ï¿½Jï¿½ï¿½ï¿½p YAML ï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½oï¿½ï¿½ï¿½fï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½eï¿½Xï¿½gï¿½Xï¿½Nï¿½ï¿½ï¿½vï¿½g
+  - **ï¿½íœï¿½ï¿½ï¿½ï¿½**: ï¿½Aï¿½ï¿½ï¿½tï¿½@ï¿½Åƒï¿½ï¿½ï¿½ï¿½[ï¿½Xï¿½O
+  - **ï¿½Aï¿½[ï¿½Jï¿½Cï¿½uï¿½ï¿½**: \Assets/Scripts/Core/Editor/YamlCommandValidationTest.cs\
 
-### íœƒ`ƒFƒbƒNƒŠƒXƒg
+### ï¿½íœï¿½`ï¿½Fï¿½bï¿½Nï¿½ï¿½ï¿½Xï¿½g
 
-**ƒŠƒŠ[ƒX‘OŠm”F–€**:
+**ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Xï¿½Oï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½**:
 
-- [ ] \esources_backup_20260127_235817\ ƒtƒHƒ‹ƒ_‚ğíœ
-- [ ] \Assets/Resources/staging/\ ƒfƒBƒŒƒNƒgƒŠ‚ğíœ
-- [ ] \Assets/Scripts/UnitTest/\ ƒtƒHƒ‹ƒ_‚ğŠ®‘S‚Éíœ
-- [ ] git commit ‚Å‚±‚ê‚ç‚Ìíœ‚ğ‹L˜^
+- [ ] \
+esources_backup_20260127_235817\ ï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½íœ
+- [ ] \Assets/Resources/staging/\ ï¿½fï¿½Bï¿½ï¿½ï¿½Nï¿½gï¿½ï¿½ï¿½ï¿½ï¿½íœ
+- [ ] \Assets/Scripts/UnitTest/\ ï¿½tï¿½Hï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½Sï¿½Éíœ
+- [ ] git commit ï¿½Å‚ï¿½ï¿½ï¿½ï¿½Ìíœï¿½ï¿½ï¿½Lï¿½^
 
 ---
 
-**ÅIXV**: 2026-01-28
-**ƒvƒƒWƒFƒNƒg**: OnoCoro (Unity 6.3 Geospatial Visualization)
+**ï¿½ÅIï¿½Xï¿½V**: 2026-01-28
+**ï¿½vï¿½ï¿½ï¿½Wï¿½Fï¿½Nï¿½g**: OnoCoro (Unity 6.3 Geospatial Visualization)

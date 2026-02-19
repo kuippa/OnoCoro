@@ -257,7 +257,47 @@ public class EnemyLitter : MonoBehaviour
             return;
         }
 
-        transform.position = _myPaths[0];
+        Vector3 startPosition = _myPaths[0];
+        float bottomOffset = GetBottomOffset();
+        Vector3 warpPosition = new Vector3(startPosition.x, startPosition.y + bottomOffset, startPosition.z);
+
+        // transform.position の直接書き換えでは NavMeshAgent が NavMesh に再登録されない。
+        // Warp() を使うことで、エージェントが指定位置の NavMesh に即座にスナップされ
+        // isOnNavMesh = true となり、直後の SetNavMeshDestination が成功する。
+        bool warped = _navMeshAgent.Warp(warpPosition);
+        if (!warped)
+        {
+            Debug.LogWarning($"{name}: Warp failed at {warpPosition}. NavMesh surface may not exist nearby.");
+        }
+
+        // 初期スポーン位置を SpawnOriginTracker に記録する。
+        // NarakuTriggerHandler が池等で DEM 検出全失敗時にここへ戻すために使用する。
+        SpawnOriginTracker spawnTracker = GameObjectTreat.GetOrAddComponent<SpawnOriginTracker>(gameObject);
+        spawnTracker.SetSpawnOrigin(warpPosition);
+    }
+
+    /// <summary>
+    /// ピボットからコライダー底面までのローカルオフセットを返す
+    /// _myPaths[0] が底面位置になるよう transform.position を補正するために使用
+    /// </summary>
+    private float GetBottomOffset()
+    {
+        CapsuleCollider capsuleCollider = GetComponent<CapsuleCollider>();
+        if (capsuleCollider != null)
+        {
+            // CapsuleCollider: ピボットから底面 = height/2 - center.y
+            return capsuleCollider.height / 2f - capsuleCollider.center.y;
+        }
+
+        BoxCollider boxCollider = GetComponent<BoxCollider>();
+        if (boxCollider != null)
+        {
+            // BoxCollider: ピボットから底面 = size.y/2 - center.y
+            return boxCollider.size.y / 2f - boxCollider.center.y;
+        }
+
+        Debug.LogWarning($"{name}: CapsuleCollider も BoxCollider も見つからないため bottomOffset=0 を使用");
+        return 0f;
     }
 
     private bool SetNextPath(Vector3[] paths)

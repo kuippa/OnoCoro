@@ -14,6 +14,8 @@ namespace CommonsUtility
     public class NarakuTriggerHandler : TriggerHandler
     {
         private const float _POPUP_PLAYER_DISTANCE = 30f;   // 落ちたプレイヤーを上に持ち上げる距離
+        private const float _NARAKU_DISTANCE = 30f;         // Naraku ごとの Y 間隔（NarakuController と同値）
+        private const string _PLAYER_ARMATURE_NAME = "PlayerArmature";
         
         private GameObject _eventSystem = null;
         private WaterSurfaceCtrl _waterSurface = null;
@@ -24,6 +26,51 @@ namespace CommonsUtility
             base.Awake();
             // Naraku は特定の単一タグではなく、複数パターンに対応するため、デフォルトタグを設定
             SetDefaultTargetTag(GameEnum.TagType.Naraku.ToString());
+            AdjustYPositionByPlayerSpawn();
+        }
+
+        /// <summary>
+        /// プレイヤーの初期スポーン Y 座標をもとに、この Naraku の Y 位置を調整する。
+        /// スポーン Y が高い場合に Naraku が遠すぎて落下検出が遅れるのを防ぐ。
+        /// インデックスは Naraku タグ付きオブジェクト中の順番で決まる。
+        ///   Naraku   (idx=1): playerY - 30
+        ///   Naraku_1 (idx=2): playerY - 60  ← 加速後の補足用予備
+        /// </summary>
+        private void AdjustYPositionByPlayerSpawn()
+        {
+            GameObject playerArmature = GameObject.Find(_PLAYER_ARMATURE_NAME);
+            if (playerArmature == null)
+            {
+                Debug.LogWarning($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] PlayerArmature が見つかりません。{gameObject.name} の Y 位置を調整しません。");
+                return;
+            }
+
+            int narakuIdx = GetNarakuIndex();
+            float playerSpawnY = playerArmature.transform.position.y;
+            float targetY = playerSpawnY - (_NARAKU_DISTANCE * narakuIdx);
+
+            Vector3 currentPos = transform.position;
+            currentPos.y = targetY;
+            transform.position = currentPos;
+
+            Debug.Log($"[NarakuTriggerHandler] {gameObject.name} Y 位置を調整: {targetY:F1} (プレイヤースポーン Y: {playerSpawnY:F1}, インデックス: {narakuIdx})");
+        }
+
+        /// <summary>
+        /// Naraku タグを持つ全オブジェクト中でのインデックスを返す（1始まり）。
+        /// 見つからない場合は 1 を返す。
+        /// </summary>
+        private int GetNarakuIndex()
+        {
+            GameObject[] narakuObjects = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Naraku.ToString());
+            for (int i = 0; i < narakuObjects.Length; i++)
+            {
+                if (narakuObjects[i] == this.gameObject)
+                {
+                    return i + 1;
+                }
+            }
+            return 1;
         }
 
         protected override void OnTargetEnter()
@@ -107,11 +154,17 @@ namespace CommonsUtility
             }
 
             // 位置を調整
-            Vector3 resetPosition = DemController.GetClosestPointOnBounds(other);
+            Vector3 resetPosition = DemController.GetClosestPointOnBounds(other, out bool succeeded);
             if (resetPosition == Vector3.zero)
             {
                 Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] DemController returned zero position");
                 return;
+            }
+
+            if (!succeeded)
+            {
+                Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] 全試行失敗。DEM センターへフォールバック");
+                resetPosition = DemController.GetDemCenterSafePosition(other.bounds.size.y);
             }
 
             // Rigidbody の速度をリセット
@@ -207,14 +260,35 @@ namespace CommonsUtility
             ResetObjectVelocity(other);
             
             // 位置を調整
-            Vector3 resetPosition = DemController.GetClosestPointOnBounds(other);
+            Vector3 resetPosition = DemController.GetClosestPointOnBounds(other, out bool succeeded);
             if (resetPosition == Vector3.zero)
             {
                 Debug.LogWarning("[NarakuTriggerHandler.OnGenericObjectEnter] DemController returned zero position");
                 return;
             }
 
+            if (!succeeded)
+            {
+                Debug.LogWarning($"[NarakuTriggerHandler.OnGenericObjectEnter] {other.gameObject.name}: 全{DemController.MaxIteration}回試行失敗。初期スポーン位置へフォールバック");
+                resetPosition = GetFallbackPosition(other);
+            }
+
             other.gameObject.transform.position = resetPosition;
+        }
+
+        /// <summary>
+        /// DEM 検出全失敗時のフォールバック地点を返す。
+        /// SpawnOriginTracker があれば初期スポーン位置、なければ DEM センターを使用。
+        /// </summary>
+        private Vector3 GetFallbackPosition(Collider other)
+        {
+            SpawnOriginTracker spawnTracker = other.gameObject.GetComponent<SpawnOriginTracker>();
+            if (spawnTracker != null && spawnTracker.HasSpawnOrigin())
+            {
+                return spawnTracker.SpawnOrigin;
+            }
+
+            return DemController.GetDemCenterSafePosition(other.bounds.size.y);
         }
 
         /// <summary>

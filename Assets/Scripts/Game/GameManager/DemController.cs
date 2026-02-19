@@ -17,11 +17,18 @@ public static class DemController
     private const float _MARGIN_DISTANCE = 3f;   // 内側によせる距離
     private const float _RAYCAST_DISTANCE = 200f;   // Raycast の距離
     private const int _MAX_ITERATION = 20;   // 穴回避の最大試行回数
+    internal static int MaxIteration => _MAX_ITERATION;
     private static Vector3 _dem_center_pos = Vector3.zero;
     private static GameObject _dem = null;   // DEM(Digital Elevation Model) 航空レーザ測量 地形データ
 
     internal static Vector3 GetClosestPointOnBounds(Collider other)
     {
+        return GetClosestPointOnBounds(other, out bool _);
+    }
+
+    internal static Vector3 GetClosestPointOnBounds(Collider other, out bool succeeded)
+    {
+        succeeded = false;
         Vector3 position = other.gameObject.transform.position;
         if (_dem == null)
         {
@@ -47,6 +54,7 @@ public static class DemController
             HitCheckResult result = TryHitDemPoint(ref closestPoint, other, objectHeight);
             if (result == HitCheckResult.Success)
             {
+                succeeded = true;
                 break;
             }
             else if (result == HitCheckResult.MeshHole)
@@ -59,6 +67,20 @@ public static class DemController
             }
         }  
         return closestPoint;
+    }
+
+    /// <summary>
+    /// DEM 中心座標から安全なリセット位置を返す。
+    /// GetClosestPointOnBounds が全試行失敗時のフォールバック代替地点として使用する。
+    /// </summary>
+    internal static Vector3 GetDemCenterSafePosition(float objectHeight)
+    {
+        if (_dem == null)
+        {
+            _dem = GetDemObject();
+            _dem_center_pos = GetDemPosition(_dem);
+        }
+        return new Vector3(_dem_center_pos.x, _dem_center_pos.y + objectHeight + _POPUP_DISTANCE, _dem_center_pos.z);
     }
 
 

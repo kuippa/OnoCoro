@@ -15,6 +15,8 @@ public class EventLoader : MonoBehaviour, IInitializable
 {
     public static EventLoader instance = null;
 
+    private const string _PLAYER_ARMATURE_NAME = "PlayerArmature";
+
     // internal Dictionary<string, Dictionary<string, string>[]> _events = new Dictionary<string, Dictionary<string, string>[]>();
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
     // // イベント名,{イベントデータ配列}
@@ -435,7 +437,34 @@ public class EventLoader : MonoBehaviour, IInitializable
         // 座標付き立て看板を生成
         SignboardManager.CreateSignboards(_signboard_data);
         
+        // PlayerArmature の初期スポーン位置を SpawnOriginTracker に記録する
+        RegisterPlayerSpawnOrigin();
+        
         IsInitialized = true;
+    }
+    
+    /// <summary>
+    /// PlayerArmature に SpawnOriginTracker を付与し、初期位置を記録する。
+    /// NarakuTriggerHandler が池等で DEM 検出全失敗時にここへ戻す帰還先として参照する。
+    /// </summary>
+    private void RegisterPlayerSpawnOrigin()
+    {
+        GameObject playerArmature = GameObject.Find(_PLAYER_ARMATURE_NAME);
+        if (playerArmature == null)
+        {
+            Debug.LogWarning("[EventLoader.RegisterPlayerSpawnOrigin] PlayerArmature がシーン上に見つかりません");
+            return;
+        }
+        
+        SpawnOriginTracker spawnTracker = GameObjectTreat.GetOrAddComponent<SpawnOriginTracker>(playerArmature);
+        if (spawnTracker == null)
+        {
+            Debug.LogWarning("[EventLoader.RegisterPlayerSpawnOrigin] SpawnOriginTracker の取得に失敗しました");
+            return;
+        }
+        
+        spawnTracker.SetSpawnOrigin(playerArmature.transform.position);
+        Debug.Log($"[EventLoader] PlayerArmature スポーン原点を登録しました: {playerArmature.transform.position}");
     }
     
     /// <summary>
