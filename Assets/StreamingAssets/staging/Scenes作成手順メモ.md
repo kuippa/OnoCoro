@@ -2,6 +2,7 @@
 ステージを新規作成
 Plateau SDK からターゲットのエリアを選択インポート（時間かかる）
 読み込まれたオブジェクトうちいらないものをざっくり削除
+オブジェクトの種類は→ 参照   \Assets\docs\platform-docs\PlateauDocs.md
 カメラの削除
 EventSystemの削除
 Directional Lightの削除

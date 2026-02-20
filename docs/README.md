@@ -58,7 +58,7 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 - [ui-system.md](architecture/ui-system.md) - UI System（Canvas Scaler, 解像度対応）
 - [plateau-integration.md](architecture/plateau-integration.md) - PLATEAU SDK 統合ガイド
 - [asset-management.md](architecture/asset-management.md) - アセット管理・Prefab ローディング
-- [recovery-guidelines.md](architecture/recovery-guidelines.md) - Recovery フェーズガイドライン
+
 
 ### [Reference] 参考層
 
@@ -130,7 +130,7 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 - [asset-management.md](architecture/asset-management.md) - Prefab, キャッシュ
 
 **復旧フェーズ**
-- [recovery-guidelines.md](architecture/recovery-guidelines.md) - 注意点・グローバル状態
+
 
 ---
 

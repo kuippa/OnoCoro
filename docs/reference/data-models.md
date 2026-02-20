@@ -866,5 +866,5 @@ TowerData restored = JsonUtility.FromJson<TowerData>(loaded);
 
 - [yaml-format.md](yaml-format.md) - YAML ステージフォーマット
 - [architecture/asset-management.md](../architecture/asset-management.md) - リソース管理
-- [architecture/recovery-guidelines.md](../architecture/recovery-guidelines.md) - Recovery パターン
+- [../../AGENTS.md](../../AGENTS.md) - Null チェック基準
 - [project-rules/naming-conventions.md](../project-rules/naming-conventions.md) - クラス命名規則

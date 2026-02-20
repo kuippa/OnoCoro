@@ -679,6 +679,95 @@ private void GetTargetUnit()
 
 ---
 
+## NavMeshAgent パターン
+
+### [NG] テレポート時に transform.position を直接書き換えない
+
+NavMeshAgent がアタッチされたオブジェクトの位置を直接変更すると、
+エージェントが NavMesh に再登録されるのは**次フレーム以降**になります。
+呼び出し直後に `SetDestination` を呼ぶと `isOnNavMesh = false` のまま失敗します。
+
+```csharp
+// [NG] 直後の SetDestination が isOnNavMesh=false で失敗する
+transform.position = targetPosition;
+navMeshAgent.SetDestination(destination);  // ← 失敗
+
+// [OK] Warp() は呼び出し直後に isOnNavMesh=true になる
+bool warped = navMeshAgent.Warp(targetPosition);
+if (!warped)
+{
+    Debug.LogWarning("NavMesh surface not found near: " + targetPosition);
+}
+navMeshAgent.SetDestination(destination);  // ← 成功
+```
+
+[NOTE] `Warp()` は戻り値 `false` の場合、その座標周辺に NavMesh が存在しません。
+NavMesh Bake 範囲を Inspector で確認してください。
+
+---
+
+### スポーン位置とコライダー底面オフセット
+
+Prefab のピボット（`transform.position` の基準）が中心にある場合、
+パスマーカー座標をそのまま `transform.position` に設定すると
+オブジェクトが地面に半分埋まります。
+コライダー情報から底面オフセットを計算して補正してください。
+
+```csharp
+/// <summary>
+/// ピボットからコライダー底面までのオフセットを返す。
+/// スポーン位置がコライダー底面に来るよう transform.position を補正するために使用。
+/// </summary>
+private float GetBottomOffset()
+{
+    CapsuleCollider capsuleCollider = GetComponent<CapsuleCollider>();
+    if (capsuleCollider != null)
+    {
+        // ピボットから底面 = height/2 - center.y
+        return capsuleCollider.height / 2f - capsuleCollider.center.y;
+    }
+
+    BoxCollider boxCollider = GetComponent<BoxCollider>();
+    if (boxCollider != null)
+    {
+        // ピボットから底面 = size.y/2 - center.y
+        return boxCollider.size.y / 2f - boxCollider.center.y;
+    }
+
+    Debug.LogWarning(name + ": Collider not found. bottomOffset=0");
+    return 0f;
+}
+
+// スポーン時の使用例
+private void WarpToSpawnPosition(Vector3 spawnPosition)
+{
+    float bottomOffset = GetBottomOffset();
+    Vector3 warpPosition = new Vector3(
+        spawnPosition.x,
+        spawnPosition.y + bottomOffset,
+        spawnPosition.z
+    );
+    bool warped = _navMeshAgent.Warp(warpPosition);
+    if (!warped)
+    {
+        Debug.LogWarning(name + ": Warp failed at " + warpPosition);
+    }
+}
+```
+
+**`bottomOffset` の値と意味**:
+
+| Collider 設定 | center.y | bottomOffset | 意味 |
+|-------------|----------|-------------|------|
+| height=1.8, center.y=0.9 | 0.9 | 0.0 | ピボットが既に足元 |
+| height=1.8, center.y=0.0 | 0.0 | 0.9 | ピボットが中心 → 0.9 上に補正 |
+| height=1.8, center.y=0.5 | 0.5 | 0.4 | 部分的に補正 |
+
+[NOTE] Unity の Humanoid キャラは `center.y = height/2` が標準（ピボットが足元）のため
+bottomOffset=0 になります。カスタム Prefab では必ず Inspector で確認してください。
+
+---
+
 ## Pre-Commit チェックリスト
 
 Unity 設計実装後、以下を確認：
@@ -691,6 +780,8 @@ Unity 設計実装後、以下を確認：
 - [ ] **Canvas**: WorldSpace 検出・保持機能あり
 - [ ] **Input System**: Legacy Input 未使用
 - [ ] **Physics**: Layer・Collider 適切に設定
+- [ ] **NavMeshAgent テレポート**: `transform.position` 直接書き換えでなく `Warp()` を使用
+- [ ] **スポーン位置**: コライダー底面オフセットを計算して埋まり込みを防止
 
 ---
 

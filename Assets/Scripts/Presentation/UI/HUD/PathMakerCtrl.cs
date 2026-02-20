@@ -226,7 +226,7 @@ public static class PathMakerCtrl
     {
         float interpolation = (float)markerIndex / (float)segmentCount;
         Vector3 markerPosition = Vector3.Lerp(startPoint, endPoint, interpolation);
-        markerPosition.y = _MARKER_BLOOM_Y_OFFSET;  // Bloom マーカーは別のオフセット値を使用
+        markerPosition.y += _MARKER_BLOOM_Y_OFFSET;  // Bloom マーカーは別のオフセット値を使用
 
         GameObject marker = Object.Instantiate(markerPrefab, markerPosition, Quaternion.identity);
         marker.name = $"PathMarker_{segmentIndex}_{markerIndex}";

@@ -495,5 +495,5 @@ PLATEAU 統合実装時：
 
 **関連資料**:
 - [initialization-flow.md](initialization-flow.md) - GIS ロード初期化
-- [recovery-guidelines.md](recovery-guidelines.md) - 防御的プログラミング
+- [../../AGENTS.md](../../AGENTS.md) - Null チェック基準
 - [project-rules/coding-csharp.md](../project-rules/coding-csharp.md) - C# コーディング規約

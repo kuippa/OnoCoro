@@ -94,7 +94,7 @@
 3. **データ不整合**: Serialized オブジェクト参照の破損
 4. **パフォーマンス未最適化**: 2 年前のコード状態のまま
 
-[RECOMMENDATION] **詳細**: [recovery-guidelines.md](../architecture/recovery-guidelines.md) 参照
+[RECOMMENDATION] **詳細**: [AGENTS.md - Null チェック](../../AGENTS.md) および [coding-csharp.md](../project-rules/coding-csharp.md) 参照
 
 ### オープンソース化の意義
 
@@ -187,5 +187,5 @@
 
 **関連資料**:
 - [roadmap.md](roadmap.md) - 開発フェーズ・スケジュール
-- [../architecture/recovery-guidelines.md](../architecture/recovery-guidelines.md) - Recovery 特性
+- [../../AGENTS.md](../../AGENTS.md) - Null チェック基準
 - [AGENTS.md](../../AGENTS.md) - プロジェクト全体ルール

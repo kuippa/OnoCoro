@@ -11,25 +11,32 @@ public class StageYamlRepository : MonoBehaviour
 {
     // YamlDotNet for Unity
     // https://assetstore.unity.com/packages/tools/integration/yamldotnet-for-unity-36292
-    // Git hub YamlDotNet
-    // https://github.com/aaubry/YamlDotNet
+
+    // YAML セクションキーは YamlSectionType.cs の YamlSectionKeys を使用
+
+    // pathmakers フィールドキー定数
+    private const string _PATHMAKER_FIELD_NAME = "name";
+    private const string _PATHMAKER_FIELD_POS = "pos";
+
+    // gameovers / events のフィールドキーは YamlSectionType.cs の enum を使用
+    // GameOverCommandFields.gameover_type / .threshold
+    // TimedEventCommandFields.@event
 
     // イベントローダー
     private EventLoader _eventLoader = null;
-    // public List<ItemStruct> _yamlItemList = new List<ItemStruct>();
     public static List<string> _ItemList = new List<string>();
 
     internal void LoadYamlData(string stageName)
     {
-        // ステージゴール/ゲームオーバー判定をリセット
         StageGoalController.ResetStageState();
-        
+
         YamlStream yaml = LoadStreamingAsset.LoadYamlFile(Path.GetFileName(stageName + LoadStreamingAsset.YAML_FILE_EXTENSION));
         if (yaml == null)
         {
             Debug.Log("yaml is null");
             return;
         }
+
         ActionStageNotice(yaml);
         SetTimerEventData(yaml);
         SetStageInitData(yaml);
@@ -40,88 +47,81 @@ public class StageYamlRepository : MonoBehaviour
         SetBoardInitData(yaml);
     }
 
-    private void SetGoalsRequirements(YamlStream yaml)
+    /// <summary>
+    /// YamlSequenceNode の各 MappingNode を Dictionary のリストに変換する共通ヘルパー
+    /// </summary>
+    private List<Dictionary<string, string>> BuildDictionaryListFromYaml(YamlStream yaml, string sectionKey)
     {
-        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "goals");
-        if (YSeqNode == null)
+        YamlSequenceNode sequenceNode = GetYamlSequenceNode(yaml, sectionKey);
+        List<Dictionary<string, string>> resultList = new List<Dictionary<string, string>>();
+
+        if (sequenceNode == null)
         {
-            return;
+            return resultList;
         }
 
-        // Dictionary<string, string> のリストに変換
-        var yamlDataList = new List<Dictionary<string, string>>();
-        foreach (YamlMappingNode yamlevent in YSeqNode)
+        foreach (YamlMappingNode mappingNode in sequenceNode)
         {
-            var goalData = new Dictionary<string, string>();
-            foreach (var entry in yamlevent.Children)
+            Dictionary<string, string> rowData = new Dictionary<string, string>();
+            foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
             {
-                goalData.Add(
+                rowData.Add(
                     ((YamlScalarNode)entry.Key).Value,
                     ((YamlScalarNode)entry.Value).Value
                 );
             }
-            yamlDataList.Add(goalData);
+            resultList.Add(rowData);
         }
 
-        // YamlCommandManager 経由で GoalCommand に変換
-        var goalCommands = YamlCommandManager.ParseGoalCommands(yamlDataList);
-        
-        if (yamlDataList.Count > 0)
+        return resultList;
+    }
+
+    private void SetGoalsRequirements(YamlStream yaml)
+    {
+        List<Dictionary<string, string>> yamlDataList = BuildDictionaryListFromYaml(yaml, YamlSectionKeys.Goals);
+        if (yamlDataList.Count == 0)
         {
-            // 元の YAML データから直接キーを取得して _dict_req に保存
-            var goals_req = new Dictionary<string, string>();
-            foreach (var goalData in yamlDataList)
-            {
-                foreach (var kvp in goalData)
-                {
-                    goals_req.Add(kvp.Key, kvp.Value);
-                }
-            }
-            
-            StageGoalController._dict_req = goals_req;
-            StageGoalController.StartCheckStageGoal(this);
+            return;
         }
+
+        YamlCommandManager.ParseGoalCommands(yamlDataList);
+
+        Dictionary<string, string> goalsRequirement = new Dictionary<string, string>();
+        foreach (Dictionary<string, string> goalData in yamlDataList)
+        {
+            foreach (KeyValuePair<string, string> entry in goalData)
+            {
+                goalsRequirement.Add(entry.Key, entry.Value);
+            }
+        }
+
+        StageGoalController._dict_req = goalsRequirement;
+        StageGoalController.StartCheckStageGoal(this);
     }
 
     private void SetGameOversRequirements(YamlStream yaml)
     {
-        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "gameovers");
-        if (YSeqNode == null)
+        List<Dictionary<string, string>> yamlDataList = BuildDictionaryListFromYaml(yaml, YamlSectionKeys.GameOvers);
+        if (yamlDataList.Count == 0)
         {
             return;
         }
 
-        // Dictionary<string, string> のリストに変換
-        var yamlDataList = new List<Dictionary<string, string>>();
-        foreach (YamlMappingNode yamlevent in YSeqNode)
+        List<GameOverCommand> gameoverCommands = YamlCommandManager.ParseGameOverCommands(yamlDataList);
+        if (gameoverCommands.Count == 0)
         {
-            var gameoverData = new Dictionary<string, string>();
-            foreach (var entry in yamlevent.Children)
-            {
-                gameoverData.Add(
-                    ((YamlScalarNode)entry.Key).Value,
-                    ((YamlScalarNode)entry.Value).Value
-                );
-            }
-            yamlDataList.Add(gameoverData);
+            return;
         }
 
-        // YamlCommandManager 経由で GameOverCommand に変換
-        var gameoverCommands = YamlCommandManager.ParseGameOverCommands(yamlDataList);
-        
-        if (gameoverCommands.Count > 0)
+        Dictionary<string, string> gameoverRequirement = new Dictionary<string, string>();
+        foreach (GameOverCommand command in gameoverCommands)
         {
-            // GameOverCommand を Dictionary に変換して StageGoalController に渡す
-            var gameover_req = new Dictionary<string, string>();
-            foreach (var cmd in gameoverCommands)
-            {
-                gameover_req.Add("gameover_type", cmd.Type.ToString());
-                gameover_req.Add("threshold", cmd.Threshold.ToString());
-            }
-            
-            StageGoalController._dict_fail = gameover_req;
-            StageGoalController.StartCheckStageFail(this);
+            gameoverRequirement.Add(GameOverCommandFields.gameover_type.ToString(), command.Type.ToString());
+            gameoverRequirement.Add(GameOverCommandFields.threshold.ToString(), command.Threshold.ToString());
         }
+
+        StageGoalController._dict_fail = gameoverRequirement;
+        StageGoalController.StartCheckStageFail(this);
     }
 
     internal static List<string> GetItemList()
@@ -131,258 +131,254 @@ public class StageYamlRepository : MonoBehaviour
 
     private void SetItemList(YamlStream yaml)
     {
-        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "itemlists");
-        if (YSeqNode == null)
+        List<Dictionary<string, string>> yamlDataList = BuildDictionaryListFromYaml(yaml, YamlSectionKeys.ItemLists);
+        if (yamlDataList.Count == 0)
         {
             return;
         }
 
-        foreach (YamlMappingNode yamlevent in YSeqNode)
+        foreach (Dictionary<string, string> rowData in yamlDataList)
         {
-            foreach (var entry in yamlevent.Children)
+            foreach (KeyValuePair<string, string> entry in rowData)
             {
-                string itemname = ((YamlScalarNode)entry.Value).Value;
-                if (string.IsNullOrEmpty(itemname))
+                string itemName = entry.Value;
+                if (string.IsNullOrEmpty(itemName))
                 {
                     continue;
                 }
-
-                // _ItemListにすでに格納されているか確認
-                if (_ItemList.Contains(itemname))
+                if (_ItemList.Contains(itemName))
                 {
                     continue;
                 }
-
-                // itemname が GameEnum.ModelsType に定義されているか確認
-                if (!Enum.IsDefined(typeof(GameEnum.ModelsType), itemname))
+                if (!Enum.IsDefined(typeof(GameEnum.ModelsType), itemName))
                 {
-                    Debug.Log("itemname " + itemname + " は GameEnum.ModelsType に定義されていません");
+                    Debug.Log("itemname " + itemName + " は GameEnum.ModelsType に定義されていません");
                     continue;
                 }
-                _ItemList.Add(itemname);
+                _ItemList.Add(itemName);
             }
         }
     }
 
     private void SetPathMakerList(YamlStream yaml)
     {
-        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "pathmakers");
-        if (YSeqNode == null)
+        YamlSequenceNode sequenceNode = GetYamlSequenceNode(yaml, YamlSectionKeys.PathMakers);
+        if (sequenceNode == null)
         {
             return;
         }
+
         PathMakerCtrl.ResetPathMakerDict();
-        foreach (YamlMappingNode yamlevent in YSeqNode)
+
+        foreach (YamlMappingNode mappingNode in sequenceNode)
         {
-            string key = "";
-            Vector3 value = Vector3.zero;
-            foreach (var entry in yamlevent.Children)
+            string markerName = "";
+            Vector3 markerPosition = Vector3.zero;
+
+            // ステップ 1: name と pos を抽出
+            foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
             {
-                string keyName = ((YamlScalarNode)entry.Key).Value;
-                if (!string.IsNullOrEmpty(keyName))
+                string fieldKey = ((YamlScalarNode)entry.Key).Value;
+                if (string.IsNullOrEmpty(fieldKey))
                 {
-                    if (keyName == "name")
-                    {
-                        key = ((YamlScalarNode)entry.Value).Value;
-                        key = key.Trim();
-                    }
-                    if (keyName == "pos")
-                    {
-                        value = Utility.StringToVector3(((YamlScalarNode)entry.Value).Value);
-                    }
-                    if (PathMakerCtrl._pathMakerDict.ContainsKey(key))
-                    {
-                        PathMakerCtrl._pathMakerDict[key] = value;
-                    }
-                    else
-                    {
-                        PathMakerCtrl._pathMakerDict.Add(key, value);
-                    }
+                    continue;
+                }
+
+                if (fieldKey == _PATHMAKER_FIELD_NAME)
+                {
+                    markerName = ((YamlScalarNode)entry.Value).Value.Trim();
+                }
+                if (fieldKey == _PATHMAKER_FIELD_POS)
+                {
+                    markerPosition = Utility.ParseVector3WithAutoHeight(((YamlScalarNode)entry.Value).Value);
                 }
             }
+
+            // ステップ 2: 両方揃ったら Dictionary に追加
+            if (string.IsNullOrEmpty(markerName) || markerPosition == Vector3.zero)
+            {
+                continue;
+            }
+
+            if (PathMakerCtrl._pathMakerDict.ContainsKey(markerName))
+            {
+                PathMakerCtrl._pathMakerDict[markerName] = markerPosition;
+            }
+            else
+            {
+                PathMakerCtrl._pathMakerDict.Add(markerName, markerPosition);
+            }
         }
+
         PathMakerCtrl.CreateGameObjectByPathMakerDict();
     }
 
     private void ActionStageNotice(YamlStream yaml)
     {
-        var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-        foreach (var entry in mapping.Children)
+        YamlMappingNode rootMapping = (YamlMappingNode)yaml.Documents[0].RootNode;
+        foreach (KeyValuePair<YamlNode, YamlNode> entry in rootMapping.Children)
         {
-            if (object.Equals((YamlScalarNode)entry.Key, new YamlScalarNode("stagenotice")))
+            if (!object.Equals((YamlScalarNode)entry.Key, new YamlScalarNode(YamlSectionKeys.StageNotice)))
             {
-                GameObject.Find("UINotice").GetComponent<NoticeCtrl>().ShowNotice(((YamlScalarNode)entry.Value).Value);
-                break;
+                continue;
             }
+
+            GameObject.Find("UINotice").GetComponent<NoticeCtrl>().ShowNotice(((YamlScalarNode)entry.Value).Value);
+            break;
         }
     }
 
     private void SetStageInitData(YamlStream yaml)
     {
-        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "stages");
-        if (YSeqNode == null)
+        List<Dictionary<string, string>> yamlDataList = BuildDictionaryListFromYaml(yaml, YamlSectionKeys.Stages);
+        if (yamlDataList.Count == 0)
         {
             return;
         }
 
-        foreach (YamlMappingNode yamlevent in YSeqNode)
+        foreach (Dictionary<string, string> rowData in yamlDataList)
         {
-            foreach (var entry in yamlevent.Children)
+            foreach (KeyValuePair<string, string> entry in rowData)
             {
-                if (!TrySetScore(GlobalConst.SHORT_SCORE1_SCALE, ((YamlScalarNode)entry.Key).Value, ((YamlScalarNode)entry.Value).Value))
+                if (!TrySetScore(GlobalConst.SHORT_SCORE1_SCALE, entry.Key, entry.Value))
                 {
-                    TrySetScore(GlobalConst.SHORT_SCORE2_SCALE, ((YamlScalarNode)entry.Key).Value, ((YamlScalarNode)entry.Value).Value);
+                    TrySetScore(GlobalConst.SHORT_SCORE2_SCALE, entry.Key, entry.Value);
                 }
             }
         }
     }
 
-
     private void SetBoardInitData(YamlStream yaml)
     {
-        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "boards");
-        if (YSeqNode == null)
+        YamlSequenceNode sequenceNode = GetYamlSequenceNode(yaml, YamlSectionKeys.Boards);
+        if (sequenceNode == null)
         {
             return;
         }
 
-        var board_data = new Dictionary<string, string>();
-        var signboard_data = new Dictionary<string, (string text, Vector3 pos)>();
-        
+        Dictionary<string, string> boardData = new Dictionary<string, string>();
+        Dictionary<string, (string text, Vector3 pos)> signboardData = new Dictionary<string, (string text, Vector3 pos)>();
+
         string codeField = BoardCommandFields.code.ToString();
         string textField = BoardCommandFields.text.ToString();
         string posField = BoardCommandFields.pos.ToString();
-        
-        foreach (YamlMappingNode yamlevent in YSeqNode)
+
+        foreach (YamlMappingNode mappingNode in sequenceNode)
         {
             string code = "";
             string text = "";
-            string posStr = "";
-            
-            foreach (var entry in yamlevent.Children)
+            string posString = "";
+
+            foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
             {
-                string key = ((YamlScalarNode)entry.Key).Value;
-                string value = ((YamlScalarNode)entry.Value).Value;
-                
-                if (key == codeField)
+                string fieldKey = ((YamlScalarNode)entry.Key).Value;
+                string fieldValue = ((YamlScalarNode)entry.Value).Value;
+
+                if (fieldKey == codeField)
                 {
-                    code = value;
+                    code = fieldValue;
                 }
-                else if (key == textField)
+                else if (fieldKey == textField)
                 {
-                    text = value;
+                    text = fieldValue;
                 }
-                else if (key == posField)
+                else if (fieldKey == posField)
                 {
-                    posStr = value;
+                    posString = fieldValue;
                 }
             }
-            
-            // code と text は必須
+
             if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(text))
             {
                 continue;
             }
-            
-            // pos が指定されている場合：signboard_data へ
-            if (!string.IsNullOrEmpty(posStr))
+
+            if (!string.IsNullOrEmpty(posString))
             {
-                Vector3 position = Utility.StringToVector3(posStr);
-                signboard_data[code] = (text, position);
+                signboardData[code] = (text, Utility.StringToVector3(posString));
             }
             else
             {
-                // pos がない場合：board_data へ（既存の立て看板用）
-                board_data[code] = text;
+                boardData[code] = text;
             }
         }
-        
-        if (board_data.Count > 0)
+
+        if (boardData.Count > 0)
         {
-            _eventLoader._board_data = board_data;
+            _eventLoader._board_data = boardData;
         }
-        
-        if (signboard_data.Count > 0)
+
+        if (signboardData.Count > 0)
         {
-            _eventLoader._signboard_data = signboard_data;
+            _eventLoader._signboard_data = signboardData;
         }
     }
 
-
-    private bool TrySetScore(string scoretype, string key, string val)
+    private bool TrySetScore(string scoreType, string key, string value)
     {
-        if (scoretype == key && int.TryParse(val, out int intVal))
+        if (scoreType != key)
         {
-            ScoreCtrl.InitScore(intVal, key);
-            return true;
+            return false;
         }
-        return false;
+
+        if (!int.TryParse(value, out int intValue))
+        {
+            return false;
+        }
+
+        ScoreCtrl.InitScore(intValue, key);
+        return true;
     }
 
-
-    private YamlSequenceNode GetYamlSequenceNode(YamlStream yaml, string key)
+    private YamlSequenceNode GetYamlSequenceNode(YamlStream yaml, string sectionKey)
     {
-        var mapping = (YamlMappingNode)yaml.Documents[0].RootNode;
-        YamlScalarNode YSNode = new YamlScalarNode(key);
-        if (!mapping.Children.ContainsKey(YSNode))
+        YamlMappingNode rootMapping = (YamlMappingNode)yaml.Documents[0].RootNode;
+        YamlScalarNode targetKey = new YamlScalarNode(sectionKey);
+
+        if (!rootMapping.Children.ContainsKey(targetKey))
         {
             return null;
         }
-        YamlNode YSeqNode = mapping.Children[YSNode];
-        if (!(YSeqNode is YamlSequenceNode))
+
+        YamlNode sectionNode = rootMapping.Children[targetKey];
+        if (!(sectionNode is YamlSequenceNode))
         {
             return null;
         }
-        return (YamlSequenceNode)YSeqNode;
+
+        return (YamlSequenceNode)sectionNode;
     }
 
     private void SetTimerEventData(YamlStream yaml)
     {
-        YamlSequenceNode YSeqNode = GetYamlSequenceNode(yaml, "events");
-        if (YSeqNode == null)
+        List<Dictionary<string, string>> yamlDataList = BuildDictionaryListFromYaml(yaml, YamlSectionKeys.Events);
+        if (yamlDataList.Count == 0)
         {
             return;
         }
 
-        // Dictionary<string, string> のリストに変換
-        var yamlDataList = new List<Dictionary<string, string>>();
-        foreach (YamlMappingNode yamlevent in YSeqNode)
+        Dictionary<float, List<EventCommand>> eventCommandsByTime = YamlCommandManager.ParseTimedEventCommands(yamlDataList);
+        if (eventCommandsByTime.Count == 0)
         {
-            var eventData = new Dictionary<string, string>();
-            foreach (var entry in yamlevent.Children)
-            {
-                eventData.Add(
-                    ((YamlScalarNode)entry.Key).Value,
-                    ((YamlScalarNode)entry.Value).Value
-                );
-            }
-            yamlDataList.Add(eventData);
+            return;
         }
 
-        // YamlCommandManager 経由で EventCommand に変換（時間キー付き Dictionary で返される）
-        var eventCommandsByTime = YamlCommandManager.ParseTimedEventCommands(yamlDataList);
-        
-        if (eventCommandsByTime.Count > 0)
+        foreach (KeyValuePair<float, List<EventCommand>> timeEntry in eventCommandsByTime)
         {
-            // EventCommand を Dictionary<float, List<Dictionary<string, string>>> に変換して _eventLoader に渡す
-            foreach (var timeEntry in eventCommandsByTime)
+            float eventTime = timeEntry.Key;
+            List<Dictionary<string, string>> eventList = new List<Dictionary<string, string>>();
+
+            foreach (EventCommand eventCommand in timeEntry.Value)
             {
-                float eventTime = timeEntry.Key;
-                var eventList = new List<Dictionary<string, string>>();
-                
-                foreach (var eventCmd in timeEntry.Value)
-                {
-                    // EventCommand.Type をイベント名として parameters に追加
-                    var eventDict = new Dictionary<string, string>(eventCmd.Parameters);
-                    eventDict["event"] = eventCmd.Type.ToString();
-                    eventList.Add(eventDict);
-                }
-                
-                _eventLoader._timer_events[eventTime] = eventList;
+                Dictionary<string, string> eventDict = new Dictionary<string, string>(eventCommand.Parameters);
+                eventDict[TimedEventCommandFields.@event.ToString()] = eventCommand.Type.ToString();
+                eventList.Add(eventDict);
             }
-            
-            _eventLoader.SetEventToTimer();
+
+            _eventLoader._timer_events[eventTime] = eventList;
         }
+
+        _eventLoader.SetEventToTimer();
     }
 
     void Awake()
@@ -392,7 +388,4 @@ public class StageYamlRepository : MonoBehaviour
         Debug.Log("StagingYamlCtrl sceneName " + sceneName);
         LoadYamlData(sceneName);
     }
-
-
-
 }

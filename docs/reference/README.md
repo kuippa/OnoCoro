@@ -36,7 +36,7 @@ reference/ 層は、OnoCoro プロジェクトの **標準仕様・データフ�
 
 1. **[data-models.md](data-models.md)** - モデル定義
 2. [project-rules/naming-conventions.md](../project-rules/naming-conventions.md) - クラス命名
-3. [architecture/recovery-guidelines.md](../architecture/recovery-guidelines.md) - 実装パターン
+3. [../../AGENTS.md](../../AGENTS.md) - Null チェック基準
 4. **実装**: Assets/Scripts/ に追加
 
 ### [GIS] PLATEAU 統合を実装する場合

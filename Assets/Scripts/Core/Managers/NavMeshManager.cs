@@ -141,6 +141,14 @@ public static class NavMeshManager
 
     internal static bool HasReachedDestination(NavMeshAgent NavMeshAgent)
     {
+        if (NavMeshAgent == null)
+        {
+            return false;
+        }
+        if (!NavMeshAgent.isOnNavMesh)
+        {
+            return false;
+        }
         if (!NavMeshAgent.pathPending && NavMeshAgent.remainingDistance <= NavMeshAgent.stoppingDistance && (!NavMeshAgent.hasPath || NavMeshAgent.velocity.sqrMagnitude <= 0.8f))
         {
             return true;

@@ -31,7 +31,7 @@ OnoCoro プロジェクトの目的・ビジョン・開発ロードマップ層
 
 1. [roadmap.md](roadmap.md) - スケジュール・進捗管理
 2. [introduction.md](introduction.md) - プロジェクト目的再確認
-3. [../architecture/recovery-guidelines.md](../architecture/recovery-guidelines.md) - Recovery フェーズガイド
+3. [project-statement.md](project-statement.md) - ビジョン・マイルストーン・KPI
 
 ---
 

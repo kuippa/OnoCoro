@@ -64,7 +64,10 @@ namespace CommonsUtility
         TimeExpired,
         
         /// <summary>ユニット配置不可</summary>
-        NoPlaceableUnits
+        NoPlaceableUnits,
+        
+        /// <summary>フィールド上のごみ数が閾値を超過</summary>
+        GarbageOverflow
     }
 
     /// <summary>
@@ -178,6 +181,47 @@ namespace CommonsUtility
         
         /// <summary>event - イベント種別</summary>
         @event
+    }
+
+    /// <summary>
+    /// YAML ファイルのトップレベルセクションキー
+    /// ユーザーが YAML に記述するセクション名をここで一元管理する
+    /// </summary>
+    internal static class YamlSectionKeys
+    {
+        /// <summary>ステージ基本情報セクション</summary>
+        internal const string Stages = "stages";
+
+        /// <summary>ステージ説明（スカラー値）</summary>
+        internal const string StageNotice = "stagenotice";
+
+        /// <summary>配置可能ユニット一覧セクション</summary>
+        internal const string ItemLists = "itemlists";
+
+        /// <summary>パスマーカー配置セクション</summary>
+        internal const string PathMakers = "pathmakers";
+
+        /// <summary>ゴール条件セクション</summary>
+        internal const string Goals = "goals";
+
+        /// <summary>ゲームオーバー条件セクション</summary>
+        internal const string GameOvers = "gameovers";
+
+        /// <summary>タイマーイベントセクション</summary>
+        internal const string Events = "events";
+
+        /// <summary>ボード設定セクション</summary>
+        internal const string Boards = "boards";
+    }
+
+    /// <summary>
+    /// YAML フィールドで使用可能な特殊値キーワード
+    /// ユーザーが YAML に記述するリテラル文字列をここで一元管理する
+    /// </summary>
+    internal static class YamlValueKeywords
+    {
+        /// <summary>Y 座標を Raycast で自動検出するキーワード（例: pos: 0, auto, 135）</summary>
+        internal const string AutoHeight = "auto";
     }
 
     /// <summary>

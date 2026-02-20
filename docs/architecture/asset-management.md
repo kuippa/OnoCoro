@@ -414,4 +414,4 @@ Prefab 管理実装時：
 - [initialization-flow.md](initialization-flow.md) - Phase 1 PrefabManager 初期化
 - [ui-system.md](ui-system.md) - UI Prefab 管理
 - [project-rules/naming-conventions.md](../project-rules/naming-conventions.md) - 命名規則
-- [recovery-guidelines.md](recovery-guidelines.md) - null チェックのベストプラクティス
+- [../../AGENTS.md](../../AGENTS.md) - Null チェック基準

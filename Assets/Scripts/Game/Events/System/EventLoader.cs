@@ -417,9 +417,12 @@ public class EventLoader : MonoBehaviour, IInitializable
             _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
             // txtGameTime.GetComponent<GameTimerCtrl>()._time = 0.0f;
         }
-        
+
         // [重要] Awake では IsInitialized = false
         IsInitialized = false;
+
+        // PollutantManager を最初に初期化
+        PollutantManager.Initialize();
     }
     
     /// <summary>
@@ -433,6 +436,7 @@ public class EventLoader : MonoBehaviour, IInitializable
     void Start()
     {
         // StageYamlRepository が既に _board_data と _signboard_data を初期化済み
+        // PollutantManager は Awake() で既に初期化済み
         
         // 座標付き立て看板を生成
         SignboardManager.CreateSignboards(_signboard_data);

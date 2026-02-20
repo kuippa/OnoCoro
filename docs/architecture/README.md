@@ -12,7 +12,7 @@ OnoCoro プロジェクトの特定機能・システムの詳細設計・実装
 | **ui-system.md** | Canvas・UICanvasManager・解像度対応 | UI Developer |
 | **plateau-integration.md** | PLATEAU SDK・CityGML・座標変換 | GIS Developer |
 | **asset-management.md** | PrefabManager・アセットキャッシング | All Developer |
-| **recovery-guidelines.md** | Recovery フェーズ開発ガイド・防御的プログラミング | All Developer |
+
 
 ---
 
@@ -32,7 +32,7 @@ OnoCoro プロジェクトの特定機能・システムの詳細設計・実装
 
 ### Recovery フェーズで作業する場合
 
-1. [recovery-guidelines.md](recovery-guidelines.md) - 防御的プログラミング
+1. [AGENTS.md](../../AGENTS.md) - Null チェック基準
 2. [project-rules/coding-csharp.md](../project-rules/coding-csharp.md) - C# ルール確認
 3. [project-rules/naming-conventions.md](../project-rules/naming-conventions.md) - 命名規則確認
 

@@ -146,11 +146,31 @@ events:
 ```yaml
 pathmakers:
   - name: path_marker_start     # 開始地点（"start" を含む）
-    pos: 5, 0, 5                # X, Y, Z 座標
+    pos: 5, 0, 5                # X, Y, Z 座標（Y に auto 指定可能）
   - name: path_marker_01
-    pos: 10, 0, -6
+    pos: 10, auto, -6           # Y = auto → Raycast で地面高さを自動検出
   - name: path_marker_goal      # ゴール地点（"goal" を含む）
     pos: 15, 0, 5
+```
+
+### pos フィールドの Y 座標指定
+
+| 値 | 説明 |
+|-----|------|
+| `0.0` など数値 | そのまま使用 |
+| `auto` | その (X, Z) 位置の地面を Raycast (上方から下方向) で自動検出 |
+
+[NOTE] `auto` は大文字小文字を問わず有効（`Auto` / `AUTO` も可）
+
+[NOTE] Raycast で地面が検出できない場合は Y=0 を使用
+
+**使用例** (高低差のある PLATEAU 3D マップ):
+```yaml
+pathmakers:
+  - name: path_marker_start
+    pos: -1.8, auto, 140.4    # Y は地形に合わせて自動計算
+  - name: path_marker_goal
+    pos: 30.0, auto, 135.0
 ```
 
 ### マーカー命名規則
@@ -395,7 +415,7 @@ value: <marker_1>, <marker_2>, ...
 |---------|------|--------|
 | **stageid** | 一意性 | 重複する場合はエラー |
 | **itemlists** | 有効なユニット名 | 未定義のユニット参照はエラー |
-| **pathmakers** | 座標が数値 | 無効な座標はエラー |
+| **pathmakers** | 座標が数値または `auto` | 無効な座標はエラー |
 | **events.time** | 非負数 | 負数はエラー |
 | **events.value** | 形式一致 | 形式不一致はエラー |
 | **goals** | 目標定義 | goals も gameovers も定義がない場合は警告 |
@@ -547,6 +567,49 @@ events:
 - `solar` イベント（太陽高度制御）の実装
 - データバインディングシステムの追加
 - ステージエディタ UI の実装
+
+---
+
+## 実装リファレンス
+
+### YAML セクションキー定義
+
+YAML のトップレベルセクション名（`goals`, `events` 等）は C# コード内で以下に一元管理されています。
+
+**ファイル**: `Assets/Scripts/Core/CommandProcessing/YamlSectionType.cs`
+
+```csharp
+// YAML トップレベルセクションキー
+internal static class YamlSectionKeys
+{
+    internal const string Stages      = "stages";
+    internal const string StageNotice = "stagenotice";
+    internal const string ItemLists   = "itemlists";
+    internal const string PathMakers  = "pathmakers";
+    internal const string Goals       = "goals";
+    internal const string GameOvers   = "gameovers";
+    internal const string Events      = "events";
+    internal const string Boards      = "boards";
+}
+```
+
+[NOTE] YAML セクション名を変更する場合は、`YamlSectionKeys` の定数値を修正するだけで機能します。
+
+### Y 座標 auto キーワード定義
+
+`pos` フィールドの `auto` キーワードは以下で定義されています。
+
+**ファイル**: `Assets/Scripts/Core/CommandProcessing/YamlSectionType.cs`
+
+```csharp
+internal static class YamlValueKeywords
+{
+    // Y 座標を Raycast で自動検出するキーワード（例: pos: 0, auto, 135）
+    internal const string AutoHeight = "auto";
+}
+```
+
+**処理場所**: `Assets/Scripts/Core/Utilities/CommonsCalcs.cs` の `Utility.ParseVector3WithAutoHeight()`
 
 ---
 

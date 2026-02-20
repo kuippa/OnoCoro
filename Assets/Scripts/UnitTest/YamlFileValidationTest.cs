@@ -107,7 +107,7 @@ public class YamlFileValidationTest : MonoBehaviour
     /// </summary>
     private int TestGoalsSection(YamlStream yaml)
     {
-        YamlSequenceNode goalsNode = GetYamlSequenceNode(yaml, "goals");
+        YamlSequenceNode goalsNode = GetYamlSequenceNode(yaml, YamlSectionKeys.Goals);
         if (goalsNode == null)
         {
             return 0;
@@ -141,7 +141,7 @@ public class YamlFileValidationTest : MonoBehaviour
     /// </summary>
     private int TestGameOversSection(YamlStream yaml)
     {
-        YamlSequenceNode gameoversNode = GetYamlSequenceNode(yaml, "gameovers");
+        YamlSequenceNode gameoversNode = GetYamlSequenceNode(yaml, YamlSectionKeys.GameOvers);
         if (gameoversNode == null)
         {
             return 0;
@@ -175,7 +175,7 @@ public class YamlFileValidationTest : MonoBehaviour
     /// </summary>
     private int TestEventsSection(YamlStream yaml)
     {
-        YamlSequenceNode eventsNode = GetYamlSequenceNode(yaml, "events");
+        YamlSequenceNode eventsNode = GetYamlSequenceNode(yaml, YamlSectionKeys.Events);
         if (eventsNode == null)
         {
             return 0;
@@ -217,7 +217,7 @@ public class YamlFileValidationTest : MonoBehaviour
     /// </summary>
     private int TestBoardsSection(YamlStream yaml)
     {
-        YamlSequenceNode boardsNode = GetYamlSequenceNode(yaml, "boards");
+        YamlSequenceNode boardsNode = GetYamlSequenceNode(yaml, YamlSectionKeys.Boards);
         if (boardsNode == null)
         {
             return 0;

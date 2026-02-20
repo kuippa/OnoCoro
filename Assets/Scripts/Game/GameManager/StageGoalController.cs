@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public static class StageGoalController
 {
@@ -139,32 +141,48 @@ public static class StageGoalController
     {
         if (caller == null)
         {
-            Debug.LogWarning("MonoBehaviour caller is null in StartCheckStageFail");
             return;
         }
 
-        // garbage キーが存在しない場合はゲームオーバー条件として無視
-        if (!_dict_fail.ContainsKey("garbage"))
+        // gameover_type キーが存在しない場合はスキップ
+        if (!_dict_fail.ContainsKey(GameOverCommandFields.gameover_type.ToString()))
         {
-            Debug.Log("Key 'garbage' not found in gameovers. Garbage-based fail check is skipped.");
             return;
         }
 
-        if (!int.TryParse(_dict_fail["garbage"], out int garbageCount))
+        string gameoverTypeStr = _dict_fail[GameOverCommandFields.gameover_type.ToString()];
+
+        // GarbageOverflow 以外のゲームオーバータイプはここでは処理しない
+        if (gameoverTypeStr != GameOverType.GarbageOverflow.ToString())
         {
-            Debug.LogWarning($"Failed to parse garbage value: {_dict_fail["garbage"]}. Garbage-based fail check is skipped.");
             return;
         }
 
-        Debug.Log($"Starting fail check with garbage threshold: {garbageCount}");
+        // threshold の取得
+        if (!_dict_fail.ContainsKey(GameOverCommandFields.threshold.ToString()))
+        {
+            return;
+        }
+
+        if (!int.TryParse(_dict_fail[GameOverCommandFields.threshold.ToString()], out int garbageCount))
+        {
+            return;
+        }
+
+        // ごみチェック開始時に UI を表示する
+        PollutantManager.ActivateCountUI();
+
         caller.StartCoroutine(ProcessFailCheck(garbageCount));
     }
 
     private static bool CheckGarbageCount(int garbageCount)
     {
         GameObject[] garbageObjects = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Garbage.ToString());
-        Debug.Log("Garbages founds " + garbageObjects.Length + " " + garbageCount);
-        if (garbageObjects.Length > garbageCount)
+        int currentCount = garbageObjects.Length;
+
+        PollutantManager.SetDisplayCount(currentCount);
+
+        if (currentCount > garbageCount)
         {
             return true;
         }

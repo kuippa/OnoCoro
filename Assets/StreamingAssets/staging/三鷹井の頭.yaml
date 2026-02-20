@@ -1,6 +1,4 @@
 ---
-# UnitFireDisaster
-# 
 stagename: 三鷹井の頭
 stagenotice: "三鷹井の頭"
 stageid: 三鷹井の頭
@@ -19,19 +17,31 @@ itemlists:
   - item: GarbageCube
   - item: GarbageCubeBox
   - item: PowerCube
-  - item: StopPlate # 止水板
+  # - item: StopPlate # 止水板
   # - item: WaterTurret # 消火
 
 pathmakers:
-  # 同名のオブジェクトがステージに配置済の場合は位置のみ更新される
-  - name: path_marker_start2  # nameに start|goal の文字列を含むものは色が変わる
-    pos: 5, 0, 5
+
+  # 敵スポーン地点：
+  - name: start_iseya_mae
+    pos: 201, auto, 34.5   
+
+
+  # 敵スポーン地点：プレイヤーの北側（Z が大きい値）
+  - name: path_marker_start2
+    pos: 0, auto, 160   # Y を auto に → コード側で地面検出
+
+  # 中間地点 1：北からプレイヤーに向かう途中
   - name: path_marker_03
-    pos: 8, 0, 8
+    pos: -1.8, auto, 155   # プレイヤー方向へ少し南寄り
+
+  # 中間地点 2：プレイヤーの近く
   - name: path_marker_04
-    pos: 11, 0, 2
+    pos: -1.8, auto, 145   # プレイヤーすぐ北側
+
+  # ゴール地点：プレイヤーの南側
   - name: path_marker_goal2
-    pos: 15, 0, 5
+    pos: 0, auto, 135   # プレイヤーの南側（Z = 135）、X は同じ
 
   # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
   #   pos: 9, 0, 15
@@ -39,71 +49,119 @@ pathmakers:
 goals:
   # - building: repair_all
   # - garbage: 10, 20  # ゴミの数がｘを超えずｙ秒経過したらステージクリア
-  - notfailtime: 100  # ゲームオーバーせずにｙ秒経過したらステージクリア
+  - notfailtime: 300  # ゲームオーバーせずにｙ秒経過したらステージクリア
 
 gameovers:
-  - garbage: 10  # ゴミの数がｘを超えたらゲームオーバー
+  # - garbage: 60  # ゴミの数がｘを超えたらゲームオーバー
+  # - building: repair_all
+  - gameover_type: GarbageOverflow
+    threshold: 50   # ごみが 50 個を超えたらゲームオーバー
 
 events:
+  # ========== 環境設定 ==========
   - time: 0
     event: weather
-    # value: rain, 0.65, 0.75, 200  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
-    value: sunny, 0.00, 0.25, 500  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
-    # value: snow, 0.22, 0.75, 6  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+    value: sunny, 0.00, 0.25, 500
 
   - time: 0
     event: wind
-    value: 5, 225  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+    value: 1, 0
 
-  # - time: 5
-  #   event: spawn_unit
-  #   value: Litter, 4, 2, 4
+  # ========== テロップ ==========
 
-  # - time: 0   # 定義されていないので光らせられないが、エラーにはならない
-  #   event: bloom_path
-  #   value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  - time: 1
+    event: telop
+    value: "三鷹井の頭"
 
-  # # path1 の 攻撃軍
-
-  # - time: 3
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
-
-  # - time: 5
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
-
-  # - time: 7
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start, path_marker_01, path_marker_02, path_marker_goal
-
-  # - time: 28 # 特定のパスマーカー経路だけを消す
-  #   event: off_bloom_path
-  #   value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  - time: 1
+    event: subtelop
+    value: "ごみを60以下に保ち、5分間耐え抜こう！"
 
 
-  # # path2 の 攻撃軍
+  # ========== Path 1: 南西ルート ==========
+  # 敵パス表示開始
+  - time: 1
+    event: bloom_path
+    value: path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    # value: path_marker_start2, path_marker_goal2
 
-  # - time: 17
-  #   event: bloom_path
-  #   value: path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  # ========== Wave 1（0-25秒）: 準備フェーズ ==========
+  # 【目的】敵が少なく、プレイヤーがタワー配置に慣れる
 
-  # - time: 20
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  # Wave 1-1: 最初の 1 体（敵が見えて安心感を）
+  - time: 5
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
+  # Wave 1-2: 少し間を空けて 1 体（ペアで来る感覚）
+  - time: 8
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # # ========== Wave 2（25-60秒）: 本格上昇フェーズ ==========
+  # # 【目的】敵が増える、タワーの有効性を試す
+
+  # # Wave 2-1: ペア（敵が 2 体同時）
   # - time: 25
   #   event: spawn_enemy_unit
   #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
-  # - time: 36  # 全てのパスマーカーを消す
-  #   event: off_bloom_path
-  #   value: all
+  # - time: 26
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
-  # # - time: 10
-  # #   event: off_bloom_path
-  # #   value: path_marker_start, path_marker_01, path_marker_02, path_marker_goal
+  # # Wave 2-2: 短いインターバル後、もう 1 ウェーブ
+  # - time: 35
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
-  # # - time: 10  # 特定のパスマーカー経路だけを消す
-  # #   event: off_bloom_path
-  # #   value: path_marker_01, path_marker_02
+  # - time: 36
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # # Wave 2-3: リソース圧迫（3 体連続）
+  # - time: 48
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # - time: 49
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # - time: 50
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # # ========== Wave 3（60-100秒）: 最大難易度フェーズ ==========
+  # # 【目的】高頻度で敵が出現、タワーの有効範囲・クリア判定を試す
+
+  # # Wave 3-1: 高速ウェーブ開始（敵2体を連続で）
+  # - time: 60
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # - time: 61
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # # Wave 3-2: 連続小波
+  # - time: 70
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # - time: 71
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # # Wave 3-3: 最終ラッシュ（100秒近くまで敵出現）
+  # - time: 85
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # - time: 86
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  # - time: 95
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
