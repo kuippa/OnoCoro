@@ -320,7 +320,13 @@ public class SpawnController : MonoBehaviour
         }
         Quaternion rotation = Quaternion.Euler(0f, 0f, 0f);
         GameObject TowerSweeper = Instantiate(prefab, setPoint, rotation);
-        TowerSweeper obj = TowerSweeper.GetComponent<TowerSweeper>();
+        TowerSweeperCtrl obj = TowerSweeper.GetComponent<TowerSweeperCtrl>();
+        if (obj == null)
+        {
+            Debug.LogError("[SpawnController] TowerSweeperCtrl component not found on TowerSweeper prefab instance");
+            GameObjectTreat.DestroyAll(TowerSweeper);
+            return false;
+        }
         obj.CreateSweeperUnit(setPoint);
         ret = true;
         return ret;

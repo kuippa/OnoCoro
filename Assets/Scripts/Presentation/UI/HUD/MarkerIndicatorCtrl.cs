@@ -63,7 +63,7 @@ public static class MarkerIndicatorCtrl
         string tag = target.tag;
         if (tag == GameEnum.TagType.TowerSweeper.ToString())
         {
-            TowerSweeper component = target.GetComponent<TowerSweeper>();
+            TowerSweeperCtrl component = target.GetComponent<TowerSweeperCtrl>();
             if (component != null)
             {
                 component.StartDeleteUnitProcess();

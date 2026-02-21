@@ -74,7 +74,7 @@ public class InfoWindowCtrl : UIControllerBase
 
         if (target.tag == GameEnum.TagType.TowerSweeper.ToString())
         {
-            TowerSweeper component = target.GetComponent<TowerSweeper>();
+            TowerSweeperCtrl component = target.GetComponent<TowerSweeperCtrl>();
             if (component != null)
             {
                 component.DeleteUnitProcess();

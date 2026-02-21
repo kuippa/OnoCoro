@@ -5,7 +5,7 @@ using Debug = CommonsUtility.Debug;
 using CommonsUtility;
 using UnityEngine.InputSystem.XInput;
 
-public class SweepCtrl : MonoBehaviour
+public class SweeperCtrl : MonoBehaviour
 {
     private float _lastTriggerStayTime;
     private const float _TRIGGER_STAY_INTERVAL = 0.02f;     // この感覚が長すぎるとゴミを消せずに残る
@@ -58,13 +58,14 @@ public class SweepCtrl : MonoBehaviour
         ScoreCtrl.UpdateAndDisplayScore(score, unitStruct.ScoreType);
     }
 
-    internal void SweepGarbage(Collider other)
+    internal bool SweepGarbage(Collider other)
     {
         // 射程に入ったターゲットを消去する
         if (other.tag == GameEnum.TagType.Garbage.ToString() || other.tag == GameEnum.TagType.Ash.ToString())
         {
             float scoreMag = ScoreCtrl.CalcGarbageMagnification(other.transform.localScale);
             CalcScore(other);
+            // FIXME: ゴミのサイズが小さくなりすぎないように、一定以下は消す
             if (scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3)
             {
                 // 対象オブジェクトを消す
@@ -72,11 +73,17 @@ public class SweepCtrl : MonoBehaviour
             }
             else
             {
-                ChangeCubeSize(other);
+                ChangeCubeSize(other);  // ゴミのサイズを減らす
             }
+            return true;
         }
+        return false;
     }
 
+    /// <summary>
+    /// OnTriggerStay で毎フレーム呼ばれるゴミ掃除処理
+    /// 0.02秒間隔で制限（レート制限で効率化）
+    /// </summary>
     void OnTriggerStay(Collider other)
     {
         // OnTriggerStay は毎フレーム呼ばれるので間隔をあける
@@ -85,8 +92,10 @@ public class SweepCtrl : MonoBehaviour
         {
             return;
         }
-        _lastTriggerStayTime = currentTime;
-        SweepGarbage(other);
+        if (SweepGarbage(other))
+        {
+            _lastTriggerStayTime = currentTime;
+        }
     }
 
     void Awake()
@@ -94,11 +103,5 @@ public class SweepCtrl : MonoBehaviour
         #if UNITY_EDITOR
             Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
