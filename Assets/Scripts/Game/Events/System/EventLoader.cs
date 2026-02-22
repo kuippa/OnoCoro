@@ -143,6 +143,9 @@ public class EventLoader : MonoBehaviour, IInitializable
             case nameof(YamlEventType.off_bloom_path):
                 CallBloomPath(event_value, isBloom: false);
                 break;
+            case nameof(YamlEventType.bloom_sakura):
+                CallBloomSakura(event_value);
+                break;
             case nameof(YamlEventType.volcano):
                 // 未実装
                 break;
@@ -387,6 +390,18 @@ public class EventLoader : MonoBehaviour, IInitializable
         {
             BloomPathController.EventOffBloomPath(event_value);
         }
+    }
+
+    private void CallBloomSakura(string event_value)
+    {
+        OrnamentSystem ornamentSystem = GameObjectTreat.GetOrAddComponent<OrnamentSystem>(GameObjectTreat.GetEventSystem());
+        if (ornamentSystem == null)
+        {
+            Debug.LogWarning("[EventLoader.CallBloomSakura] OrnamentSystem の取得に失敗しました");
+            return;
+        }
+
+        ornamentSystem.BloomSakura(event_value);
     }
 
     // private void testInvoke()

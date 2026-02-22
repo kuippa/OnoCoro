@@ -98,6 +98,20 @@ events:
     event: spawn_enemy_unit
     value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
 
+  # 桜の花を咲かせる
+  - time: 15
+    event: bloom_sakura
+    value: TreeSakura
+
+  # - time: 15
+  #   event: bloom_sakura
+  #   value: TreeSakura, TreeSakura_01
+
+  - time: 17
+    event: bloom_sakura
+    value: TreeSakura_01
+
+
   # # ========== Wave 2（25-60秒）: 本格上昇フェーズ ==========
   # # 【目的】敵が増える、タワーの有効性を試す
 

@@ -120,16 +120,16 @@ public class SweeperBatteryManager : MonoBehaviour
         // Dock が遠い場合：移動
         if (distance > _BATTERY_DISTANCE)
         {
-            if (TowerMoveCtrl.GetDestination(_NavMeshAgent) != _MyDeck.transform.position)
+            if (NavMeshManager.GetDestination(_NavMeshAgent) != _MyDeck.transform.position)
             {
-                TowerMoveCtrl.SetDestination(_MyDeck.transform.position, _NavMeshAgent);
+                NavMeshManager.SetDestination(_MyDeck.transform.position, _NavMeshAgent);
             }
             GameObjectTreat.ColorChange(battery_bar, Color.red);
         }
         // Dock が近い場合：充電
         else
         {
-            TowerMoveCtrl.ClearDestination(_NavMeshAgent);
+            NavMeshManager.ClearDestination(_NavMeshAgent);
             if (_towerSweeperCtrl != null)
             {
                 _towerSweeperCtrl.ClearIgnoreGarbageLists();

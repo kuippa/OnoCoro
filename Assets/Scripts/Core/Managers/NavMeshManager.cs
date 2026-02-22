@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.AI;
+using Debug = CommonsUtility.Debug;
 
 public static class NavMeshManager
 {
+    // 推定値 - NavMesh 乱れに対応した値
     private const float _MIN_DISTANCE = 0.8f;
     private const float _MIN_VELOCITY = 0.8f;
     private const float _ROTATE_BUFFER_ANGLE = 5f;
@@ -50,14 +52,17 @@ public static class NavMeshManager
     {
     }
 
-    internal static void LookAround(NavMeshAgent NavMeshAgent, Transform transform)
+    /// <summary>
+    /// 周囲探索時の目標回転角度を計算（Y軸回転）
+    /// </summary>
+    /// <param name="currentYAngle">現在の Y 軸回転角度</param>
+    /// <param name="rotationAngle">追加回転角度</param>
+    /// <returns>目標回転 Quaternion</returns>
+    internal static Quaternion CalculateLookAroundRotation(float currentYAngle, float rotationAngle)
     {
-        float f = Mathf.Abs((transform.rotation.eulerAngles.y + 67f) % 360f);
-        f = Mathf.RoundToInt(f);
-        if (Mathf.Abs(transform.rotation.eulerAngles.y - f) > 5f)
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0f, f, 0f), 3f);
-        }
+        float targetYAngle = Mathf.Repeat(currentYAngle + rotationAngle, 360f);
+        Debug.Log("[NavMeshManager] CalculateLookAroundRotation: currentYAngle=" + currentYAngle + " rotationAngle=" + rotationAngle + " targetYAngle=" + targetYAngle);
+        return Quaternion.Euler(0, targetYAngle, 0);
     }
 
     private static void MoveForward(NavMeshAgent NavMeshAgent, Vector3 unitPosition)

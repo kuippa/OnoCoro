@@ -25,8 +25,8 @@ public class AINavigationManager : MonoBehaviour
     // 移動パラメータ
     private const float _MOVE_SPEED = 3f;
     private const float _LOOK_AROUND_INTERVAL = 2f;
-    private const float _LOOK_AROUND_ROTATION_ANGLE = 45f;  // 周囲探索の回転角度（小刻み）
-    private const float _LOOK_AROUND_SPEED = 2f;  // 回転スムーズさ（大きいほど速い）
+    private const float _LOOK_AROUND_ROTATION_ANGLE = 90f;  // 周囲探索の回転角度（小刻み）
+    private const float _LOOK_AROUND_SPEED = 1f;  // 回転スムーズさ（大きいほど速い）
 
     // 外部参照
     private NavMeshAgent _NavMeshAgent = null;
@@ -36,7 +36,9 @@ public class AINavigationManager : MonoBehaviour
     private Vector3 _currentDestination = Vector3.zero;
     private bool _hasValidPath = false;
     private Quaternion _targetLookAroundRotation = Quaternion.identity;
+    private Quaternion _startLookAroundRotation = Quaternion.identity;  // 周囲探索の開始回転
     private bool _isLookingAround = false;
+    private float _lookAroundElapsedTime = 0f;  // 周囲探索の経過時間
 
     /// <summary>
     /// ナビゲーションマネージャーを初期化
@@ -61,6 +63,48 @@ public class AINavigationManager : MonoBehaviour
         _myTransform = myTransform;
         _currentDestination = Vector3.zero;
         _hasValidPath = false;
+    }
+
+    /// <summary>
+    /// 毎フレーム更新（周囲探索の回転を適用）
+    /// </summary>
+    private void Update()
+    {
+        UpdateLookAround();
+        UpdateLookAroundTimer();
+    }
+
+    /// <summary>
+    /// 周囲探索時の回転を更新
+    /// _LOOK_AROUND_SPEED 秒で _LOOK_AROUND_ROTATION_ANGLE 角度だけ回転
+    /// </summary>
+    private void UpdateLookAround()
+    {
+        if (!_isLookingAround || _myTransform == null)
+        {
+            return;
+        }
+
+        float progress = Mathf.Clamp01(_lookAroundElapsedTime / _LOOK_AROUND_SPEED);
+        _myTransform.rotation = Quaternion.Slerp(_startLookAroundRotation, _targetLookAroundRotation, progress);
+    }
+
+    /// <summary>
+    /// 周囲探索タイマーを更新
+    /// </summary>
+    private void UpdateLookAroundTimer()
+    {
+        if (!_isLookingAround)
+        {
+            return;
+        }
+
+        _lookAroundElapsedTime += Time.deltaTime;
+        if (_lookAroundElapsedTime >= _LOOK_AROUND_INTERVAL)
+        {
+            _isLookingAround = false;
+            _lookAroundElapsedTime = 0f;
+        }
     }
 
     /// <summary>
@@ -89,7 +133,7 @@ public class AINavigationManager : MonoBehaviour
         }
 
         // 目的地を設定
-        TowerMoveCtrl.SetDestination(destination, _NavMeshAgent);
+        NavMeshManager.SetDestination(destination, _NavMeshAgent);
 
         // NavMesh 上にいるか確認
         if (!IsOnNavMesh())
@@ -164,27 +208,43 @@ public class AINavigationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 周囲を見回る（ターゲットなし時）
-    /// 毎フレーム呼ばれる際に、目標回転を段階的に更新します
+    /// 周囲探索を開始（ターゲットなし時）
     /// </summary>
-    internal void LookAround()
+    internal void StartLookAround()
+    {
+        _isLookingAround = false;
+        LookAround();
+    }
+
+    /// <summary>
+    /// 周囲を見回る（内部実装）
+    /// _LOOK_AROUND_SPEED 秒かけて目標角度に到達
+    /// </summary>
+    private void LookAround()
     {
         if (_myTransform == null)
         {
+            Debug.LogWarning("[AINavigationManager] myTransform is null");
             return;
         }
 
         if (_isLookingAround)
         {
+            Debug.Log("[AINavigationManager] Already looking around");
             return;  // 既に探索中
         }
 
-        // 現在の Y 軸回転を取得し、目標角度を一度だけ計算
+        // 開始時の回転を記録
+        _startLookAroundRotation = _myTransform.rotation;
+        
+        // 現在の Y 軸回転を取得し、目標角度を計算
         float currentYAngle = _myTransform.rotation.eulerAngles.y;
-        float targetYAngle = (currentYAngle + _LOOK_AROUND_ROTATION_ANGLE) % 360f;
+        _targetLookAroundRotation = NavMeshManager.CalculateLookAroundRotation(currentYAngle, _LOOK_AROUND_ROTATION_ANGLE);
 
-        _targetLookAroundRotation = Quaternion.Euler(0, targetYAngle, 0);
+        Debug.Log("[AINavigationManager] Start LookAround: currentYAngle=" + currentYAngle + " targetYAngle=" + _targetLookAroundRotation.eulerAngles.y + " duration=" + _LOOK_AROUND_SPEED + "s");
+
         _isLookingAround = true;
+        _lookAroundElapsedTime = 0f;  // タイマーをリセット
         _currentDestination = Vector3.zero;
         _hasValidPath = false;
     }
@@ -199,7 +259,7 @@ public class AINavigationManager : MonoBehaviour
             return;
         }
 
-        TowerMoveCtrl.ClearDestination(_NavMeshAgent);
+        NavMeshManager.ClearDestination(_NavMeshAgent);
         _currentDestination = Vector3.zero;
         _hasValidPath = false;
     }

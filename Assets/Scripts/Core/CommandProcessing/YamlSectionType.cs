@@ -121,6 +121,9 @@ namespace CommonsUtility
         /// <summary>パス強調表示解除（BloomPathController で処理）</summary>
         off_bloom_path,
         
+        /// <summary>桜を咲かせるイベント（TreeSakura で処理）</summary>
+        bloom_sakura,
+        
         // 未実装
         /// <summary>火山噴火イベント（未実装）</summary>
         volcano

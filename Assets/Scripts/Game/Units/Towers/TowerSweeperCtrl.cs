@@ -103,7 +103,7 @@ public class TowerSweeperCtrl : MonoBehaviour
         _NavMeshAgent = this.GetComponent<NavMeshAgent>();
         if (_NavMeshAgent == null)
         {
-            Debug.Log("NavMeshAgent is null");
+            // Debug.Log("NavMeshAgent is null");
             NavMeshBuildSettings settings = NavMesh.GetSettingsByIndex(1);
             _NavMeshAgent = this.gameObject.AddComponent<NavMeshAgent>();
             _NavMeshAgent.enabled = false;
@@ -166,50 +166,32 @@ public class TowerSweeperCtrl : MonoBehaviour
         _targetingService.OnAshEnter(other);
     }
 
-    void MoveControl()
+    private void MoveControl()
     {
-        // バッテリーのチェック
-        if (_batteryManager == null)
+        if (_batteryManager == null || !_batteryManager.CheckBattery())
         {
-            Debug.LogWarning("[TowerSweeperCtrl] BatteryManager is null");
             return;
         }
-        if (!_batteryManager.CheckBattery())
+        if (_navigationManager == null || _targetingService == null)
         {
             return;
         }
 
-        if (_navigationManager == null)
-        {
-            Debug.LogWarning("[TowerSweeperCtrl] NavigationManager is null");
-            return;
-        }
-
-        if (_targetingService == null)
-        {
-            Debug.LogWarning("[TowerSweeperCtrl] TargetingService is null");
-            return;
-        }
-
-        // ターゲットの取得
         GameObject targetGarbage = _targetingService.GetBestTarget();
         if (targetGarbage == null)
         {
-            // ターゲットがない場合、周囲探索
-            _navigationManager.LookAround();
+            Debug.Log("No target garbage found  StartLookAround");
+            _navigationManager.StartLookAround();
             return;
         }
 
-        // 目的地への移動
         Vector3 destination = targetGarbage.transform.position;
         if (!_navigationManager.MoveToTarget(destination, this.transform))
         {
-            Debug.Log("MoveToTarget failed: " + destination);
             _targetingService.IgnoreCurrentTarget();
             return;
         }
 
-        // 移動状態を更新
         _navigationManager.UpdateMovement(_targetingService);
     }
 
