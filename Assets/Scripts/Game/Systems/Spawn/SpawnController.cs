@@ -174,7 +174,10 @@ public class SpawnController : MonoBehaviour
 
     private bool SpawnLitter(string[] marker_names)
     {
-        GameObject gameObject = Instantiate(PrefabManager.EnemyLitterPrefab, new Vector3(0f, 0f, 0f), Quaternion.identity);
+        // 最初のパスマーカー位置を取得
+        Vector3 spawnPosition = GetFirstMarkerPosition(marker_names);
+        
+        GameObject gameObject = Instantiate(PrefabManager.EnemyLitterPrefab, spawnPosition, Quaternion.identity);
         EnemyLitter component = gameObject.GetComponent<EnemyLitter>();
         int idx = EnemyLitter._idx;
         gameObject.name = GameEnum.ModelsType.Litter.ToString() + idx;
@@ -183,6 +186,30 @@ public class SpawnController : MonoBehaviour
         orAddComponent._item_struct.ItemID = gameObject.name;
         component.InitUnitSpawn(marker_names);
         return true;
+    }
+
+    private Vector3 GetFirstMarkerPosition(string[] marker_names)
+    {
+        if (marker_names == null || marker_names.Length == 0)
+        {
+            Debug.LogWarning("SpawnLitter: marker_names is null or empty. Using default position (0, 0, 0)");
+            return new Vector3(0f, 0f, 0f);
+        }
+
+        GameObject markerObject = GameObject.Find(marker_names[0].Trim());
+        if (markerObject == null)
+        {
+            Debug.LogWarning($"SpawnLitter: First marker '{marker_names[0]}' not found. Using default position (0, 0, 0)");
+            return new Vector3(0f, 0f, 0f);
+        }
+
+        // マーカー位置から Y 軸方向に 3.0 オフセット（マーカーの手前）
+        // これにより、初期化直後に即座に到達判定されることを防ぐ
+        Vector3 markerPosition = markerObject.transform.position;
+        Vector3 spawnPosition = markerPosition + Vector3.down * 3.0f;
+        
+        Debug.Log($"SpawnLitter: Marker '{marker_names[0]}' at {markerPosition}, spawning Litter at {spawnPosition}");
+        return spawnPosition;
     }
 
     private bool SpawnWaterTurret(Vector3 spawnPoint = default(Vector3))

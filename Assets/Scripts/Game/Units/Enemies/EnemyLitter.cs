@@ -39,6 +39,7 @@ public class EnemyLitter : MonoBehaviour
     private bool _littingMode = true;
     private bool _movingMode = true;
     private float _stuckDurationCounter = 0f;  // パス設定から経過した時間（タイムアウト検出用）
+    private const float _MIN_AGENT_SPEED = 0.1f;  // 移動が停止していると判定するエージェント速度（m/s）
 
     internal static int _idx;
 
@@ -73,17 +74,7 @@ public class EnemyLitter : MonoBehaviour
         }
 
         _targetPosition = targetObj.transform.position;
-        
-        TowerDustBoxCtrl dustBoxCtrl = targetObj.GetComponent<TowerDustBoxCtrl>();
-        if (dustBoxCtrl == null)
-        {
-            Debug.LogWarning($"TowerDustBoxCtrl not found on {targetObj.name}");
-            _targetRadius = _ZERO_THRESHOLD;
-            ChangeHeadColor(-1);
-            return;
-        }
-        
-        _targetRadius = dustBoxCtrl.GetRadius();
+        _targetRadius = targetObj.GetComponent<TowerDustBoxCtrl>().GetRadius();
         ChangeHeadColor(1);  // Monitoring カウント +1
     }
 
@@ -250,15 +241,43 @@ public class EnemyLitter : MonoBehaviour
         {
             yield return new WaitForSeconds(_MOVING_CHECK_INTERVAL);
             
-            // タイムアウト検出：同じパスに到達できないまま10秒経過
-            _stuckDurationCounter += _MOVING_CHECK_INTERVAL;
-            if (_stuckDurationCounter >= _STUCK_TIMEOUT_DURATION)
+            // エージェントの現在速度をチェック：実速度が0.1m/s未満なら停止状態と判定
+            float agentSpeed = _navMeshAgent.velocity.magnitude;
+            
+            if (agentSpeed < _MIN_AGENT_SPEED)
             {
-                Debug.Log($"{name}: パスに到達できず {_STUCK_TIMEOUT_DURATION} 秒経過。近隣タワーを破壊してゴール状態に強制移行します");
-                DestroyNearbyTowers();
-                AgentReachedGoal();
-                _movingMode = false;
-                yield break;
+                // 移動が停止しているのでカウントアップ
+                _stuckDurationCounter += _MOVING_CHECK_INTERVAL;
+                Debug.Log($"{name}: 移動が停止しています (エージェント速度: {agentSpeed:F3}m/s) - 停止時間: {_stuckDurationCounter:F1}秒");
+                
+                if (_stuckDurationCounter >= _STUCK_TIMEOUT_DURATION)
+                {
+                    Debug.Log($"{name}: パスに到達できず {_STUCK_TIMEOUT_DURATION} 秒経過。近隣タワーを破壊します");
+                    DestroyNearbyTowers();
+                    
+                    // タワー破壊後、次のパスに進む（現在のパス目標を更新）
+                    if (!SetNextPath(_myPaths))
+                    {
+                        // パスがもうない場合はゴール達成
+                        Debug.Log($"{name}: すべてのパスを踏破しました");
+                        _movingMode = false;
+                    }
+                    else
+                    {
+                        // 次のパスに進むため、カウンターをリセット
+                        _stuckDurationCounter = 0f;
+                        Debug.Log($"{name}: タワー破壊完了。新しい経路で移動を再開します");
+                    }
+                }
+            }
+            else
+            {
+                // 移動中はカウンターをリセット
+                if (_stuckDurationCounter > 0)
+                {
+                    Debug.Log($"{name}: 移動を再開しました (エージェント速度: {agentSpeed:F3}m/s)");
+                    _stuckDurationCounter = 0f;
+                }
             }
             
             if (NavMeshManager.HasReachedDestination(_navMeshAgent) && !SetNextPath(_myPaths))
@@ -314,7 +333,7 @@ public class EnemyLitter : MonoBehaviour
         }
         
         float distanceToColliderEdge = GetDistanceToColliderEdge(tower, centerPosition);
-        
+        Debug.Log($"{name}: Checking tower {tower.name} at distance {distanceToColliderEdge:F2}m");
         if (distanceToColliderEdge <= _STUCK_TOWER_DESTRUCTION_RADIUS)
         {
             GameObjectTreat.DestroyAll(tower);
@@ -417,11 +436,6 @@ public class EnemyLitter : MonoBehaviour
         _stuckDurationCounter = 0f;
         
         return true;
-    }
-
-    internal void ReachDustBox(Vector3 dustBoxPos)
-    {
-        SetNextPath(_myPaths);
     }
 
     internal void AddPathAndInterrupt(Vector3 path)
@@ -548,6 +562,14 @@ public class EnemyLitter : MonoBehaviour
     internal void InitUnitSpawn(string[] markerNames = null)
     {
         SetPaths(markerNames);
+        
+        // パスが有効か確認
+        if (_myPaths == null || _myPaths.Length == 0)
+        {
+            Debug.LogWarning($"{name}: InitUnitSpawn: パスマーカーが見つからないため初期化に失敗しました");
+            return;
+        }
+        
         AgentJumpToStartPosition();
         SetNextPath(_myPaths);
         StartCoroutine(LitterDrops());

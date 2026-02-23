@@ -121,23 +121,23 @@ events:
 
   - time: 30
     event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
   - time: 33
     event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
   - time: 36
     event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
   - time: 39
     event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
   - time: 42
     event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
 
   # # 桜の花を咲かせる

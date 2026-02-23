@@ -106,7 +106,8 @@ namespace CommonsUtility
             // score = (int)(score * scoreMag);
             if (scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3)
             {
-                Debug.Log("scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3");
+                // FIXME: ゴミのサイズが小さくなりすぎないように、一定以下は最低スコアを与える
+                // Debug.Log("scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3");
                 result = base_score;
             }
             else

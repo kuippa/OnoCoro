@@ -235,21 +235,33 @@ public class InfoWindowCtrl : UIControllerBase
 
     private GameObject GetParentObject(GameObject collider)
     {
-        Transform parent = collider.transform.parent;
+        Transform current = collider.transform;
         
-        if (parent == null)
+        // 親をさかのぼって、IItemStructProviderを持つ親を探す
+        while (current.parent != null)
         {
-            return collider;
+            if (current.GetComponent<IItemStructProvider>() != null)
+            {
+                // Debug.Log("Found object with IItemStructProvider: " + current.name);
+                return current.gameObject;
+            }
+
+            Transform parent = current.parent;
+            
+            // 親がIItemStructProviderを持つか確認
+            if (parent.GetComponent<IItemStructProvider>() != null)
+            {
+                // Debug.Log("Found parent with IItemStructProvider: " + parent.name);
+                return parent.gameObject;
+            }
+            
+            // 一つ上へ進む
+            current = parent;
         }
         
-        if (collider.tag == GameEnum.TagType.Garbage.ToString() 
-            || collider.tag == GameEnum.TagType.PowerCube.ToString() 
-            || collider.tag == GameEnum.TagType.FireCube.ToString())
-        {
-            return collider;
-        }
-        
-        return parent.gameObject;
+        // ルートに到達したら、そのオブジェクトを返す
+        // Debug.Log("Reached root without finding IItemStructProvider, returning: " + current.name);
+        return current.gameObject;
     }
 
     private UnitStruct? GetUnitStruct(GameObject collider)
