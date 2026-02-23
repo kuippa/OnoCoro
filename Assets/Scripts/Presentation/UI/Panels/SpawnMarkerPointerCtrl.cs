@@ -15,11 +15,13 @@ public class SpawnMarkerPointerCtrl : UIControllerBase
 {
     public static SpawnMarkerPointerCtrl instance;
     private static GameObject _marker;
+    private static GameObject _ngPoint;
     private TMP_Text _tmpText;
     private float _time;
     
     // Time Constants
     private const float _TIME_INTERVAL = 0.05f;
+    private const float _NG_POINT_DISPLAY_DURATION = 1.0f;
     
     // Transform Constants
     private const float _MARKER_Y_OFFSET = 0.08f;
@@ -28,6 +30,7 @@ public class SpawnMarkerPointerCtrl : UIControllerBase
     // GameObject/Component Names
     private const string _CHILD_TMP_POSI = "tmp_posi";
     private const string _CHILD_CANVAS = "Canvas";
+    private const string _CHILD_NG_POINT = "Canvas/NG_point";
     
     // Log Constants
     private const string _LOG_PREFIX = "[SpawnMarker]";
@@ -45,6 +48,27 @@ public class SpawnMarkerPointerCtrl : UIControllerBase
         }
         _marker = gameObject;
         SetMarkerActive(false);
+
+        // NG_point を初期化（非表示）
+        InitializeNGPoint();
+    }
+
+    /// <summary>
+    /// NG_point を初期化（非表示に設定）
+    /// </summary>
+    private void InitializeNGPoint()
+    {
+        Transform ngPointTransform = _marker.transform.Find(_CHILD_NG_POINT);
+        if (ngPointTransform != null)
+        {
+            _ngPoint = ngPointTransform.gameObject;
+            _ngPoint.SetActive(false);
+            Debug.Log($"{_LOG_PREFIX} NG_point が見つかりました（初期状態：非表示）");
+        }
+        else
+        {
+            Debug.LogWarning($"{_LOG_PREFIX} NG_point が見つかりません。子オブジェクト '{_CHILD_NG_POINT}' を確認してください。");
+        }
     }
 
     /// <summary>
@@ -54,6 +78,41 @@ public class SpawnMarkerPointerCtrl : UIControllerBase
     {
         // 初期化処理なし（Update で処理）
         yield return null;
+    }
+
+    /// <summary>
+    /// NG_point を表示（1秒後に自動で非表示）
+    /// </summary>
+    internal static void ShowNGPoint()
+    {
+        if (_ngPoint == null)
+        {
+            Debug.LogWarning($"{_LOG_PREFIX} NG_point が初期化されていません");
+            return;
+        }
+
+        if (instance == null)
+        {
+            return;
+        }
+
+        _ngPoint.SetActive(true);
+        Debug.Log($"{_LOG_PREFIX} NG_point を表示（1秒後に自動消去）");
+        instance.StartCoroutine(instance.HideNGPointAfterDelay());
+    }
+
+    /// <summary>
+    /// 指定時間後に NG_point を非表示にするコルーチン
+    /// </summary>
+    private IEnumerator HideNGPointAfterDelay()
+    {
+        yield return new WaitForSeconds(_NG_POINT_DISPLAY_DURATION);
+
+        if (_ngPoint != null)
+        {
+            _ngPoint.SetActive(false);
+            Debug.Log($"{_LOG_PREFIX} NG_point を非表示に");
+        }
     }
 
     private void SetPositionTMP(Vector3 pos)

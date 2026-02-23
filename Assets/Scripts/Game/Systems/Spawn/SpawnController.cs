@@ -15,6 +15,9 @@ public class SpawnController : MonoBehaviour
 {
     public static SpawnController _instance = null;
 
+    // PathMaker 回避距離（pathmakers のポイントからこの距離以内にスポーンしない）
+    private const float _PATH_MARKER_EXCLUSION_RADIUS = 1.0f;
+
     public static SpawnController Instance
     {
         get
@@ -131,6 +134,11 @@ public class SpawnController : MonoBehaviour
     {
         float dropbuffer = 0.05f;
         spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        if (spawnPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] SentryGuard: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         Quaternion spawnRotateAngle = GetSpawnRotateAngle();
         GameObject gameObject = Instantiate(PrefabManager.TowerSentryGuardPrefab, spawnPoint, spawnRotateAngle);
         int sentryGuardUID = PrefabManager.TowerSentryGuardUID;
@@ -146,12 +154,21 @@ public class SpawnController : MonoBehaviour
         float dropbuffer = 0.05f;
         Quaternion spawnRotateAngle = GetSpawnRotateAngle();
         spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        if (spawnPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] DustBox: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         GameObject gameObject = Instantiate(PrefabManager.DustBoxPrefab, spawnPoint, spawnRotateAngle);
         int dustBoxUID = PrefabManager.DustBoxUID;
         gameObject.name = GameEnum.ModelsType.DustBox.ToString() + dustBoxUID;
         DustBox orAddComponent = GameObjectTreat.GetOrAddComponent<DustBox>(gameObject);
         orAddComponent._item_struct.ItemID = gameObject.name;
         orAddComponent._unit_struct.UnitID = gameObject.name;
+
+        // NavMesh Carving を有効化（経路計算から除外）
+        NavMeshManager.EnableCarvingForObstacle(gameObject);
+
         return true;
     }
 
@@ -179,6 +196,11 @@ public class SpawnController : MonoBehaviour
         }
         
         spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        if (spawnPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] WaterTurret: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         Quaternion spawnRotation = Quaternion.identity;
         
         // Instantiate 結果をチェック
@@ -208,6 +230,11 @@ public class SpawnController : MonoBehaviour
         float dropbuffer = 1.5f;        
         bool result = false;
         spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        if (spawnPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] FireCube: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         GameObject garbageObj = FireCubeCtrl.SpawnFireCube(spawnPoint, FireCubeCtrl._SIZE_NORMAL, false);
         if (garbageObj != null)
         {
@@ -253,6 +280,11 @@ public class SpawnController : MonoBehaviour
     {
         bool ret = false;
         spawnPoint = GetSpawnPoint(dropbuffer, spawnPoint);
+        if (spawnPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] GarbageCube: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         GameObject garbageObj = GarbageCubeCtrl.SpawnGarbageCube(spawnPoint, sizeFlag, isSwayingPoint);
         if (garbageObj != null)
         {
@@ -271,6 +303,11 @@ public class SpawnController : MonoBehaviour
             return ret;
         }
         Vector3 setPoint = GetSpawnPoint(dropbuffer);
+        if (setPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] StopPlate: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         Quaternion setRotation = SpawnMarkerPointerCtrl.GetMarkerRotateAngle();
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
         int idx = PrefabManager.StopPlateUID;
@@ -294,6 +331,11 @@ public class SpawnController : MonoBehaviour
         }
         prefab.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
         setPoint = GetSpawnPoint(dropbuffer, setPoint);
+        if (setPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] PowerCube: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
         GameObject unit = Instantiate(prefab, setPoint, setRotation);
 
@@ -312,6 +354,11 @@ public class SpawnController : MonoBehaviour
     {
         bool ret = false;
         setPoint = GetSpawnPoint(dropbuffer, setPoint);
+        if (setPoint == Vector3.zero)
+        {
+            Debug.LogWarning("[SpawnController] TowerSweeper: pathmaker 除外エリア内でスポーン不可");
+            return false;
+        }
         GameObject prefab = PrefabManager.TowerSweeperPrefab;
         if (prefab == null)
         {
@@ -338,8 +385,42 @@ public class SpawnController : MonoBehaviour
         {
             setPoint = SpawnMarkerPointerCtrl.GetMarkerPosition();
         }
+
+        // PathMaker のポイントとの距離をチェック（除外エリア判定）
+        if (IsWithinPathMarkerExclusionZone(setPoint))
+        {
+            Debug.LogWarning("[SpawnController] スポーン位置が pathmark 敵経路上にあります。スポーンをキャンセルします。");
+            return Vector3.zero;
+        }
+
         setPoint.y += dropbuffer;
         return setPoint;
+    }
+
+    /// <summary>
+    /// スポーン位置が pathmakers の除外エリア内にあるかを判定
+    /// </summary>
+    private bool IsWithinPathMarkerExclusionZone(Vector3 spawnPoint)
+    {
+        Dictionary<string, Vector3> pathMakers = PathMakerCtrl.GetPathMakerDict();
+        if (pathMakers == null || pathMakers.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (Vector3 markerPos in pathMakers.Values)
+        {
+            float distance = Vector3.Distance(spawnPoint, markerPos);
+            if (distance < _PATH_MARKER_EXCLUSION_RADIUS)
+            {
+                Debug.Log($"[SpawnController] pathmaker 除外エリア内: 距離 {distance:F2}m");
+                // NG_point を表示（1秒後に自動で消える）
+                SpawnMarkerPointerCtrl.ShowNGPoint();
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Quaternion GetSpawnRotateAngle()

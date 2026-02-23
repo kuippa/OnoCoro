@@ -224,13 +224,13 @@ public class AINavigationManager : MonoBehaviour
     {
         if (_myTransform == null)
         {
-            Debug.LogWarning("[AINavigationManager] myTransform is null");
+            // Debug.LogWarning("[AINavigationManager] myTransform is null");
             return;
         }
 
         if (_isLookingAround)
         {
-            Debug.Log("[AINavigationManager] Already looking around");
+            // Debug.Log("[AINavigationManager] Already looking around");
             return;  // 既に探索中
         }
 
@@ -241,7 +241,7 @@ public class AINavigationManager : MonoBehaviour
         float currentYAngle = _myTransform.rotation.eulerAngles.y;
         _targetLookAroundRotation = NavMeshManager.CalculateLookAroundRotation(currentYAngle, _LOOK_AROUND_ROTATION_ANGLE);
 
-        Debug.Log("[AINavigationManager] Start LookAround: currentYAngle=" + currentYAngle + " targetYAngle=" + _targetLookAroundRotation.eulerAngles.y + " duration=" + _LOOK_AROUND_SPEED + "s");
+        // Debug.Log("[AINavigationManager] Start LookAround: currentYAngle=" + currentYAngle + " targetYAngle=" + _targetLookAroundRotation.eulerAngles.y + " duration=" + _LOOK_AROUND_SPEED + "s");
 
         _isLookingAround = true;
         _lookAroundElapsedTime = 0f;  // タイマーをリセット
@@ -278,7 +278,7 @@ public class AINavigationManager : MonoBehaviour
 
         if (!_NavMeshAgent.isOnNavMesh)
         {
-            Debug.Log("[AINavigationManager] Not on NavMesh: " + _NavMeshAgent.GetInstanceID());
+            // Debug.Log("[AINavigationManager] Not on NavMesh: " + _NavMeshAgent.GetInstanceID());
             return false;
         }
         return true;

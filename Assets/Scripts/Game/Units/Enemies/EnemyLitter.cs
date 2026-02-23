@@ -17,6 +17,8 @@ public class EnemyLitter : MonoBehaviour
     private const float _LITTER_CHECK_INTERVAL = 2.5f;  // デバッグ: 間隔を広げてゴミの軌跡を確認しやすく
     private const float _MOVING_CHECK_INTERVAL = 1.5f;
     private const float _THROW_ANGLE_DEG = 65f;
+    private const float _STUCK_TIMEOUT_DURATION = 13.0f;  // パスに到達できない場合のタイムアウト時間
+    private const float _STUCK_TOWER_DESTRUCTION_RADIUS = 18.0f;  // タイムアウト時に破壊するタワーの設非矢一円箄囲
 
     // Numeric Constants
     private const int _MAX_LITTERS = 20;
@@ -36,6 +38,7 @@ public class EnemyLitter : MonoBehaviour
     private int _numberOfMonitoring;
     private bool _littingMode = true;
     private bool _movingMode = true;
+    private float _stuckDurationCounter = 0f;  // パス設定から経過した時間（タイムアウト検出用）
 
     internal static int _idx;
 
@@ -70,7 +73,17 @@ public class EnemyLitter : MonoBehaviour
         }
 
         _targetPosition = targetObj.transform.position;
-        _targetRadius = targetObj.GetComponent<TowerDustBoxCtrl>().GetRadius();
+        
+        TowerDustBoxCtrl dustBoxCtrl = targetObj.GetComponent<TowerDustBoxCtrl>();
+        if (dustBoxCtrl == null)
+        {
+            Debug.LogWarning($"TowerDustBoxCtrl not found on {targetObj.name}");
+            _targetRadius = _ZERO_THRESHOLD;
+            ChangeHeadColor(-1);
+            return;
+        }
+        
+        _targetRadius = dustBoxCtrl.GetRadius();
         ChangeHeadColor(1);  // Monitoring カウント +1
     }
 
@@ -237,6 +250,17 @@ public class EnemyLitter : MonoBehaviour
         {
             yield return new WaitForSeconds(_MOVING_CHECK_INTERVAL);
             
+            // タイムアウト検出：同じパスに到達できないまま10秒経過
+            _stuckDurationCounter += _MOVING_CHECK_INTERVAL;
+            if (_stuckDurationCounter >= _STUCK_TIMEOUT_DURATION)
+            {
+                Debug.Log($"{name}: パスに到達できず {_STUCK_TIMEOUT_DURATION} 秒経過。近隣タワーを破壊してゴール状態に強制移行します");
+                DestroyNearbyTowers();
+                AgentReachedGoal();
+                _movingMode = false;
+                yield break;
+            }
+            
             if (NavMeshManager.HasReachedDestination(_navMeshAgent) && !SetNextPath(_myPaths))
             {
                 _movingMode = false;
@@ -247,6 +271,80 @@ public class EnemyLitter : MonoBehaviour
     private void AgentReachedGoal()
     {
         GameObjectTreat.DestroyAll(gameObject);
+    }
+
+    /// <summary>
+    /// 近隣のユーザータワーをすべて破壊
+    /// タイムアウト時の相打ちペナルティー
+    /// </summary>
+    private void DestroyNearbyTowers()
+    {
+        Vector3 centerPosition = transform.position;
+        
+        foreach (string towerTag in GetTowerTags())
+        {
+            GameObject[] towersWithTag = GameObject.FindGameObjectsWithTag(towerTag);
+            
+            foreach (GameObject tower in towersWithTag)
+            {
+                DestroyTowerIfInRange(tower, centerPosition);
+            }
+        }
+    }
+
+    private string[] GetTowerTags()
+    {
+        return new string[]
+        {
+            GameEnum.TagType.DustBox.ToString(),
+            GameEnum.TagType.FireCube.ToString(),
+            GameEnum.TagType.WaterTurret.ToString(),
+            GameEnum.TagType.SentryGuard.ToString(),
+            GameEnum.TagType.PowerCube.ToString(),
+            GameEnum.TagType.StopPlate.ToString(),
+            GameEnum.TagType.TowerSweeper.ToString()
+        };
+    }
+
+    private void DestroyTowerIfInRange(GameObject tower, Vector3 centerPosition)
+    {
+        if (tower == null)
+        {
+            return;
+        }
+        
+        float distanceToColliderEdge = GetDistanceToColliderEdge(tower, centerPosition);
+        
+        if (distanceToColliderEdge <= _STUCK_TOWER_DESTRUCTION_RADIUS)
+        {
+            GameObjectTreat.DestroyAll(tower);
+        }
+    }
+
+    private float GetDistanceToColliderEdge(GameObject tower, Vector3 centerPosition)
+    {
+        Collider collider = tower.GetComponent<Collider>();
+        if (collider == null)
+        {
+            return float.MaxValue;
+        }
+        
+        Vector3 colliderCenter = collider.bounds.center;
+        float colliderRadius = GetColliderRadius(tower, collider);
+        float distanceToColliderCenter = Vector3.Distance(centerPosition, colliderCenter);
+        
+        return distanceToColliderCenter - colliderRadius;
+    }
+
+    private float GetColliderRadius(GameObject tower, Collider collider)
+    {
+        SphereCollider sphereCollider = tower.GetComponent<SphereCollider>();
+        if (sphereCollider != null)
+        {
+            return sphereCollider.radius * tower.transform.lossyScale.x;
+        }
+        
+        return collider.bounds.extents.magnitude;
     }
 
     private void AgentJumpToStartPosition()
@@ -314,6 +412,9 @@ public class EnemyLitter : MonoBehaviour
         List<Vector3> remainingPaths = new List<Vector3>(paths);
         remainingPaths.RemoveAt(0);
         _myPaths = remainingPaths.ToArray();
+        
+        // パスを設定したので、タイムアウトカウンターをリセット
+        _stuckDurationCounter = 0f;
         
         return true;
     }

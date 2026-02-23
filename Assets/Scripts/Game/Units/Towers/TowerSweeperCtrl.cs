@@ -136,7 +136,7 @@ public class TowerSweeperCtrl : MonoBehaviour
 
         if (_targetingService == null)
         {
-            Debug.LogWarning("[TowerSweeperCtrl] TargetingService is null");
+            // Debug.LogWarning("[TowerSweeperCtrl] TargetingService is null");
             return;
         }
 
@@ -158,7 +158,7 @@ public class TowerSweeperCtrl : MonoBehaviour
 
         if (_targetingService == null)
         {
-            Debug.LogWarning("[TowerSweeperCtrl] TargetingService is null");
+            // Debug.LogWarning("[TowerSweeperCtrl] TargetingService is null");
             return;
         }
 
@@ -180,7 +180,7 @@ public class TowerSweeperCtrl : MonoBehaviour
         GameObject targetGarbage = _targetingService.GetBestTarget();
         if (targetGarbage == null)
         {
-            Debug.Log("No target garbage found  StartLookAround");
+            // Debug.Log("No target garbage found  StartLookAround");
             _navigationManager.StartLookAround();
             return;
         }

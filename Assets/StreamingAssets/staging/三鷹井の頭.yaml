@@ -28,19 +28,19 @@ pathmakers:
 
 
   # 敵スポーン地点：プレイヤーの北側（Z が大きい値）
-  - name: path_marker_start2
+  - name: path_marker_start_1
     pos: 0, auto, 160   # Y を auto に → コード側で地面検出
 
   # 中間地点 1：北からプレイヤーに向かう途中
-  - name: path_marker_03
-    pos: -1.8, auto, 155   # プレイヤー方向へ少し南寄り
+  - name: path_marker_1
+    pos: 5.7, auto, 143   # プレイヤー方向へ少し南寄り
 
-  # 中間地点 2：プレイヤーの近く
-  - name: path_marker_04
-    pos: -1.8, auto, 145   # プレイヤーすぐ北側
+  # # 中間地点 2：プレイヤーの近く
+  # - name: path_marker_04
+  #   pos: -1.8, auto, 145   # プレイヤーすぐ北側
 
   # ゴール地点：プレイヤーの南側
-  - name: path_marker_goal2
+  - name: path_marker_goal_1
     pos: 0, auto, 135   # プレイヤーの南側（Z = 135）、X は同じ
 
   # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
@@ -82,34 +82,69 @@ events:
   # 敵パス表示開始
   - time: 1
     event: bloom_path
-    value: path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: path_marker_start_1, path_marker_1, path_marker_goal_1
     # value: path_marker_start2, path_marker_goal2
 
   # ========== Wave 1（0-25秒）: 準備フェーズ ==========
   # 【目的】敵が少なく、プレイヤーがタワー配置に慣れる
+  - time: 5
+    event: subtelop
+    value: "wave 1"
 
   # Wave 1-1: 最初の 1 体（敵が見えて安心感を）
   - time: 5
     event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
   # Wave 1-2: 少し間を空けて 1 体（ペアで来る感覚）
   - time: 8
     event: spawn_enemy_unit
-    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  # 桜の花を咲かせる
-  - time: 15
-    event: bloom_sakura
-    value: TreeSakura
-
-  # - time: 15
-  #   event: bloom_sakura
-  #   value: TreeSakura, TreeSakura_01
 
   - time: 17
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+
+  - time: 21
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+
+  - time: 25
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+
+  - time: 30
     event: bloom_sakura
     value: TreeSakura_01
+
+
+  - time: 30
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  - time: 33
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  - time: 36
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  - time: 39
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+  - time: 42
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+
+
+  # # 桜の花を咲かせる
+  # - time: 16
+  #   event: bloom_sakura
+  #   value: TreeSakura
+
 
 
   # # ========== Wave 2（25-60秒）: 本格上昇フェーズ ==========

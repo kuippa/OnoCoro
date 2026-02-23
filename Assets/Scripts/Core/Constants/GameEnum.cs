@@ -72,4 +72,14 @@ public class GameEnum
         internal const string ALL = "all";
     }
 
+    /// <summary>
+    /// シーン内の重要なゲームオブジェクト名の定数化
+    /// GameObject.Find() の対象になるルートレベルのオブジェクト名を一元管理
+    /// </summary>
+    internal static class GameObjectNames
+    {
+        internal const string GAME_PREFABS = "GamePrefabs";
+        internal const string PLAYER_ARMATURE = "PlayerArmature";
+    }
+
 }

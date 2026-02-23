@@ -212,6 +212,14 @@ internal class InitializationManager : MonoBehaviour
             yield break;
         }
         
+        // [1.5] FallbackMonitorSystem を GamePrefabs に追加
+        GameObject gamePrefabs = GameObject.Find(GameEnum.GameObjectNames.GAME_PREFABS);
+        if (gamePrefabs != null && gamePrefabs.GetComponent<FallbackMonitorSystem>() == null)
+        {
+            gamePrefabs.AddComponent<FallbackMonitorSystem>();
+            Debug.Log("[InitializationManager] FallbackMonitorSystem を GamePrefabs に追加しました");
+        }
+        
         // [2] 各コントローラーの初期化完了を個別に監視
         foreach (IInitializable controller in allControllers)
         {

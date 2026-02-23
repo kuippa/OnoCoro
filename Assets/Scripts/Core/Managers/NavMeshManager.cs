@@ -61,7 +61,7 @@ public static class NavMeshManager
     internal static Quaternion CalculateLookAroundRotation(float currentYAngle, float rotationAngle)
     {
         float targetYAngle = Mathf.Repeat(currentYAngle + rotationAngle, 360f);
-        Debug.Log("[NavMeshManager] CalculateLookAroundRotation: currentYAngle=" + currentYAngle + " rotationAngle=" + rotationAngle + " targetYAngle=" + targetYAngle);
+        // Debug.Log("[NavMeshManager] CalculateLookAroundRotation: currentYAngle=" + currentYAngle + " rotationAngle=" + rotationAngle + " targetYAngle=" + targetYAngle);
         return Quaternion.Euler(0, targetYAngle, 0);
     }
 
@@ -78,12 +78,12 @@ public static class NavMeshManager
     {
         if (!NavMeshAgent.isOnNavMesh)
         {
-            Debug.Log("SetNavMeshDestination isOnNavMesh false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
+            // Debug.Log("SetNavMeshDestination isOnNavMesh false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
             return;
         }
         if (NavMeshAgent.pathPending)
         {
-            Debug.Log("SetNavMeshDestination pathPending false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
+            // Debug.Log("SetNavMeshDestination pathPending false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
             return;
         }
         NavMeshAgent.destination = destination;
@@ -159,5 +159,47 @@ public static class NavMeshManager
             return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// NavMesh Carving を有効化（障害物をリアルタイムで NavMesh から除外）
+    /// </summary>
+    /// <param name="obstacleObject">Carving を適用するオブジェクト</param>
+    internal static void EnableCarvingForObstacle(GameObject obstacleObject)
+    {
+        if (obstacleObject == null)
+        {
+            Debug.LogWarning("Obstacle object is null");
+            return;
+        }
+
+        NavMeshObstacle obstacle = obstacleObject.GetComponent<NavMeshObstacle>();
+        if (obstacle == null)
+        {
+            obstacle = obstacleObject.AddComponent<NavMeshObstacle>();
+        }
+
+        obstacle.carving = true;
+        obstacle.shape = NavMeshObstacleShape.Box;
+        Debug.Log($"[NavMeshManager] Carving enabled for: {obstacleObject.name}");
+    }
+
+    /// <summary>
+    /// NavMesh Carving を無効化
+    /// </summary>
+    /// <param name="obstacleObject">Carving を無効化するオブジェクト</param>
+    internal static void DisableCarvingForObstacle(GameObject obstacleObject)
+    {
+        if (obstacleObject == null)
+        {
+            return;
+        }
+
+        NavMeshObstacle obstacle = obstacleObject.GetComponent<NavMeshObstacle>();
+        if (obstacle != null)
+        {
+            obstacle.carving = false;
+            Debug.Log($"[NavMeshManager] Carving disabled for: {obstacleObject.name}");
+        }
     }
 }

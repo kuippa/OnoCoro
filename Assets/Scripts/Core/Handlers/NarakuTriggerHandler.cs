@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using CommonsUtility;
 using StarterAssets;
@@ -144,7 +145,7 @@ namespace CommonsUtility
             {
                 Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] Collider is null");
                 return;
-                }
+            }
 
             GameObject playerGO = other.gameObject;
             if (playerGO == null)
@@ -180,9 +181,13 @@ namespace CommonsUtility
 
             inputCtrl.ResetVelocity();
             
-            // プレイヤーを上に持ち上げて移動
-            resetPosition.y += _POPUP_PLAYER_DISTANCE;
-            Debug.Log($"[NarakuTriggerHandler.OnPlayerEnter] Moving player to {resetPosition}");
+            // 高い GameSpeed でも確実に naraku から抜けるよう、より高い位置に配置
+            float popupDistance = _POPUP_PLAYER_DISTANCE;
+            float gameSpeedMultiplier = Mathf.Max(1f, GameSpeedManager.GetGameSpeed() / 5f);
+            popupDistance *= gameSpeedMultiplier;
+
+            resetPosition.y += popupDistance;
+            Debug.Log($"[NarakuTriggerHandler.OnPlayerEnter] プレイヤーを Y+{popupDistance:F1} に移動 (GameSpeed: {GameSpeedManager.GetGameSpeed():F1}x, 乗数: {gameSpeedMultiplier:F2})");
             inputCtrl.CharacterMoveToPosition(resetPosition);
         }
 
@@ -292,7 +297,7 @@ namespace CommonsUtility
         }
 
         /// <summary>
-        /// オブジェクトの Rigidbody 速度をリセット
+        /// オブジェクトの Rigidbody 速度をリセット（高速GameSpeed対応）
         /// </summary>
         private void ResetObjectVelocity(Collider other)
         {
@@ -307,13 +312,39 @@ namespace CommonsUtility
                 return;
             }
 
+            // 速度・角速度をリセット
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
-            // デバッグモード時は追加の減衰を適用
-            if (GameConfig._APP_GAME_MODE == GlobalConst.GAME_MODE_DEBUG)
+            // 高い GameSpeed でも落下を続けないよう、複数の対策を実施
+            // 方法 1: useGravity を一度無効化してから有効化（重力リセット）
+            rb.useGravity = false;
+            rb.useGravity = true;
+
+            // 方法 2: constraints で Y 軸の動きを一時的に固定
+            RigidbodyConstraints originalConstraints = rb.constraints;
+            rb.constraints = RigidbodyConstraints.FreezePositionY;
+            
+            // 次フレームで constraints を解除するコルーチンを開始
+            if (this != null && this.gameObject.activeInHierarchy)
             {
-                rb.linearDamping = 2f;
+                StartCoroutine(ReleaseConstraintsNextFrame(rb, originalConstraints));
+            }
+
+            Debug.Log($"[NarakuTriggerHandler.ResetObjectVelocity] {other.gameObject.name}: 重力・速度をリセット (GameSpeed: {GameSpeedManager.GetGameSpeed():F1}x)");
+        }
+
+        /// <summary>
+        /// 次フレームで Rigidbody の constraints を元に戻すコルーチン
+        /// </summary>
+        private IEnumerator ReleaseConstraintsNextFrame(Rigidbody rb, RigidbodyConstraints originalConstraints)
+        {
+            yield return null;  // 1フレーム待機
+            
+            if (rb != null)
+            {
+                rb.constraints = originalConstraints;
+                Debug.Log($"[NarakuTriggerHandler.ReleaseConstraintsNextFrame] {rb.gameObject.name}: constraints を解除");
             }
         }
     }

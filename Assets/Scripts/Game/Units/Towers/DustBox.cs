@@ -14,6 +14,12 @@ public class DustBox : MonoBehaviour, IItemStructProvider
         _unit_struct = new UnitStruct(_item_struct.Name, _item_struct.ItemID, 1, _item_struct.Info, 0, _item_struct.CreateCost, 0, "CLK");
     }
 
+    private void OnEnable()
+    {
+        // 右クリック・ルーペモードで検出されるようにタグを設定
+        gameObject.tag = GameEnum.TagType.DustBox.ToString();
+    }
+
     internal ItemStruct GetItemStruct()
     {
         return _item_struct;
@@ -22,5 +28,11 @@ public class DustBox : MonoBehaviour, IItemStructProvider
     internal UnitStruct GetUnitStruct()
     {
         return _unit_struct;
+    }
+
+    private void OnDestroy()
+    {
+        // NavMesh Carving をクリーンアップ（障害物除外を解除）
+        NavMeshManager.DisableCarvingForObstacle(gameObject);
     }
 }
