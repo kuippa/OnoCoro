@@ -92,52 +92,53 @@ events:
     value: "wave 1"
 
   # Wave 1-1: 最初の 1 体（敵が見えて安心感を）
-  - time: 5
+  - time: 20
+  # - time: 5
     event: spawn_enemy_unit
     value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  # Wave 1-2: 少し間を空けて 1 体（ペアで来る感覚）
-  - time: 8
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # # Wave 1-2: 少し間を空けて 1 体（ペアで来る感覚）
+  # - time: 8
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
 
-  - time: 17
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 17
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 21
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 21
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 25
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 25
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 30
-    event: bloom_sakura
-    value: TreeSakura_01
+  # - time: 30
+  #   event: bloom_sakura
+  #   value: TreeSakura_01
 
 
-  - time: 30
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 30
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 33
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 33
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 36
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 36
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 39
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 39
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 42
-    event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # - time: 42
+  #   event: spawn_enemy_unit
+  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
 
   # # 桜の花を咲かせる

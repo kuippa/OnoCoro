@@ -6,25 +6,33 @@ using UnityEngine;
 using UnityEngine.AI;
 using Debug = CommonsUtility.Debug;
 
+/// <summary>
+/// ゴミ敵キャラクター（ゴミを撒き散らすタイプの敵）
+/// 期待される子オブジェクト: "CapsuleHead" (表示用), "Hand" (ゴミ生成用)
+/// 期待されるコンポーネント: NavMeshAgent (移動制御用), CapsuleCollider or BoxCollider (位置計算用)
+/// </summary>
 public class EnemyLitter : MonoBehaviour
 {
     private NavMeshAgent _navMeshAgent;
     private EnemyStatus _myStatus;
-    private int _childCount;
     private Vector3[] _myPaths;
+    private LitterGarbageSpawner _garbageSpawner;
+    private LitterPathManager _pathManager;
+    private LitterMovementController _movementController;
+    private TowerDestructionHandler _towerDestructionHandler;
+    private Renderer _headRenderer;
+    private Transform _handTransform;
+    private int _childCount;
 
-    // Timing Constants
-    private const float _LITTER_CHECK_INTERVAL = 2.5f;  // デバッグ: 間隔を広げてゴミの軌跡を確認しやすく
-    private const float _MOVING_CHECK_INTERVAL = 1.5f;
-    private const float _THROW_ANGLE_DEG = 65f;
-    private const float _STUCK_TIMEOUT_DURATION = 13.0f;  // パスに到達できない場合のタイムアウト時間
-    private const float _STUCK_TOWER_DESTRUCTION_RADIUS = 18.0f;  // タイムアウト時に破壊するタワーの設非矢一円箄囲
+    // Movement Speed Constants
+    private const float _AGENT_BASE_SPEED = 1.2f;     // NavMeshAgent の基本移動速度
+    private const float _AGENT_MAX_SPEED = 6f;        // NavMeshAgent の最大速度制限
+    
+    // Tower Destruction Constants
+    private const int _MAX_TOWER_DESTRUCTION_COUNT = 1;  // タイムアウト時に破壊するタワーの最大数
 
     // Numeric Constants
-    private const int _MAX_LITTERS = 20;
     private const float _UNDEFINED_POSITION_VALUE = -99f;
-    private const float _THROW_SPEED_DEFAULT = 4.43f;
-    private const float _GRAVITY_ACCELERATION = 9.8f;
     private const float _ZERO_THRESHOLD = 0f;
     
     // GameObject Names
@@ -33,20 +41,15 @@ public class EnemyLitter : MonoBehaviour
     
     // Internal State
     private Vector3 _undefinedPosition = new Vector3(_UNDEFINED_POSITION_VALUE, _UNDEFINED_POSITION_VALUE, _UNDEFINED_POSITION_VALUE);
-    private Vector3 _targetPosition = Vector3.zero;
-    private float _targetRadius;
-    private int _numberOfMonitoring;
     private bool _littingMode = true;
     private bool _movingMode = true;
-    private float _stuckDurationCounter = 0f;  // パス設定から経過した時間（タイムアウト検出用）
-    private const float _MIN_AGENT_SPEED = 0.1f;  // 移動が停止していると判定するエージェント速度（m/s）
 
     internal static int _idx;
 
     internal void CreateLitterUnit(Vector3 position)
     {
-        int indexByTag = GameObjectTreat.IndexObjectByTag(tag);
-        name = tag + indexByTag;
+        int indexByTag = GameObjectTreat.IndexObjectByTag(this.gameObject.tag);
+        name = this.gameObject.tag + indexByTag;
         
         _myStatus = GetEnemyStatus();
         _myStatus.SetEnemyName(name);
@@ -67,171 +70,55 @@ public class EnemyLitter : MonoBehaviour
     {
         if (targetObj == null)
         {
-            _targetPosition = Vector3.zero;
-            _targetRadius = _ZERO_THRESHOLD;
+            _garbageSpawner.SetThrowTarget(null);
             ChangeHeadColor(-1);  // Monitoring カウント -1
             return;
         }
 
-        _targetPosition = targetObj.transform.position;
-        _targetRadius = targetObj.GetComponent<TowerDustBoxCtrl>().GetRadius();
+        _garbageSpawner.SetThrowTarget(targetObj);
         ChangeHeadColor(1);  // Monitoring カウント +1
     }
 
     internal void ChangeHeadColor(int monit)
     {
-        _numberOfMonitoring += monit;  // 複数箇所からの監視カウント
+        _garbageSpawner.UpdateMonitoringCount(monit);
         
-        Transform capsuleHeadTransform = transform.Find(_CHILD_NAME_CAPSULE_HEAD);
-        if (capsuleHeadTransform == null)
+        if (_headRenderer == null)
         {
-            Debug.LogWarning($"CapsuleHead not found in {name}");
-            return;
-        }
-        
-        Renderer headRenderer = capsuleHeadTransform.GetComponent<Renderer>();
-        if (headRenderer == null)
-        {
-            Debug.LogWarning($"Renderer not found on CapsuleHead in {name}");
+            // Debug.LogWarning($"HeadRenderer not initialized on {name}");
             return;
         }
         
         // 複数箇所からの監視カウントが1以上なら赤色、それ以外は緑色
-        if (_numberOfMonitoring > 0)
-        {
-            headRenderer.material = MaterialManager.BGRed;
-        }
-        else
-        {
-            headRenderer.material = MaterialManager.BGGreen;
-        }
+        Material headMaterial = _garbageSpawner.GetMonitoringCount() > 0
+            ? MaterialManager.BGRed
+            : MaterialManager.BGGreen;
+        _headRenderer.material = headMaterial;
     }
 
-    private Vector3 GetThrowOutDirection()
-    {
-        if (_targetPosition != Vector3.zero)
-        {
-            return (_targetPosition - transform.position).normalized;
-        }
-        return transform.forward;
-    }
-
-    private float GetTargetDistance()
-    {
-        if (_targetPosition == Vector3.zero)
-        {
-            return _ZERO_THRESHOLD;
-        }
-
-        return Vector3.Distance(transform.position, _targetPosition);
-    }
-
-    private float GetThrowOutSpeed()
-    {
-        if (_targetPosition == Vector3.zero)
-        {
-            return _THROW_SPEED_DEFAULT;
-        }
-
-        float targetDistance = GetTargetDistance();
-        float angleRad = Mathf.PI * _THROW_ANGLE_DEG / 180f;
-        float sinTwoAngle = Mathf.Sin(2f * angleRad);
-        
-        if (Mathf.Approximately(sinTwoAngle, 0))
-        {
-            return _THROW_SPEED_DEFAULT;
-        }
-
-        float speedSquared = targetDistance * _GRAVITY_ACCELERATION / sinTwoAngle;
-        
-        if (speedSquared < 0)
-        {
-            return _THROW_SPEED_DEFAULT;
-        }
-
-        return Mathf.Sqrt(speedSquared);
-    }
-
-    private bool MakeChildLitter()
-    {
-        if (_childCount >= _MAX_LITTERS)
-        {
-            _childCount = 0;
-            _littingMode = false;
-            return false;
-        }
-
-        float targetDistance = GetTargetDistance();
-        if (ShouldSkipLitterGeneration(targetDistance))
-        {
-            return false;
-        }
-
-        return SpawnAndConfigureGarbageCube();
-    }
-
-    private bool ShouldSkipLitterGeneration(float targetDistance)
-    {
-        bool isOutsideTargetRadius = targetDistance > _targetRadius || Mathf.Approximately(targetDistance, _ZERO_THRESHOLD);
-        return isOutsideTargetRadius && _numberOfMonitoring > 0;
-    }
-
-    private bool SpawnAndConfigureGarbageCube()
-    {
-        Transform handTransform = transform.Find(_CHILD_NAME_HAND);
-        if (handTransform == null)
-        {
-            Debug.LogWarning($"Hand not found in {name}");
-            return false;
-        }
-
-        GameObject garbageCube = GarbageCubeCtrl.SpawnGarbageCube(handTransform.position, 1);
-        if (garbageCube == null)
-        {
-            Debug.LogWarning($"Failed to spawn garbage cube");
-            return false;
-        }
-
-        Rigidbody rigidbody = garbageCube.GetComponent<Rigidbody>();
-        if (rigidbody == null)
-        {
-            Debug.LogWarning($"Rigidbody not found in spawned garbage cube");
-            return false;
-        }
-
-        Vector3 velocity = CalculateThrowVelocity();
-        rigidbody.linearVelocity = velocity;
-        
-        _childCount++;
-        
-        return true;
-    }
-
-    private Vector3 CalculateThrowVelocity()
-    {
-        float throwOutSpeed = GetThrowOutSpeed();
-        Vector3 throwDirection = GetThrowOutDirection();
-        float angleRad = Mathf.PI * _THROW_ANGLE_DEG / 180f;
-
-        Vector3 velocity = Vector3.zero;
-        velocity.y = throwOutSpeed * Mathf.Sin(angleRad);
-        velocity.x = throwOutSpeed * Mathf.Cos(angleRad) * throwDirection.x;
-        velocity.z = throwOutSpeed * Mathf.Cos(angleRad) * throwDirection.z;
-
-        return velocity;
-    }
-
-    private Vector3 GetRandomSize(float min, float max)
-    {
-        return new Vector3(RandomRange(min, max), RandomRange(min, max), RandomRange(min, max));
-    }
 
     private IEnumerator LitterDrops()
     {
         while (_littingMode)
         {
-            yield return new WaitForSeconds(_LITTER_CHECK_INTERVAL);
-            MakeChildLitter();
+            yield return new WaitForSeconds(Litter.GARBAGE_DROP_INTERVAL);
+
+            if (_handTransform == null)
+            {
+                // Debug.LogWarning($"Hand not found in {name}");
+                _littingMode = false;
+                yield break;
+            }
+
+            if (_garbageSpawner.TryExecuteGarbageDrop(_handTransform, transform.position, transform, _childCount, out int newChildCount))
+            {
+                _childCount = newChildCount;
+            }
+            else
+            {
+                // 生成失敗 → 上限に達したため生成モード終了
+                _littingMode = false;
+            }
         }
     }
 
@@ -239,52 +126,36 @@ public class EnemyLitter : MonoBehaviour
     {
         while (_movingMode)
         {
-            yield return new WaitForSeconds(_MOVING_CHECK_INTERVAL);
-            
-            // エージェントの現在速度をチェック：実速度が0.1m/s未満なら停止状態と判定
+            yield return new WaitForSeconds(LitterMovementController._MOVING_CHECK_INTERVAL);
+
+            // 移動状態を更新＆タイムアウト判定
             float agentSpeed = _navMeshAgent.velocity.magnitude;
-            
-            if (agentSpeed < _MIN_AGENT_SPEED)
+            if (_movementController.CheckAndUpdateMovementState(agentSpeed, name))
             {
-                // 移動が停止しているのでカウントアップ
-                _stuckDurationCounter += _MOVING_CHECK_INTERVAL;
-                Debug.Log($"{name}: 移動が停止しています (エージェント速度: {agentSpeed:F3}m/s) - 停止時間: {_stuckDurationCounter:F1}秒");
-                
-                if (_stuckDurationCounter >= _STUCK_TIMEOUT_DURATION)
-                {
-                    Debug.Log($"{name}: パスに到達できず {_STUCK_TIMEOUT_DURATION} 秒経過。近隣タワーを破壊します");
-                    DestroyNearbyTowers();
-                    
-                    // タワー破壊後、次のパスに進む（現在のパス目標を更新）
-                    if (!SetNextPath(_myPaths))
-                    {
-                        // パスがもうない場合はゴール達成
-                        Debug.Log($"{name}: すべてのパスを踏破しました");
-                        _movingMode = false;
-                    }
-                    else
-                    {
-                        // 次のパスに進むため、カウンターをリセット
-                        _stuckDurationCounter = 0f;
-                        Debug.Log($"{name}: タワー破壊完了。新しい経路で移動を再開します");
-                    }
-                }
+                HandleMovementTimeout();
             }
-            else
+
+            // 目的地到達判定
+            if (_movementController.HasReachedDestination(_navMeshAgent))
             {
-                // 移動中はカウンターをリセット
-                if (_stuckDurationCounter > 0)
-                {
-                    Debug.Log($"{name}: 移動を再開しました (エージェント速度: {agentSpeed:F3}m/s)");
-                    _stuckDurationCounter = 0f;
-                }
-            }
-            
-            if (NavMeshManager.HasReachedDestination(_navMeshAgent) && !SetNextPath(_myPaths))
-            {
-                _movingMode = false;
+                _movingMode = SetNextPath(_myPaths);
             }
         }
+    }
+
+    /// <summary>
+    /// 移動タイムアウト時の処理（タワー破壊→次のパス進行）
+    /// </summary>
+    private void HandleMovementTimeout()
+    {
+        Debug.Log($"{name}: パスに到達できずタイムアウト。近隣タワーを破壊します");
+        _towerDestructionHandler.DestroyNearbyTowers(transform.position, _MAX_TOWER_DESTRUCTION_COUNT, name);
+
+        _movementController.ResetStuckCounter();
+        // Debug.Log($"{name}: タワー破壊完了。新しい経路で移動を再開します");
+
+        // タイムアウト後は、現在のパスをリセットして経路算定からやり直す
+        NavMeshManager.SetDestinationFromIntended(_navMeshAgent);
     }
 
     private void AgentReachedGoal()
@@ -292,85 +163,11 @@ public class EnemyLitter : MonoBehaviour
         GameObjectTreat.DestroyAll(gameObject);
     }
 
-    /// <summary>
-    /// 近隣のユーザータワーをすべて破壊
-    /// タイムアウト時の相打ちペナルティー
-    /// </summary>
-    private void DestroyNearbyTowers()
-    {
-        Vector3 centerPosition = transform.position;
-        
-        foreach (string towerTag in GetTowerTags())
-        {
-            GameObject[] towersWithTag = GameObject.FindGameObjectsWithTag(towerTag);
-            
-            foreach (GameObject tower in towersWithTag)
-            {
-                DestroyTowerIfInRange(tower, centerPosition);
-            }
-        }
-    }
-
-    private string[] GetTowerTags()
-    {
-        return new string[]
-        {
-            GameEnum.TagType.DustBox.ToString(),
-            GameEnum.TagType.FireCube.ToString(),
-            GameEnum.TagType.WaterTurret.ToString(),
-            GameEnum.TagType.SentryGuard.ToString(),
-            GameEnum.TagType.PowerCube.ToString(),
-            GameEnum.TagType.StopPlate.ToString(),
-            GameEnum.TagType.TowerSweeper.ToString()
-        };
-    }
-
-    private void DestroyTowerIfInRange(GameObject tower, Vector3 centerPosition)
-    {
-        if (tower == null)
-        {
-            return;
-        }
-        
-        float distanceToColliderEdge = GetDistanceToColliderEdge(tower, centerPosition);
-        Debug.Log($"{name}: Checking tower {tower.name} at distance {distanceToColliderEdge:F2}m");
-        if (distanceToColliderEdge <= _STUCK_TOWER_DESTRUCTION_RADIUS)
-        {
-            GameObjectTreat.DestroyAll(tower);
-        }
-    }
-
-    private float GetDistanceToColliderEdge(GameObject tower, Vector3 centerPosition)
-    {
-        Collider collider = tower.GetComponent<Collider>();
-        if (collider == null)
-        {
-            return float.MaxValue;
-        }
-        
-        Vector3 colliderCenter = collider.bounds.center;
-        float colliderRadius = GetColliderRadius(tower, collider);
-        float distanceToColliderCenter = Vector3.Distance(centerPosition, colliderCenter);
-        
-        return distanceToColliderCenter - colliderRadius;
-    }
-
-    private float GetColliderRadius(GameObject tower, Collider collider)
-    {
-        SphereCollider sphereCollider = tower.GetComponent<SphereCollider>();
-        if (sphereCollider != null)
-        {
-            return sphereCollider.radius * tower.transform.lossyScale.x;
-        }
-        
-        return collider.bounds.extents.magnitude;
-    }
-
     private void AgentJumpToStartPosition()
     {
         if (_myPaths == null || _myPaths.Length == 0)
         {
-            Debug.LogWarning($"No paths available for {name}");
+            // Debug.LogWarning($"No paths available for {name}");
             return;
         }
 
@@ -380,11 +177,11 @@ public class EnemyLitter : MonoBehaviour
 
         // transform.position の直接書き換えでは NavMeshAgent が NavMesh に再登録されない。
         // Warp() を使うことで、エージェントが指定位置の NavMesh に即座にスナップされ
-        // isOnNavMesh = true となり、直後の SetNavMeshDestination が成功する。
+        // isOnNavMesh = true となり、直後の SetDestination が成功する。
         bool warped = _navMeshAgent.Warp(warpPosition);
         if (!warped)
         {
-            Debug.LogWarning($"{name}: Warp failed at {warpPosition}. NavMesh surface may not exist nearby.");
+            // Debug.LogWarning($"{name}: Warp failed at {warpPosition}. NavMesh surface may not exist nearby.");
         }
 
         // 初期スポーン位置を SpawnOriginTracker に記録する。
@@ -413,7 +210,7 @@ public class EnemyLitter : MonoBehaviour
             return boxCollider.size.y / 2f - boxCollider.center.y;
         }
 
-        Debug.LogWarning($"{name}: CapsuleCollider も BoxCollider も見つからないため bottomOffset=0 を使用");
+        // Debug.LogWarning($"{name}: CapsuleCollider も BoxCollider も見つからないため bottomOffset=0 を使用");
         return 0f;
     }
 
@@ -421,23 +218,30 @@ public class EnemyLitter : MonoBehaviour
     {
         if (paths == null || paths.Length == 0)
         {
+            // Debug.Log($"{name}: No more paths to follow. Agent has reached the final destination.");
             AgentReachedGoal();
             return false;
         }
 
         Vector3 destination = paths[0];
         SetDestination(destination);
+
+        // Debug.Log($"{name}: Next path set to {destination}. Remaining paths: {paths.Length - 1}");
         
         List<Vector3> remainingPaths = new List<Vector3>(paths);
         remainingPaths.RemoveAt(0);
         _myPaths = remainingPaths.ToArray();
         
-        // パスを設定したので、タイムアウトカウンターをリセット
-        _stuckDurationCounter = 0f;
-        
         return true;
     }
 
+    /// <summary>
+    /// 移動パスに新しい経由地点を挿入し、現在の移動を中断・再開する
+    /// 
+    /// 指定された位置を現在のパス最前に挿入し、直ちにそこへ向かう。
+    /// 例えばゲーム内イベント発生時に敵の進路を動的に変更する場合に使用する。
+    /// </summary>
+    /// <param name="path">新しく追加する経由地点の座標</param>
     internal void AddPathAndInterrupt(Vector3 path)
     {
         if (_myPaths == null)
@@ -461,101 +265,65 @@ public class EnemyLitter : MonoBehaviour
         pathList.Insert(0, path);
         _myPaths = pathList.ToArray();
         
-        Debug.Log("AddPathAndInterrupt:" + path.ToString());
+        // Debug.Log("AddPathAndInterrupt:" + path.ToString());
         SetNextPath(_myPaths);
     }
 
     internal void SetPaths(string[] markerNames = null)
     {
-        Vector3[] paths;
-        
-        if (markerNames == null || markerNames.Length == 0)
-        {
-            paths = GetDefaultPaths();
-        }
-        else
-        {
-            paths = GetCustomPaths(markerNames);
-        }
-
-        _myPaths = paths;
-    }
-
-    private Vector3[] GetDefaultPaths()
-    {
-        return new Vector3[1] {new Vector3(0f, 0f, 0f) };
-        // return new Vector3[4]
-        // {
-        //     GetMarkerPositionByName("path_marker_start"),
-        //     GetMarkerPositionByName("path_marker_01"),
-        //     GetMarkerPositionByName("path_marker_02"),
-        //     GetMarkerPositionByName("path_marker_goal")
-        // };
-    }
-
-    private Vector3[] GetCustomPaths(string[] markerNames)
-    {
-        List<Vector3> validPaths = new List<Vector3>();
-
-        foreach (string markerName in markerNames)
-        {
-            Vector3 markerPosition = GetMarkerPositionByName(markerName.Trim());
-            
-            if (markerPosition == _undefinedPosition)
-            {
-                continue;
-            }
-
-            validPaths.Add(markerPosition);
-        }
-
-        return validPaths.ToArray();
+        _myPaths = _pathManager.GeneratePathsFromMarkers(markerNames);
     }
 
     private void SetDestination(Vector3 destination)
     {
-        // TODO: キャラクターごとの移動スピードの制御
-        // NavMeshManager.SetAgentSpeed(_navMeshAgent);
-        NavMeshManager.ChangeAgentSpeed(_navMeshAgent, 1.2f, 6f);  
-        
         if (NavMeshManager.IsSameDestination(_navMeshAgent, destination))
         {
             return;
         }
-
-        bool isDestinationSet = NavMeshManager.SetNavMeshDestination(_navMeshAgent, destination, transform);
-        if (!isDestinationSet)
-        {
-            Debug.Log("SetNavMeshDestination failed:" + destination.ToString());
-        }
+        NavMeshManager.SetDestination(destination, _navMeshAgent);
     }
 
-    private Vector3 GetMarkerPositionByName(string markerName)
-    {
-        if (string.IsNullOrEmpty(markerName))
-        {
-            Debug.LogWarning("Marker name is null or empty");
-            return _undefinedPosition;
-        }
-
-        GameObject markerObject = GameObject.Find(markerName);
-        if (markerObject == null)
-        {
-            Debug.LogWarning("GetMarkerPositionByName cannot find:" + markerName);
-            return _undefinedPosition;
-        }
-
-        return markerObject.transform.position;
-    }
-
-    private static float RandomRange(float min, float max)
-    {
-        return Utility.fRandomRange(min, max);
-    }
 
     private void Awake()
     {
         _navMeshAgent = NavMeshManager.GetNavMeshAgent(gameObject);
+        if (_navMeshAgent == null)
+        {
+            // Debug.LogWarning($"NavMeshAgent not found on {name}");
+            enabled = false;
+            return;
+        }
+
+        // CapsuleHead Renderer をキャッシュ
+        Transform capsuleHeadTransform = transform.Find(_CHILD_NAME_CAPSULE_HEAD);
+        if (capsuleHeadTransform == null)
+        {
+            // Debug.LogWarning($"CapsuleHead not found on {name}");
+            enabled = false;
+            return;
+        }
+        
+        _headRenderer = capsuleHeadTransform.GetComponent<Renderer>();
+        if (_headRenderer == null)
+        {
+            // Debug.LogWarning($"Renderer not found on CapsuleHead in {name}");
+            enabled = false;
+            return;
+        }
+
+        // Hand Transform をキャッシュ
+        _handTransform = transform.Find(_CHILD_NAME_HAND);
+        if (_handTransform == null)
+        {
+            // Debug.LogWarning($"Hand not found on {name}");
+            enabled = false;
+            return;
+        }
+
+        _garbageSpawner = new LitterGarbageSpawner();
+        _pathManager = new LitterPathManager();
+        _movementController = new LitterMovementController();
+        _towerDestructionHandler = new TowerDestructionHandler();
         _idx++;
     }
 
@@ -566,25 +334,17 @@ public class EnemyLitter : MonoBehaviour
         // パスが有効か確認
         if (_myPaths == null || _myPaths.Length == 0)
         {
-            Debug.LogWarning($"{name}: InitUnitSpawn: パスマーカーが見つからないため初期化に失敗しました");
+            // Debug.LogWarning($"{name}: InitUnitSpawn: パスマーカーが見つからないため初期化に失敗しました");
             return;
         }
-        
         AgentJumpToStartPosition();
         SetNextPath(_myPaths);
+        
+        // TODO: キャラクターごとの移動スピードの制御
+        NavMeshManager.ChangeAgentSpeed(_navMeshAgent, _AGENT_BASE_SPEED, _AGENT_MAX_SPEED);
+
         StartCoroutine(LitterDrops());
         StartCoroutine(MoveAgent());
     }
 
-    private void Start()
-    {
-    }
-
-    private void Update()
-    {
-    }
-
-    private void OnDestroy()
-    {
-    }
 }

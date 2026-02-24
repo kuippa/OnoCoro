@@ -122,12 +122,7 @@ public class InfoWindowCtrl : UIControllerBase
             return false;
         }
         
-        if (unitStruct.HasValue || (unitStruct.HasValue && unitStruct.GetValueOrDefault().DeleteCost > 0))
-        {
-            return true;
-        }
-        
-        return false;
+        return (unitStruct.HasValue && unitStruct.GetValueOrDefault().DeleteCost > 0);
     }
 
     internal void GetTargetUnit()

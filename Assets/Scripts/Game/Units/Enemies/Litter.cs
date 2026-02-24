@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class Litter : MonoBehaviour, IItemStructProvider, IUnitStructProvider
 {
+    // Litter の能力パラメータ
+    internal const float GARBAGE_DROP_INTERVAL = 2.5f;  // ゴミ撒き散らし間隔（秒）
+    internal const int MAX_GARBAGE_COUNT = 20;  // 最大ゴミ撒き散らし数
+
     internal ItemStruct _item_struct;
 
     internal UnitStruct _unit_struct;
@@ -31,7 +35,7 @@ public class Litter : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             , 1
             , _item_struct.Info
             , 0
-            , _item_struct.CreateCost
+            , 0 // DeleteCost が 0 だと削除できないため、敵ユニットは DeleteCost を 0 に設定
             , 0
             , "CLK");
     }

@@ -12,6 +12,9 @@ public static class NavMeshManager
     private const float _MOVE_SPEED = 3f;
     private const float _ROTATE_ANGLE = 67f;
 
+    // エージェントごとの意図した目的地を記録（キー：NavMeshAgent.GetInstanceID()）
+    private static  Vector3 _intendedDestinations = new Vector3();
+    
     internal static NavMeshAgent GetNavMeshAgent(GameObject targetObject)
     {
         NavMeshAgent navMeshAgent = targetObject.GetComponent<NavMeshAgent>();
@@ -74,29 +77,31 @@ public static class NavMeshManager
         }
     }
 
+    internal static void SetDestinationFromIntended(NavMeshAgent NavMeshAgent)
+    {
+        SetDestination(_intendedDestinations, NavMeshAgent);
+    }
+
     internal static void SetDestination(Vector3 destination, NavMeshAgent NavMeshAgent)
     {
-        if (!NavMeshAgent.isOnNavMesh)
+        if (!IsOnNavMesh(NavMeshAgent))
         {
             // Debug.Log("SetNavMeshDestination isOnNavMesh false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
             return;
         }
+
         if (NavMeshAgent.pathPending)
         {
             // Debug.Log("SetNavMeshDestination pathPending false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
             return;
         }
+        
+        // 意図した目的地を記録（NavMeshAgent.destination がセット失敗しても保持）
+        // int agentId = NavMeshAgent.GetInstanceID();
+        _intendedDestinations = destination;
+        
         NavMeshAgent.destination = destination;
         NavMeshAgent.autoRepath = true;
-    }
-
-    internal static Quaternion GetRotateAngle(Vector3 relativePos)
-    {
-        if (relativePos == Vector3.zero)
-        {
-            return Quaternion.identity;
-        }
-        return Quaternion.LookRotation(new Vector3(relativePos.x, 0f, relativePos.z), Vector3.up);
     }
 
     internal static void SetAgentSpeed(NavMeshAgent NavMeshAgent)
@@ -123,18 +128,6 @@ public static class NavMeshManager
         return false;
     }
 
-    internal static bool SetNavMeshDestination(NavMeshAgent NavMeshAgent, Vector3 destination, Transform transform)
-    {
-        Vector3 relativePos = destination - transform.position;
-        transform.localRotation = GetRotateAngle(relativePos);
-        SetDestination(destination, NavMeshAgent);
-        if (!IsOnNavMesh(NavMeshAgent))
-        {
-            return false;
-        }
-        return true;
-    }
-
     private static bool IsOnNavMesh(NavMeshAgent NavMeshAgent)
     {
         if (!NavMeshAgent.isOnNavMesh)
@@ -154,10 +147,50 @@ public static class NavMeshManager
         {
             return false;
         }
-        if (!NavMeshAgent.pathPending && NavMeshAgent.remainingDistance <= NavMeshAgent.stoppingDistance && (!NavMeshAgent.hasPath || NavMeshAgent.velocity.sqrMagnitude <= 0.8f))
+
+        Vector3 destination = GetDestination(NavMeshAgent);
+        int agentId = NavMeshAgent.GetInstanceID();
+        
+        if (NavMeshAgent.pathPending)
         {
+            // Debug.Log("HasReachedDestination pathPending false:" + destination + " :" + NavMeshAgent.name);
+            return false;
+        }
+
+        // [重要] パスがない = 経路計算失敗 → 到達ではなく失敗
+        if (!NavMeshAgent.hasPath)
+        {
+            // Debug.Log("HasReachedDestination: No valid path, treating as failure:" + destination + NavMeshAgent.name + " " + NavMeshAgent.transform.position);
+            // 到達済みでパスがない場合もある
+            if (!(NavMeshAgent.remainingDistance <= NavMeshAgent.stoppingDistance))
+            {
+                return false;
+            }
+        }
+
+        // 意図した目的地が記録されているか確認
+        if (_intendedDestinations == null)
+        {
+            // Debug.Log("HasReachedDestination: No intended destination found for " + NavMeshAgent.name);
+            return false;
+        }
+
+        // 意図した目的地と実際の目的地の距離がstoppingDistance以上なら到達していない
+        if (Vector3.Distance(_intendedDestinations, destination) > NavMeshAgent.stoppingDistance)
+        {
+            Debug.Log("HasReachedDestination: Destination mismatch (intended: " 
+                + _intendedDestinations + ", actual: " + destination + ") for " 
+                + NavMeshAgent.name + " Distance: " + Vector3.Distance(_intendedDestinations, destination) 
+                + " " + NavMeshAgent.stoppingDistance);
+            return false;
+        }
+
+        if (NavMeshAgent.remainingDistance <= NavMeshAgent.stoppingDistance)
+        {
+            Debug.Log("HasReachedDestination reached:" + destination + " :" + NavMeshAgent.name);
             return true;
         }
+
         return false;
     }
 
