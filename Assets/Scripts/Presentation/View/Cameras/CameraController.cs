@@ -39,9 +39,9 @@ namespace CommonsUtility
 
         // ズームレベル範囲
         const float CAMERA_ZOOM_MIN = -2f;
-        const float CAMERA_ZOOM_MAX = 8f;
-        const float CAMERA_ZOOM_LONG = 14f;
-        const float CAMERA_ZOOM_BIRD = 25f;
+        const float CAMERA_ZOOM_MAX = 12f;
+        const float CAMERA_ZOOM_LONG = 18f;
+        const float CAMERA_ZOOM_BIRD = 29f;
         const float BIRDCAM_BASEMENT_Y = 20f;
 
         // 状態変数

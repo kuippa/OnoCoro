@@ -19,12 +19,12 @@ public class UnitFireDisaster : MonoBehaviour
 				{
 					Vector3 spawnPoint = new Vector3((float)i * distance, 1f, (float)j * distance);
 					GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
-					GarbageCubeCtrl garbageCubeCtrl = gameManagerObject.GetComponent<GarbageCubeCtrl>();
-					if (garbageCubeCtrl == null)
+					GarbageCubeSpawner garbageCubeSpawner = gameManagerObject.GetComponent<GarbageCubeSpawner>();
+					if (garbageCubeSpawner == null)
 					{
-						garbageCubeCtrl = gameManagerObject.AddComponent<GarbageCubeCtrl>();
+						garbageCubeSpawner = gameManagerObject.AddComponent<GarbageCubeSpawner>();
 					}
-					garbageCubeCtrl.SpawnGarbageCubeAsync(spawnPoint);
+					garbageCubeSpawner.SpawnGarbageCubeAsync(spawnPoint);
 				}
 			}
 		}
@@ -40,12 +40,12 @@ public class UnitFireDisaster : MonoBehaviour
 				{
 					Vector3 spawnPoint = new Vector3((float)i * distance, 1f, (float)j * distance);
 					GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
-					FireCubeCtrl fireCubeCtrl = gameManagerObject.GetComponent<FireCubeCtrl>();
-					if (fireCubeCtrl == null)
+					FireCubeSpawner fireCubeSpawner = gameManagerObject.GetComponent<FireCubeSpawner>();
+					if (fireCubeSpawner == null)
 					{
-						fireCubeCtrl = gameManagerObject.AddComponent<FireCubeCtrl>();
+						fireCubeSpawner = gameManagerObject.AddComponent<FireCubeSpawner>();
 					}
-					fireCubeCtrl.SpawnFireCubeAsync(spawnPoint, 2);
+					fireCubeSpawner.SpawnFireCubeAsync(spawnPoint, 2);
 				}
 			}
 		}
@@ -145,7 +145,7 @@ public class UnitFireDisaster : MonoBehaviour
 		SettingWalls(num, distance2);
 		SettingWaterTurret(num - 1, distance2);
 		SettingCubes(num, distance);
-		FireCubeCtrl.SpawnFireCube(new Vector3(0f, 1f, 0f));
+		FireCubeFactory.SpawnFireCube(new Vector3(0f, 1f, 0f));
 	}
 
 	private void Update()

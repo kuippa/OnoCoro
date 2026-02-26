@@ -204,6 +204,9 @@ namespace CommonsUtility
         /// <summary>パスマーカー配置セクション</summary>
         internal const string PathMakers = "pathmakers";
 
+        /// <summary>ルート名定義セクション（pathmakers の複数シーケンスを名前で参照可能にする）</summary>
+        internal const string RouteNames = "routenames";
+
         /// <summary>ゴール条件セクション</summary>
         internal const string Goals = "goals";
 

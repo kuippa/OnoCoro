@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections.Generic;
 using Debug = CommonsUtility.Debug;
 
 public static class NavMeshManager
@@ -13,7 +14,7 @@ public static class NavMeshManager
     private const float _ROTATE_ANGLE = 67f;
 
     // エージェントごとの意図した目的地を記録（キー：NavMeshAgent.GetInstanceID()）
-    private static  Vector3 _intendedDestinations = new Vector3();
+    private static Dictionary<int, Vector3> _intendedDestinations = new Dictionary<int, Vector3>();
     
     internal static NavMeshAgent GetNavMeshAgent(GameObject targetObject)
     {
@@ -79,26 +80,35 @@ public static class NavMeshManager
 
     internal static void SetDestinationFromIntended(NavMeshAgent NavMeshAgent)
     {
-        SetDestination(_intendedDestinations, NavMeshAgent);
+        if (NavMeshAgent == null)
+        {
+            return;
+        }
+        
+        int agentId = NavMeshAgent.GetInstanceID();
+        if (!_intendedDestinations.ContainsKey(agentId))
+        {
+            return;
+        }
+        
+        SetDestination(_intendedDestinations[agentId], NavMeshAgent);
     }
 
     internal static void SetDestination(Vector3 destination, NavMeshAgent NavMeshAgent)
     {
         if (!IsOnNavMesh(NavMeshAgent))
         {
-            // Debug.Log("SetNavMeshDestination isOnNavMesh false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
             return;
         }
 
         if (NavMeshAgent.pathPending)
         {
-            // Debug.Log("SetNavMeshDestination pathPending false:" + NavMeshAgent.GetInstanceID() + " :" + NavMeshAgent.name);
             return;
         }
         
         // 意図した目的地を記録（NavMeshAgent.destination がセット失敗しても保持）
-        // int agentId = NavMeshAgent.GetInstanceID();
-        _intendedDestinations = destination;
+        int agentId = NavMeshAgent.GetInstanceID();
+        _intendedDestinations[agentId] = destination;
         
         NavMeshAgent.destination = destination;
         NavMeshAgent.autoRepath = true;
@@ -148,20 +158,16 @@ public static class NavMeshManager
             return false;
         }
 
-        Vector3 destination = GetDestination(NavMeshAgent);
         int agentId = NavMeshAgent.GetInstanceID();
         
         if (NavMeshAgent.pathPending)
         {
-            // Debug.Log("HasReachedDestination pathPending false:" + destination + " :" + NavMeshAgent.name);
             return false;
         }
 
         // [重要] パスがない = 経路計算失敗 → 到達ではなく失敗
         if (!NavMeshAgent.hasPath)
         {
-            // Debug.Log("HasReachedDestination: No valid path, treating as failure:" + destination + NavMeshAgent.name + " " + NavMeshAgent.transform.position);
-            // 到達済みでパスがない場合もある
             if (!(NavMeshAgent.remainingDistance <= NavMeshAgent.stoppingDistance))
             {
                 return false;
@@ -169,19 +175,21 @@ public static class NavMeshManager
         }
 
         // 意図した目的地が記録されているか確認
-        if (_intendedDestinations == null)
+        if (!_intendedDestinations.ContainsKey(agentId))
         {
-            // Debug.Log("HasReachedDestination: No intended destination found for " + NavMeshAgent.name);
             return false;
         }
 
+        Vector3 destination = GetDestination(NavMeshAgent);
+        Vector3 intendedDestination = _intendedDestinations[agentId];
+
         // 意図した目的地と実際の目的地の距離がstoppingDistance以上なら到達していない
-        if (Vector3.Distance(_intendedDestinations, destination) > NavMeshAgent.stoppingDistance)
+        if (Vector3.Distance(intendedDestination, destination) > NavMeshAgent.stoppingDistance)
         {
-            Debug.Log("HasReachedDestination: Destination mismatch (intended: " 
-                + _intendedDestinations + ", actual: " + destination + ") for " 
-                + NavMeshAgent.name + " Distance: " + Vector3.Distance(_intendedDestinations, destination) 
-                + " " + NavMeshAgent.stoppingDistance);
+            // Debug.Log("HasReachedDestination: Destination mismatch (intended: " 
+            //     + intendedDestination + ", actual: " + destination + ") for " 
+            //     + NavMeshAgent.name + " Distance: " + Vector3.Distance(intendedDestination, destination) 
+            //     + " " + NavMeshAgent.stoppingDistance);
             return false;
         }
 

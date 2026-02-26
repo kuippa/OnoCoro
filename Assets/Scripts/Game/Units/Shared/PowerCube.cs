@@ -10,6 +10,9 @@ public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     public UnitStruct UnitStruct => _unit_struct;
     internal UnitStruct _unit_struct = new UnitStruct();
 
+    // BaseScore の定義（デフォルト値）
+    internal const float _DEFAULT_BASE_SCORE = 1000f;
+
     void Awake()
     {
         #if UNITY_EDITOR
@@ -36,7 +39,7 @@ public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             , _item_struct.Info    // Info
             , 0 // UpdateCost
             , 0 // DeleteCost
-            , 1000  // BaseScore
+            , (int)_DEFAULT_BASE_SCORE  // BaseScore
             , GlobalConst.SHORT_SCORE2_SCALE    // ScoreType
         );
 
@@ -50,6 +53,24 @@ public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     internal UnitStruct GetUnitStruct()
     {
         return _unit_struct;
+    }
+
+    /// <summary>
+    /// BaseScore を設定します（YAML スポーン時用）
+    /// キューブサイズは SpawnController 側で既に調整される
+    /// ここではスコア値のみを更新
+    /// </summary>
+    internal void SetBaseScore(float baseScore)
+    {
+        if (baseScore <= 0)
+        {
+            // Debug.LogWarning("[PowerCube.SetBaseScore] BaseScore は 0 より大きい値である必要があります。デフォルト値を使用します");
+            return;
+        }
+
+        // UnitStruct の BaseScore を更新
+        _unit_struct.BaseScore = (int)baseScore;
+        // Debug.Log($"[PowerCube] BaseScore set to {baseScore} for {gameObject.name}");
     }
 
 }

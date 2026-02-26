@@ -12,20 +12,20 @@ namespace CommonsUtility
     /// 責務：
     /// - Player との接触時にスコア加算と自身の破棄を実行
     /// 
-    /// 使用例：PowerCubeCtrl GameObject に Collider と共にアタッチ
+    /// 使用例：PowerCubeCollisionHandler GameObject に Collider と共にアタッチ
     /// GameObject の Collider は Is Trigger = true にしてください
     /// </summary>
     internal class PowerCubeTriggerHandler : MonoBehaviour
     {
-        private PowerCubeCtrl _powerCubeCtrl = null;
+        private PowerCubeCollisionHandler _powerCubeCollisionHandler = null;
         private string _targetTagString = string.Empty;
 
         private void Awake()
         {
-            _powerCubeCtrl = GetComponent<PowerCubeCtrl>();
-            if (_powerCubeCtrl == null)
+            _powerCubeCollisionHandler = GetComponent<PowerCubeCollisionHandler>();
+            if (_powerCubeCollisionHandler == null)
             {
-                Debug.LogWarning("[PowerCubeTriggerHandler] Failed to get PowerCubeCtrl component");
+                Debug.LogWarning("[PowerCubeTriggerHandler] Failed to get PowerCubeCollisionHandler component");
             }
 
             _targetTagString = GameEnum.UnitType.Player.ToString();
@@ -43,7 +43,7 @@ namespace CommonsUtility
                 return;
             }
 
-            _powerCubeCtrl.OnPlayerEnter(other);
+            _powerCubeCollisionHandler.OnPlayerEnter(other);
         }
     }
 }

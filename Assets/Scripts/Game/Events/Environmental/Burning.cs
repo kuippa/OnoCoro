@@ -176,15 +176,15 @@ public class Burning : MonoBehaviour
     {
         if (lv >= 3)
         {
-            FireCubeCtrl.ChangeFireCubeSize(base.gameObject, 2);
+            FireCubeFactory.ChangeFireCubeSize(base.gameObject, 2);
         }
         else if (lv >= 2)
         {
-            FireCubeCtrl.ChangeFireCubeSize(base.gameObject, 1);
+            FireCubeFactory.ChangeFireCubeSize(base.gameObject, 1);
         }
         else if (lv == 1)
         {
-            FireCubeCtrl.ChangeFireCubeSize(base.gameObject, 0);
+            FireCubeFactory.ChangeFireCubeSize(base.gameObject, 0);
         }
         else if (lv < 1)
         {
@@ -235,12 +235,12 @@ public class Burning : MonoBehaviour
     {
         Vector3 position = target_ash.transform.position;
         GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
-        FireCubeCtrl fireCubeCtrl = gameManagerObject.GetComponent<FireCubeCtrl>();
-        if (fireCubeCtrl == null)
+        FireCubeSpawner fireCubeSpawner = gameManagerObject.GetComponent<FireCubeSpawner>();
+        if (fireCubeSpawner == null)
         {
-            fireCubeCtrl = gameManagerObject.AddComponent<FireCubeCtrl>();
+            fireCubeSpawner = gameManagerObject.AddComponent<FireCubeSpawner>();
         }
-        fireCubeCtrl.SpawnFireCubeAsync(position);
+        fireCubeSpawner.SpawnFireCubeAsync(position);
         GameObjectTreat.DestroyAll(target_ash);
     }
 

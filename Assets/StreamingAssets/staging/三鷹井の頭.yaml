@@ -9,7 +9,7 @@ stages:
     BIT: 6000
     CLK: 6100
 itemlists:
-  # - item: FireCube  # 火事
+  - item: FireCube  # 火事
   # - item: Litter  # フココロえもん ごみを巻き散らかす   アイテムではない敵ユニイットなので呼び出せない
   - item: DustBox  # ごみ箱
   - item: SentryGuard  # 監視員
@@ -21,30 +21,33 @@ itemlists:
   # - item: WaterTurret # 消火
 
 pathmakers:
-
-  # 敵スポーン地点：
-  - name: start_iseya_mae
-    pos: 201, auto, 34.5   
-
-
-  # 敵スポーン地点：プレイヤーの北側（Z が大きい値）
   - name: path_marker_start_1
     pos: 0, auto, 160   # Y を auto に → コード側で地面検出
 
-  # 中間地点 1：北からプレイヤーに向かう途中
   - name: path_marker_1
     pos: 5.7, auto, 143   # プレイヤー方向へ少し南寄り
 
-  # # 中間地点 2：プレイヤーの近く
-  # - name: path_marker_04
-  #   pos: -1.8, auto, 145   # プレイヤーすぐ北側
-
-  # ゴール地点：プレイヤーの南側
   - name: path_marker_goal_1
     pos: 0, auto, 135   # プレイヤーの南側（Z = 135）、X は同じ
 
+  - name: start_iseya_mae
+    # pos: 201, auto, 34.5   
+    pos: 20, auto, 160
+
+  - name: path_marker_2
+    # pos: 100, auto, 70
+    pos: 7, auto, 130
+
   # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
   #   pos: 9, 0, 15
+
+routenames:  # 
+  - name: route_wave1
+    markers: path_marker_start_1, path_marker_1, path_marker_goal_1
+  
+  - name: route_wave2
+    markers: start_iseya_mae, path_marker_2, path_marker_goal_1
+
 
 goals:
   # - building: repair_all
@@ -55,7 +58,7 @@ gameovers:
   # - garbage: 60  # ゴミの数がｘを超えたらゲームオーバー
   # - building: repair_all
   - gameover_type: GarbageOverflow
-    threshold: 50   # ごみが 50 個を超えたらゲームオーバー
+    threshold: 360   # ごみが規定数を超えたらゲームオーバー
 
 events:
   # ========== 環境設定 ==========
@@ -78,73 +81,99 @@ events:
     value: "ごみを60以下に保ち、5分間耐え抜こう！"
 
 
-  # ========== Path 1: 南西ルート ==========
-  # 敵パス表示開始
+  # ========== 補給 ==========
+  - time: 1
+    event: spawn_unit
+    value: PowerCube, -2, auto, 155, 15
+
+  - time: 1
+    event: spawn_unit
+    value: PowerCube, -2, auto, 165, 1500
+
+
+  # ========== Wave 1（0-25秒）==========
   - time: 1
     event: bloom_path
     value: path_marker_start_1, path_marker_1, path_marker_goal_1
-    # value: path_marker_start2, path_marker_goal2
 
-  # ========== Wave 1（0-25秒）: 準備フェーズ ==========
-  # 【目的】敵が少なく、プレイヤーがタワー配置に慣れる
   - time: 5
     event: subtelop
     value: "wave 1"
 
-  # Wave 1-1: 最初の 1 体（敵が見えて安心感を）
-  - time: 20
-  # - time: 5
+  - time: 5
     event: spawn_enemy_unit
     value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  # # Wave 1-2: 少し間を空けて 1 体（ペアで来る感覚）
-  # - time: 8
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  - time: 8
+    event: spawn_enemy_unit
+    value: Litter, route_wave1
+
+  - time: 17
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+
+  - time: 21
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+
+  - time: 25
+    event: spawn_enemy_unit
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+
+  - time: 30
+    event: off_bloom_path
+    value: path_marker_start_1, path_marker_1, path_marker_goal_1
 
 
-  # - time: 17
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  # ========== 桜咲く ==========
 
-  # - time: 21
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  - time: 30
+    event: bloom_sakura
+    value: TreeSakura_01
 
-  # - time: 25
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  - time: 30
+    event: spawn_unit
+    value: PowerCube, -5, auto, 140, 30
 
-  # - time: 30
-  #   event: bloom_sakura
-  #   value: TreeSakura_01
+  # ========== Wave 2（30-60秒）==========
+  - time: 30
+    event: bloom_path
+    value: start_iseya_mae, path_marker_2, path_marker_goal_1
+
+  - time: 30
+    event: subtelop
+    value: "wave 2"
+
+  - time: 30
+    event: spawn_enemy_unit
+    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+
+  - time: 33
+    event: spawn_enemy_unit
+    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+
+  - time: 36
+    event: spawn_enemy_unit
+    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+
+  - time: 39
+    event: spawn_enemy_unit
+    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+
+  - time: 42
+    event: spawn_enemy_unit
+    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
 
 
-  # - time: 30
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
-
-  # - time: 33
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
-
-  # - time: 36
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
-
-  # - time: 39
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
-
-  # - time: 42
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+  - time: 60
+    event: off_bloom_path
+    value: start_iseya_mae, path_marker_2, path_marker_goal_1
 
 
-  # # 桜の花を咲かせる
-  # - time: 16
-  #   event: bloom_sakura
-  #   value: TreeSakura
+  # 桜の花を咲かせる
+  - time: 60
+    event: bloom_sakura
+    value: TreeSakura
 
 
 

@@ -34,6 +34,13 @@ public class EventLoader : MonoBehaviour, IInitializable
     /// </summary>
     internal Dictionary<string, (string text, Vector3 pos)> _signboard_data = new Dictionary<string, (string, Vector3)>();
 
+    /// <summary>
+    /// ルート名（routenames） → マーカーシーケンス（CSV文字列）の辞書
+    /// bloom_path や spawn_enemy_unit で前方互換として使用
+    /// 例: route_wave1 → "path_marker_start_1, path_marker_1, path_marker_goal_1"
+    /// </summary>
+    internal Dictionary<string, string> _routeNameDict = new Dictionary<string, string>();
+
     private GameTimerCtrl _gameTimerCtrl = null;
     
     /// <summary>
@@ -175,21 +182,33 @@ public class EventLoader : MonoBehaviour, IInitializable
                 x = result2;
             }
             
-            float result3 = 0f;
             float y = 0f;
-            if (float.TryParse(array[1], out result3))
+            string yString = array[1].Trim();
+            if (yString.Equals("auto", System.StringComparison.OrdinalIgnoreCase))
             {
-                y = result3;
+                float z = 0f;
+                if (float.TryParse(array[2], out z))
+                {
+                    y = Utility.GetGroundHeightAtPosition(x, z);
+                }
+            }
+            else
+            {
+                float result3 = 0f;
+                if (float.TryParse(yString, out result3))
+                {
+                    y = result3;
+                }
             }
             
             float result4 = 0f;
-            float z = 0f;
+            float z_final = 0f;
             if (float.TryParse(array[2], out result4))
             {
-                z = result4;
+                z_final = result4;
             }
             
-            result = new Vector3(x, y, z);
+            result = new Vector3(x, y, z_final);
         }
         else
         {
@@ -260,6 +279,10 @@ public class EventLoader : MonoBehaviour, IInitializable
     private void SpawnUnit(string event_value)
     {
         string unit_name = TryGetCol0(event_value);
+        string[] allParams = event_value.Split(',');
+        
+        // パラメータ数に応じて処理
+        // PowerCube の場合：PowerCube, X, Y, Z または PowerCube, X, Y, Z, BaseScore
         Vector3 spawnPoint = tryGetPosition(TryGetColValue(event_value));
         
         SpawnController spawnCtrl = GameObjectTreat.GetSpawnController();
@@ -268,6 +291,19 @@ public class EventLoader : MonoBehaviour, IInitializable
             return;
         }
         
+        // 5個以上のパラメータがある場合、BaseScore が指定されている可能性
+        // （0: UnitName, 1: X, 2: Y, 3: Z, 4: BaseScore(optional)）
+        if (allParams.Length >= 5 && unit_name == GameEnum.ModelsType.PowerCube.ToString())
+        {
+            if (float.TryParse(allParams[4].Trim(), out float baseScore))
+            {
+                spawnCtrl.CallUnitByNameWithBaseScore(unit_name, spawnPoint, baseScore);
+                EventLogCtrl.Instance.ShowEventLog($"SpawnUnit:{unit_name} (BaseScore: {baseScore})");
+                return;
+            }
+        }
+        
+        // 通常のスポーン（BaseScore なし）
         spawnCtrl.CallUnitByName(unit_name, spawnPoint);
         EventLogCtrl.Instance.ShowEventLog("SpawnUnit:" + unit_name);
     }
@@ -276,6 +312,18 @@ public class EventLoader : MonoBehaviour, IInitializable
     {
         string unit_name = TryGetCol0(event_value);
         string[] marker_names = event_value.Split(',').Skip(1).ToArray();
+        
+        // routenames の互換処理: 最初のマーカーがルート名かチェック
+        if (marker_names.Length > 0)
+        {
+            string firstMarker = marker_names[0].Trim();
+            if (_routeNameDict.ContainsKey(firstMarker))
+            {
+                // ルート定義が見つかった → マーカー名を分解
+                string markerSequence = _routeNameDict[firstMarker];
+                marker_names = markerSequence.Split(',').Select(m => m.Trim()).ToArray();
+            }
+        }
         
         SpawnController spawnCtrl = GameObjectTreat.GetSpawnController();
         if (spawnCtrl == null)
@@ -382,13 +430,22 @@ public class EventLoader : MonoBehaviour, IInitializable
 
     private void CallBloomPath(string event_value, bool isBloom = true)
     {
+        // routenames の互換処理: event_value がルート名かチェック
+        string resolvedValue = event_value;
+        string trimmedValue = event_value.Trim();
+        if (_routeNameDict.ContainsKey(trimmedValue))
+        {
+            // ルート定義が見つかった → マーカー文字列に置き換える
+            resolvedValue = _routeNameDict[trimmedValue];
+        }
+        
         if (isBloom)
         {
-            BloomPathController.EventBloomPath(event_value);
+            BloomPathController.EventBloomPath(resolvedValue);
         }
         else
         {
-            BloomPathController.EventOffBloomPath(event_value);
+            BloomPathController.EventOffBloomPath(resolvedValue);
         }
     }
 

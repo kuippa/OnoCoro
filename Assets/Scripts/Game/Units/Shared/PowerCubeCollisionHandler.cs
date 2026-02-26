@@ -8,7 +8,11 @@ using UnityEngine.Rendering;
 using CommonsUtility;
 using Debug = CommonsUtility.Debug;
 
-public class PowerCubeCtrl : MonoBehaviour
+/// <summary>
+/// PowerCube と Player の衝突時の相互作用を処理するハンドラー
+/// プレハブにアタッチされ、衝突検出時にスコア処理を実行します
+/// </summary>
+public class PowerCubeCollisionHandler : MonoBehaviour
 {
     PowerCube _powerCube = null;
 
@@ -26,7 +30,7 @@ public class PowerCubeCtrl : MonoBehaviour
 
         if (_powerCube == null)
         {
-            Debug.LogWarning("[PowerCubeCtrl] PowerCube component is null");
+            Debug.LogWarning("[PowerCubeCollisionHandler] PowerCube component is null");
             return;
         }
 

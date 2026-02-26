@@ -218,7 +218,7 @@ public class EnemyLitter : MonoBehaviour
     {
         if (paths == null || paths.Length == 0)
         {
-            // Debug.Log($"{name}: No more paths to follow. Agent has reached the final destination.");
+            Debug.Log($"{name}: No more paths to follow. Agent has reached the final destination.");
             AgentReachedGoal();
             return false;
         }
@@ -226,7 +226,7 @@ public class EnemyLitter : MonoBehaviour
         Vector3 destination = paths[0];
         SetDestination(destination);
 
-        // Debug.Log($"{name}: Next path set to {destination}. Remaining paths: {paths.Length - 1}");
+        Debug.Log($"{name}: Next path set to {destination}. Remaining paths: {paths.Length - 1}");
         
         List<Vector3> remainingPaths = new List<Vector3>(paths);
         remainingPaths.RemoveAt(0);

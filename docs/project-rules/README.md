@@ -23,6 +23,7 @@ OnoCoro プロジェクトにおける C# コーディング規約、Unity 設�
 | **naming-conventions.md** | Class Suffix、Access Modifier、定数命名 | All Developer |
 | **unity-design-patterns.md** | Singleton、MonoBehaviour パターン、層構造 | All Developer |
 | **folder-structure.md** | Assets/Scripts 下のフォルダ構成・配置ルール | All Developer |
+| **debugging-and-logging.md** | エラー確認、ログ取得方法、トラブルシューティング | All Developer |
 
 ---
 

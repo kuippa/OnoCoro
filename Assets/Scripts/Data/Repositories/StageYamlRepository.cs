@@ -42,6 +42,7 @@ public class StageYamlRepository : MonoBehaviour
         SetStageInitData(yaml);
         SetItemList(yaml);
         SetPathMakerList(yaml);
+        SetRouteNameList(yaml);
         SetGoalsRequirements(yaml);
         SetGameOversRequirements(yaml);
         SetBoardInitData(yaml);
@@ -211,6 +212,66 @@ public class StageYamlRepository : MonoBehaviour
         }
 
         PathMakerCtrl.CreateGameObjectByPathMakerDict();
+    }
+
+    /// <summary>
+    /// routenames セクションをパースして EventLoader に登録する
+    /// 前方互換として bloom_path / spawn_enemy_unit で ルート名を指定できるようにする
+    /// </summary>
+    private void SetRouteNameList(YamlStream yaml)
+    {
+        YamlSequenceNode sequenceNode = GetYamlSequenceNode(yaml, YamlSectionKeys.RouteNames);
+        if (sequenceNode == null)
+        {
+            return;
+        }
+
+        EventLoader eventLoader = _eventLoader ?? FindObjectOfType<EventLoader>();
+        if (eventLoader == null)
+        {
+            Debug.LogWarning("[StageYamlRepository.SetRouteNameList] EventLoader が見つかりません");
+            return;
+        }
+
+        foreach (YamlMappingNode mappingNode in sequenceNode)
+        {
+            string routeName = "";
+            string markerSequence = "";
+
+            // name と markers を抽出
+            foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
+            {
+                string fieldKey = ((YamlScalarNode)entry.Key).Value;
+                if (string.IsNullOrEmpty(fieldKey))
+                {
+                    continue;
+                }
+
+                if (fieldKey == "name")
+                {
+                    routeName = ((YamlScalarNode)entry.Value).Value.Trim();
+                }
+                else if (fieldKey == "markers")
+                {
+                    markerSequence = ((YamlScalarNode)entry.Value).Value.Trim();
+                }
+            }
+
+            // name と markers が揃ったら登録
+            if (!string.IsNullOrEmpty(routeName) && !string.IsNullOrEmpty(markerSequence))
+            {
+                if (eventLoader._routeNameDict.ContainsKey(routeName))
+                {
+                    eventLoader._routeNameDict[routeName] = markerSequence;
+                }
+                else
+                {
+                    eventLoader._routeNameDict.Add(routeName, markerSequence);
+                }
+                
+                Debug.Log($"[SetRouteNameList] Registered route '{routeName}': {markerSequence}");
+            }
+        }
     }
 
     private void ActionStageNotice(YamlStream yaml)

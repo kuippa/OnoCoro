@@ -114,7 +114,7 @@ internal class LitterGarbageSpawner
             return false;
         }
 
-        GameObject garbageCube = GarbageCubeCtrl.SpawnGarbageCube(handPosition, 1);
+        GameObject garbageCube = GarbageCubeFactory.SpawnGarbageCube(handPosition, 1);
         if (garbageCube == null)
         {
             Debug.LogWarning($"Failed to spawn garbage cube at {handPosition}");

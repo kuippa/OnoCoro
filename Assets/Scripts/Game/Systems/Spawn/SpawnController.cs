@@ -110,6 +110,26 @@ public class SpawnController : MonoBehaviour
     }
 
     /// <summary>
+    /// ユニット名とBaseScoreを指定してスポーンします（PowerCube 用）
+    /// </summary>
+    internal bool CallUnitByNameWithBaseScore(string unitName, Vector3 spawnPoint, float baseScore)
+    {
+        bool ret = false;
+        
+        if (unitName == GameEnum.ModelsType.PowerCube.ToString())
+        {
+            ret = SpawnPowerCube(0, spawnPoint, baseScore);
+        }
+        else
+        {
+            Debug.LogWarning($"[SpawnController] CallUnitByNameWithBaseScore: '{unitName}' は BaseScore パラメータをサポートしていません");
+            ret = CallUnitByName(unitName, spawnPoint);
+        }
+        
+        return ret;
+    }
+
+    /// <summary>
     /// 敵ユニット名で敵を生成します
     /// </summary>
     internal bool CallEnemyUnitByName(string unitName, string[] marker_names)
@@ -262,7 +282,7 @@ public class SpawnController : MonoBehaviour
             Debug.LogWarning("[SpawnController] FireCube: pathmaker 除外エリア内でスポーン不可");
             return false;
         }
-        GameObject garbageObj = FireCubeCtrl.SpawnFireCube(spawnPoint, FireCubeCtrl._SIZE_NORMAL, false);
+        GameObject garbageObj = FireCubeFactory.SpawnFireCube(spawnPoint, FireCubeFactory._SIZE_NORMAL, false);
         if (garbageObj != null)
         {
             result = true;
@@ -272,7 +292,7 @@ public class SpawnController : MonoBehaviour
 
     private bool SpawnGarbageCubeBig(Vector3 spawnPoint = default(Vector3))
     {
-        bool result = SpawnGarbageCube(GarbageCubeCtrl._GARBAGE_CUBE_SIZE_BIG_MAX, spawnPoint, GarbageCubeCtrl._SIZE_BIG, false);
+        bool result = SpawnGarbageCube(GarbageCubeFactory._GARBAGE_CUBE_SIZE_BIG_MAX, spawnPoint, GarbageCubeFactory._SIZE_BIG, false);
         return result;
     }
 
@@ -287,7 +307,7 @@ public class SpawnController : MonoBehaviour
         float dropnumber = 20;
         for (int i = 0; i < dropnumber; i++)
         {
-            if (!SpawnGarbageCube(0.1f * i, spawnPoint, GarbageCubeCtrl._SIZE_SMALL, true))
+            if (!SpawnGarbageCube(0.1f * i, spawnPoint, GarbageCubeFactory._SIZE_SMALL, true))
             {
                 return false;
             }
@@ -312,7 +332,7 @@ public class SpawnController : MonoBehaviour
             Debug.LogWarning("[SpawnController] GarbageCube: pathmaker 除外エリア内でスポーン不可");
             return false;
         }
-        GameObject garbageObj = GarbageCubeCtrl.SpawnGarbageCube(spawnPoint, sizeFlag, isSwayingPoint);
+        GameObject garbageObj = GarbageCubeFactory.SpawnGarbageCube(spawnPoint, sizeFlag, isSwayingPoint);
         if (garbageObj != null)
         {
             ret = true;
@@ -347,33 +367,28 @@ public class SpawnController : MonoBehaviour
         return ret;
     }
 
-    private bool SpawnPowerCube(float dropbuffer = 0.25f, Vector3 setPoint = default(Vector3))
+    /// <summary>
+    /// PowerCube を生成します
+    /// baseScore が指定されている場合、キューブサイズとスコアを調整します
+    /// baseScore = -1f の場合はデフォルト (1000) を使用
+    /// </summary>
+    private bool SpawnPowerCube(float dropbuffer = 0.25f, Vector3 setPoint = default(Vector3), float baseScore = -1f)
     {
-        bool ret = false;
-        GameObject prefab = PrefabManager.PowerCubePrefab;
-        if (prefab == null)
-        {
-            Debug.LogWarning("PowerCube prefab not found in PrefabManager");
-            return false;
-        }
-        prefab.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
         setPoint = GetSpawnPoint(dropbuffer, setPoint);
         if (setPoint == Vector3.zero)
         {
             Debug.LogWarning("[SpawnController] PowerCube: pathmaker 除外エリア内でスポーン不可");
             return false;
         }
-        Quaternion setRotation = Quaternion.Euler(rdNum(0,360), rdNum(0,360), rdNum(0,360));
-        GameObject unit = Instantiate(prefab, setPoint, setRotation);
 
-        int idx = PrefabManager.PowerCubeUID;
-        unit.name = GameEnum.ModelsType.PowerCube.ToString() + idx.ToString();
-        PowerCube powerCube = GameObjectTreat.GetOrAddComponent<PowerCube>(unit);
-        powerCube._item_struct.ItemID = unit.name;
-        powerCube._unit_struct.UnitID = unit.name;
+        GameObject unit = PowerCubeFactory.SpawnPowerCube(setPoint, baseScore);
+        if (unit == null)
+        {
+            Debug.LogWarning("[SpawnController] PowerCubeFactory failed to spawn PowerCube");
+            return false;
+        }
 
-        ret = true;
-        return ret;
+        return true;
     }
 
 

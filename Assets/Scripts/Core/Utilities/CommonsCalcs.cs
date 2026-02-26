@@ -98,7 +98,7 @@ namespace CommonsUtility
         /// <summary>
         /// 指定座標の地面高さを Raycast で検出
         /// </summary>
-        private static float GetGroundHeightAtPosition(float x, float z)
+        internal static float GetGroundHeightAtPosition(float x, float z)
         {
             Vector3 rayOrigin = new Vector3(x, 500f, z);
             Vector3 rayDirection = Vector3.down;

@@ -62,7 +62,7 @@ public class PlateauCubeMaker : MonoBehaviour
     private int CreateGarbageCubeNormal(Vector3 pos)
     {
         int num = 0;
-        Collider component = GarbageCubeCtrl.SpawnGarbageCube(pos).GetComponent<Collider>();
+        Collider component = GarbageCubeFactory.SpawnGarbageCube(pos).GetComponent<Collider>();
         if (component != null)
         {
             num += ScoreCtrl.GetTotalGarbageScore(component);
@@ -73,12 +73,12 @@ public class PlateauCubeMaker : MonoBehaviour
     private int CreateGarbageCubeSmall(Vector3 pos)
     {
         GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
-        GarbageCubeCtrl garbageCubeCtrl = gameManagerObject.GetComponent<GarbageCubeCtrl>();
-        if (garbageCubeCtrl == null)
+        GarbageCubeSpawner garbageCubeSpawner = gameManagerObject.GetComponent<GarbageCubeSpawner>();
+        if (garbageCubeSpawner == null)
         {
-            garbageCubeCtrl = gameManagerObject.AddComponent<GarbageCubeCtrl>();
+            garbageCubeSpawner = gameManagerObject.AddComponent<GarbageCubeSpawner>();
         }
-        garbageCubeCtrl.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true);
+        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true);
         return GarbageCube.GetBaseScore();
     }
 
