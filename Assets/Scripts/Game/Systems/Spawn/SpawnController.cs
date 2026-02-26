@@ -204,6 +204,16 @@ public class SpawnController : MonoBehaviour
         Litter orAddComponent = GameObjectTreat.GetOrAddComponent<Litter>(gameObject);
         orAddComponent._unit_struct.UnitID = gameObject.name;
         orAddComponent._item_struct.ItemID = gameObject.name;
+        
+        // パス追跡ユニットを EventLoader に登録（off_bloom_path_complete 用）
+        // 戻り値: マーカーシーケンス を EnemyLitter に保持させる
+        EventLoader eventLoader = EventLoader.instance;
+        if (eventLoader != null)
+        {
+            string markerSequence = eventLoader.RegisterEnemyToPath(marker_names, gameObject);
+            component.SetPathMarkerSequence(markerSequence);
+        }
+        
         component.InitUnitSpawn(marker_names);
         return true;
     }

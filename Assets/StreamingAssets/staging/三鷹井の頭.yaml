@@ -102,11 +102,12 @@ events:
 
   - time: 5
     event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+    value: Litter, route_wave1
 
   - time: 8
     event: spawn_enemy_unit
-    value: Litter, route_wave1
+    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+    # value: Litter, route_wave1
 
   - time: 17
     event: spawn_enemy_unit
@@ -120,10 +121,13 @@ events:
     event: spawn_enemy_unit
     value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
-  - time: 30
-    event: off_bloom_path
-    value: path_marker_start_1, path_marker_1, path_marker_goal_1
+  - time: 10
+    event: off_bloom_path_complete
+    value: route_wave1
 
+  # - time: 130
+  #   event: off_bloom_path
+  #   value: path_marker_start_1, path_marker_1, path_marker_goal_1
 
   # ========== 桜咲く ==========
 
@@ -163,7 +167,6 @@ events:
   - time: 42
     event: spawn_enemy_unit
     value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
-
 
   - time: 60
     event: off_bloom_path

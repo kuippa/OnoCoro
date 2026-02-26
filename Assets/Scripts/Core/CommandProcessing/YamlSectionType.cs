@@ -121,6 +121,9 @@ namespace CommonsUtility
         /// <summary>パス強調表示解除（BloomPathController で処理）</summary>
         off_bloom_path,
         
+        /// <summary>パス上のユニット完全消滅時にパス強調表示解除（EventLoader で処理）</summary>
+        off_bloom_path_complete,
+        
         /// <summary>桜を咲かせるイベント（TreeSakura で処理）</summary>
         bloom_sakura,
         

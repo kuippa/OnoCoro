@@ -41,6 +41,21 @@ public class EventLoader : MonoBehaviour, IInitializable
     /// </summary>
     internal Dictionary<string, string> _routeNameDict = new Dictionary<string, string>();
 
+    /// <summary>
+    /// パス上のユニット管理（off_bloom_path_complete 用）
+    /// マーカーシーケンス（CSV文字列） → ルートGameObject
+    /// パス上をナビゲート中のユニットを子要素として登録
+    /// パス上のユニットがすべて消滅したら off_bloom_path を自動実行
+    /// </summary>
+    internal Dictionary<string, GameObject> _pathRootObjectDict = new Dictionary<string, GameObject>();
+
+    /// <summary>
+    /// ルート別名→実マーカーシーケンス マッピング（off_bloom_path_complete 用）
+    /// routeNameDict の逆引きテーブル
+    /// 例: route_wave1 のエイリアスで呼ぶときも実マーカーシーケンスで _pathRootObjectDict を検索できるようにする
+    /// </summary>
+    internal Dictionary<string, string> _routeNameToMarkerSequenceDict = new Dictionary<string, string>();
+
     private GameTimerCtrl _gameTimerCtrl = null;
     
     /// <summary>
@@ -149,6 +164,9 @@ public class EventLoader : MonoBehaviour, IInitializable
                 break;
             case nameof(YamlEventType.off_bloom_path):
                 CallBloomPath(event_value, isBloom: false);
+                break;
+            case nameof(YamlEventType.off_bloom_path_complete):
+                CallOffBloomPathWhenCompleted(event_value);
                 break;
             case nameof(YamlEventType.bloom_sakura):
                 CallBloomSakura(event_value);
@@ -311,16 +329,22 @@ public class EventLoader : MonoBehaviour, IInitializable
     private void SpawnEnemyUnit(string event_value)
     {
         string unit_name = TryGetCol0(event_value);
-        string[] marker_names = event_value.Split(',').Skip(1).ToArray();
+        string[] marker_names = event_value.Split(',').Skip(1).Select(m => m.Trim()).ToArray();
         
         // routenames の互換処理: 最初のマーカーがルート名かチェック
         if (marker_names.Length > 0)
         {
-            string firstMarker = marker_names[0].Trim();
+            string firstMarker = marker_names[0];
             if (_routeNameDict.ContainsKey(firstMarker))
             {
                 // ルート定義が見つかった → マーカー名を分解
                 string markerSequence = _routeNameDict[firstMarker];
+                marker_names = markerSequence.Split(',').Select(m => m.Trim()).ToArray();
+            }
+            else
+            {
+                // 直接指定の場合も、正規化形式に統一
+                string markerSequence = string.Join(", ", marker_names);
                 marker_names = markerSequence.Split(',').Select(m => m.Trim()).ToArray();
             }
         }
@@ -447,6 +471,109 @@ public class EventLoader : MonoBehaviour, IInitializable
         {
             BloomPathController.EventOffBloomPath(resolvedValue);
         }
+    }
+
+    /// <summary>
+    /// パス上のユニットが全て消滅したら off_bloom_path を実行
+    /// ユニット登録用のルートオブジェクトの子要素をチェック
+    /// </summary>
+    private void CallOffBloomPathWhenCompleted(string event_value)
+    {
+        // routenames の互換処理: event_value がルート名かチェック
+        string resolvedValue = event_value;
+        string trimmedValue = event_value.Trim();
+        if (_routeNameDict.ContainsKey(trimmedValue))
+        {
+            // ルート定義が見つかった → マーカー文字列に置き換える
+            resolvedValue = _routeNameDict[trimmedValue];
+        }
+
+        // NotifyEnemyDeath と同じロジックで確認
+        NotifyEnemyDeath(resolvedValue);
+    }
+
+    /// <summary>
+    /// 敵ユニットをパス追跡ルートに登録
+    /// ユニットオブジェクトをパス用ルートオブジェクトの子要素として追加
+    /// ユニット死亡時に自動的に子要素から削除される
+    /// 戻り値: マーカーシーケンス（CSV文字列）
+    /// </summary>
+    internal string RegisterEnemyToPath(string[] marker_names, GameObject enemy_unit)
+    {
+        if (marker_names == null || marker_names.Length == 0 || enemy_unit == null)
+        {
+            return "";
+        }
+
+        // マーカーシーケンスを CSV 文字列に変換（ルートオブジェクト識別用）
+        string markerSequence = string.Join(", ", marker_names);
+
+        // パス用ルートオブジェクトを取得または作成
+        if (!_pathRootObjectDict.TryGetValue(markerSequence, out GameObject pathRootObject))
+        {
+            // 初めてのユニット → ルートオブジェクトを作成
+            pathRootObject = new GameObject($"PathRoot_{markerSequence}");
+            pathRootObject.transform.SetParent(transform);
+            _pathRootObjectDict[markerSequence] = pathRootObject;
+            Debug.Log($"[EventLoader.RegisterEnemyToPath] パス用ルートオブジェクト作成: {markerSequence}");
+        }
+
+        // ユニットをルートオブジェクトの子要素として登録
+        enemy_unit.transform.SetParent(pathRootObject.transform);
+        Debug.Log($"[EventLoader.RegisterEnemyToPath] ユニット '{enemy_unit.name}' をパス '{markerSequence}' に登録（現在の子要素数: {pathRootObject.transform.childCount})");
+        
+        return markerSequence;
+    }
+
+    /// <summary>
+    /// 敵ユニット削除時に呼び出す
+    /// パス追跡中のユニットが全て消滅したかをチェック
+    /// 全て消滅していたら off_bloom_path を実行
+    /// </summary>
+    internal void NotifyEnemyDeath(string markerSequence)
+    {
+        if (string.IsNullOrEmpty(markerSequence))
+        {
+            Debug.Log($"[EventLoader.NotifyEnemyDeath] markerSequence が空の場合、処理をスキップ");
+            return;
+        }
+
+        // routeName で呼ばれた場合、実マーカーシーケンスに変換
+        string resolvedMarkerSequence = markerSequence;
+        if (_routeNameToMarkerSequenceDict.ContainsKey(markerSequence))
+        {
+            resolvedMarkerSequence = _routeNameToMarkerSequenceDict[markerSequence];
+            Debug.Log($"[EventLoader.NotifyEnemyDeath] routeName '{markerSequence}' を実マーカーシーケンス '{resolvedMarkerSequence}' に変換");
+        }
+
+        // パス用ルートオブジェクトを取得
+        if (!_pathRootObjectDict.TryGetValue(resolvedMarkerSequence, out GameObject pathRootObject))
+        {
+            Debug.Log($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' のルートオブジェクトが見つかりません");
+            return;
+        }
+
+        // パス上のユニット数をカウント（子要素 = スポーン済みユニット）
+        int childCount = pathRootObject.transform.childCount;
+        
+        Debug.Log($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' の現在の子要素数: {childCount}");
+        
+        // 子要素の詳細ログ（デバッグ用）
+        for (int i = 0; i < childCount; i++)
+        {
+            Transform child = pathRootObject.transform.GetChild(i);
+            Debug.Log($"  └─ [{i}] {child.gameObject.name}");
+        }
+        
+        if (childCount > 0)
+        {
+            Debug.Log($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' にまだ {childCount} 個のユニットがいるため、off_bloom_path は実行しません");
+            return;
+        }
+
+        // パスが空 → off_bloom_path を実行
+        Debug.Log($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' が空になったため、off_bloom_path を実行");
+        BloomPathController.EventOffBloomPath(resolvedMarkerSequence);
     }
 
     private void CallBloomSakura(string event_value)

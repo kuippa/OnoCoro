@@ -23,6 +23,12 @@ public class EnemyLitter : MonoBehaviour
     private Renderer _headRenderer;
     private Transform _handTransform;
     private int _childCount;
+    
+    /// <summary>
+    /// パス上のユニット識別用 （EventLoader.NotifyEnemyDeath 用）
+    /// SpawnController から RegisterEnemyToPath の戻り値を設定される
+    /// </summary>
+    private string _pathMarkerSequence = "";
 
     // Movement Speed Constants
     private const float _AGENT_BASE_SPEED = 1.2f;     // NavMeshAgent の基本移動速度
@@ -160,7 +166,44 @@ public class EnemyLitter : MonoBehaviour
 
     private void AgentReachedGoal()
     {
+        Debug.Log($"[EnemyLitter.AgentReachedGoal] {name} がゴールに到達しました。パス: {_pathMarkerSequence}");
+        
+        // 親から外す（パスルートオブジェクトの子要素から削除）
+        Transform parent = transform.parent;
+        transform.SetParent(null);
+        Debug.Log($"[EnemyLitter.AgentReachedGoal] {name} を親から外しました");
+        
+        // パス完了時に明示的に EventLoader に通知
+        // この時点で自分自身は子要素リストから削除されている
+        if (!string.IsNullOrEmpty(_pathMarkerSequence))
+        {
+            EventLoader eventLoader = EventLoader.instance;
+            if (eventLoader != null)
+            {
+                Debug.Log($"[EnemyLitter.AgentReachedGoal] {name} が NotifyEnemyDeath を呼び出します");
+                eventLoader.NotifyEnemyDeath(_pathMarkerSequence);
+            }
+            else
+            {
+                Debug.LogWarning($"[EnemyLitter.AgentReachedGoal] EventLoader.instance が null です");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[EnemyLitter.AgentReachedGoal] {name} の _pathMarkerSequence が空です");
+        }
+        
         GameObjectTreat.DestroyAll(gameObject);
+    }
+
+    /// <summary>
+    /// パス上のユニット管理用マーカーシーケンスを設定
+    /// SpawnController から呼び出される
+    /// </summary>
+    internal void SetPathMarkerSequence(string markerSequence)
+    {
+        _pathMarkerSequence = markerSequence;
+        Debug.Log($"[EnemyLitter.SetPathMarkerSequence] {name} のパスマーカーシーケンスを設定: {markerSequence}");
     }
 
     private void AgentJumpToStartPosition()
