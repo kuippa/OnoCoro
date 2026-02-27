@@ -14,11 +14,17 @@ internal static class ObjectiveYamlProvider
     /// <summary>
     /// goals セクションをパースして StageGoalController に登録
     /// </summary>
-    internal static void LoadGoals(YamlStream yaml)
+    /// <param name="caller">コルーチン起動に使用する MonoBehaviour（通常は EventLoader）</param>
+    internal static void LoadGoals(YamlStream yaml, MonoBehaviour caller)
     {
         if (yaml == null)
         {
             Debug.LogWarning("[ObjectiveYamlProvider.LoadGoals] yaml is null");
+            return;
+        }
+
+        if (caller == null)
+        {
             return;
         }
 
@@ -40,13 +46,14 @@ internal static class ObjectiveYamlProvider
         }
 
         StageGoalController._dict_req = goalsRequirement;
-        StageGoalController.StartCheckStageGoal(null);
+        StageGoalController.StartCheckStageGoal(caller);
     }
 
     /// <summary>
     /// gameovers セクションをパースして StageGoalController に登録
     /// </summary>
-    internal static void LoadGameOvers(YamlStream yaml)
+    /// <param name="caller">コルーチン起動に使用する MonoBehaviour（通常は EventLoader）</param>
+    internal static void LoadGameOvers(YamlStream yaml, MonoBehaviour caller)
     {
         if (yaml == null)
         {
@@ -54,16 +61,15 @@ internal static class ObjectiveYamlProvider
             return;
         }
 
-        List<Dictionary<string, string>> yamlDataList = YamlParserHelper.BuildDictionaryListFromYaml(yaml, YamlSectionKeys.GameOvers);
-        Debug.Log($"[ObjectiveYamlProvider.LoadGameOvers] yamlDataList.Count = {yamlDataList.Count}");
-        foreach (var dict in yamlDataList)
+        if (caller == null)
         {
-            Debug.Log($"[ObjectiveYamlProvider.LoadGameOvers] パース結果: {string.Join(", ", dict)}");
+            return;
         }
+
+        List<Dictionary<string, string>> yamlDataList = YamlParserHelper.BuildDictionaryListFromYaml(yaml, YamlSectionKeys.GameOvers);
 
         if (yamlDataList.Count == 0)
         {
-            Debug.LogWarning("[ObjectiveYamlProvider.LoadGameOvers] gameovers がパースされていません。ごみカウント機能が動作しません");
             return;
         }
 
@@ -81,6 +87,6 @@ internal static class ObjectiveYamlProvider
         }
 
         StageGoalController._dict_fail = gameoverRequirement;
-        StageGoalController.StartCheckStageFail(null);
+        StageGoalController.StartCheckStageFail(caller);
     }
 }

@@ -21,11 +21,8 @@ internal static class YamlParserHelper
 
         if (sequenceNode == null)
         {
-            Debug.LogWarning($"[YamlParserHelper.BuildDictionaryListFromYaml] '{sectionKey}' セクションが見つかりません");
             return resultList;
         }
-
-        Debug.Log($"[YamlParserHelper.BuildDictionaryListFromYaml] '{sectionKey}' セクション: {sequenceNode.Children.Count} 要素を処理中");
 
         foreach (YamlNode node in sequenceNode)
         {
@@ -37,6 +34,8 @@ internal static class YamlParserHelper
             }
 
             Dictionary<string, string> rowData = new Dictionary<string, string>();
+            bool isValidRow = true;
+            
             foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
             {
                 string keyValue = GetYamlScalarValue(entry.Key);
@@ -48,13 +47,18 @@ internal static class YamlParserHelper
                 }
                 else
                 {
-                    Debug.LogWarning($"[YamlParserHelper.BuildDictionaryListFromYaml] スカラー値の取得失敗 - Key: {entry.Key.GetType()}, Value: {entry.Value.GetType()} (key='{keyValue}', value='{valueStr}')");
+                    isValidRow = false;
+                    break;
                 }
             }
-            resultList.Add(rowData);
+            
+            // スカラー値取得に失敗した行はスキップ
+            if (isValidRow)
+            {
+                resultList.Add(rowData);
+            }
         }
 
-        Debug.Log($"[YamlParserHelper.BuildDictionaryListFromYaml] '{sectionKey}' セクション完了: {resultList.Count} 行をパース");
         return resultList;
     }
 
@@ -76,20 +80,21 @@ internal static class YamlParserHelper
             return null;
         }
 
-        YamlScalarNode targetKey = new YamlScalarNode(sectionKey);
-
-        if (!rootMapping.Children.ContainsKey(targetKey))
+        // キーを線形探索で値を比較（ContainsKey は YamlDotNet の ノード参照比較のため失敗する可能性がある）
+        foreach (var kvp in rootMapping.Children)
         {
-            return null;
+            YamlScalarNode keyNode = kvp.Key as YamlScalarNode;
+            if (keyNode != null && keyNode.Value == sectionKey)
+            {
+                YamlSequenceNode sequenceNode = kvp.Value as YamlSequenceNode;
+                if (sequenceNode != null)
+                {
+                    return sequenceNode;
+                }
+            }
         }
 
-        YamlNode sectionNode = rootMapping.Children[targetKey];
-        if (!(sectionNode is YamlSequenceNode))
-        {
-            return null;
-        }
-
-        return (YamlSequenceNode)sectionNode;
+        return null;
     }
 
     /// <summary>

@@ -42,8 +42,8 @@ public class StageYamlRepository : MonoBehaviour
         RouteYamlProvider.LoadRouteNames(yaml, _eventLoader);
 
         // ゲームオブジェクティブセットアップ
-        ObjectiveYamlProvider.LoadGoals(yaml);
-        ObjectiveYamlProvider.LoadGameOvers(yaml);
+        ObjectiveYamlProvider.LoadGoals(yaml, _eventLoader);
+        ObjectiveYamlProvider.LoadGameOvers(yaml, _eventLoader);
 
         // UI ボード・看板セットアップ
         UIYamlProvider.LoadBoardData(yaml, _eventLoader);
