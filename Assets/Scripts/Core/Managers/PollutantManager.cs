@@ -23,6 +23,7 @@ namespace CommonsUtility
 
         private static TextMeshProUGUI _garbageCountText = null;
         private static GameObject _garbageCountUIObject = null;
+        private static bool _isInitialized = false;
 
         /// <summary>
         /// PollutantManager を初期化する。
@@ -31,6 +32,28 @@ namespace CommonsUtility
         /// </summary>
         internal static void Initialize()
         {
+            // 既に初期化済みの場合は、UI 参照だけをリフレッシュ
+            if (_isInitialized)
+            {
+                _garbageCountUIObject = GameObject.Find(_UI_GARBAGE_COUNT_OBJECT_NAME);
+                if (_garbageCountUIObject == null)
+                {
+                    Debug.LogWarning($"[PollutantManager] UI オブジェクト '{_UI_GARBAGE_COUNT_OBJECT_NAME}' が見つかりません");
+                    _isInitialized = false;
+                    return;
+                }
+
+                // シーン遷移時に TextMeshProUGUI 参照もリフレッシュ（重要）
+                _garbageCountText = _garbageCountUIObject.GetComponent<TextMeshProUGUI>();
+                if (_garbageCountText == null)
+                {
+                    Debug.LogWarning($"[PollutantManager] TextMeshProUGUI が '{_UI_GARBAGE_COUNT_OBJECT_NAME}' に存在しません");
+                    _isInitialized = false;
+                    return;
+                }
+                return;
+            }
+
             _garbageCountUIObject = GameObject.Find(_UI_GARBAGE_COUNT_OBJECT_NAME);
             if (_garbageCountUIObject == null)
             {
@@ -48,6 +71,7 @@ namespace CommonsUtility
 
             // ごみチェック判定があるステージでのみ表示するため、デフォルトは非アクティブ
             _garbageCountUIObject.SetActive(false);
+            _isInitialized = true;
         }
 
         /// <summary>
@@ -62,6 +86,7 @@ namespace CommonsUtility
                 return;
             }
 
+            Debug.Log("[PollutantManager] HideCountUI() called - UI を非表示にします");
             _garbageCountUIObject.SetActive(false);
         }
 
@@ -77,6 +102,7 @@ namespace CommonsUtility
                 return;
             }
 
+            Debug.Log("[PollutantManager] ActivateCountUI() called - UI を表示します");
             _garbageCountUIObject.SetActive(true);
         }
 
