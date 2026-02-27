@@ -409,6 +409,12 @@ The following detailed architecture documents provide context for system design 
 | Data Models | `docs/reference/data-models.md` | Game data structure specifications |
 | YAML Format | `docs/reference/yaml-format.md` | YAML configuration and data format specifications |
 
+### Development Tools & Debugging
+
+| Document | Path | Purpose |
+|----------|------|---------|
+| Debugging and Logging | `docs/project-rules/debugging-and-logging.md` | Unity Editor ログ取得方法、エラー確認、トラブルシューティング手法 |
+
 ---
 
 ## Git Workflow
