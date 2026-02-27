@@ -21,22 +21,40 @@ internal static class YamlParserHelper
 
         if (sequenceNode == null)
         {
+            Debug.LogWarning($"[YamlParserHelper.BuildDictionaryListFromYaml] '{sectionKey}' セクションが見つかりません");
             return resultList;
         }
 
-        foreach (YamlMappingNode mappingNode in sequenceNode)
+        Debug.Log($"[YamlParserHelper.BuildDictionaryListFromYaml] '{sectionKey}' セクション: {sequenceNode.Children.Count} 要素を処理中");
+
+        foreach (YamlNode node in sequenceNode)
         {
+            YamlMappingNode mappingNode = node as YamlMappingNode;
+            if (mappingNode == null)
+            {
+                Debug.LogWarning($"[YamlParserHelper.BuildDictionaryListFromYaml] 非MappingNode要素をスキップ: {node.GetType()}");
+                continue;
+            }
+
             Dictionary<string, string> rowData = new Dictionary<string, string>();
             foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
             {
-                rowData.Add(
-                    ((YamlScalarNode)entry.Key).Value,
-                    ((YamlScalarNode)entry.Value).Value
-                );
+                string keyValue = GetYamlScalarValue(entry.Key);
+                string valueStr = GetYamlScalarValue(entry.Value);
+
+                if (keyValue != null && valueStr != null)
+                {
+                    rowData.Add(keyValue, valueStr);
+                }
+                else
+                {
+                    Debug.LogWarning($"[YamlParserHelper.BuildDictionaryListFromYaml] スカラー値の取得失敗 - Key: {entry.Key.GetType()}, Value: {entry.Value.GetType()} (key='{keyValue}', value='{valueStr}')");
+                }
             }
             resultList.Add(rowData);
         }
 
+        Debug.Log($"[YamlParserHelper.BuildDictionaryListFromYaml] '{sectionKey}' セクション完了: {resultList.Count} 行をパース");
         return resultList;
     }
 
@@ -85,5 +103,24 @@ internal static class YamlParserHelper
         }
 
         return yaml.Documents[0].RootNode as YamlMappingNode;
+    }
+
+    /// <summary>
+    /// YamlNode からスカラー値を安全に取得
+    /// </summary>
+    private static string GetYamlScalarValue(YamlNode node)
+    {
+        if (node == null)
+        {
+            return null;
+        }
+
+        YamlScalarNode scalarNode = node as YamlScalarNode;
+        if (scalarNode != null)
+        {
+            return scalarNode.Value;
+        }
+
+        return null;
     }
 }

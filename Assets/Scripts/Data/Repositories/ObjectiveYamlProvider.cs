@@ -55,8 +55,15 @@ internal static class ObjectiveYamlProvider
         }
 
         List<Dictionary<string, string>> yamlDataList = YamlParserHelper.BuildDictionaryListFromYaml(yaml, YamlSectionKeys.GameOvers);
+        Debug.Log($"[ObjectiveYamlProvider.LoadGameOvers] yamlDataList.Count = {yamlDataList.Count}");
+        foreach (var dict in yamlDataList)
+        {
+            Debug.Log($"[ObjectiveYamlProvider.LoadGameOvers] パース結果: {string.Join(", ", dict)}");
+        }
+
         if (yamlDataList.Count == 0)
         {
+            Debug.LogWarning("[ObjectiveYamlProvider.LoadGameOvers] gameovers がパースされていません。ごみカウント機能が動作しません");
             return;
         }
 

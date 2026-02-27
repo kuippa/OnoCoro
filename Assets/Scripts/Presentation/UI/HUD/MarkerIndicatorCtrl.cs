@@ -51,7 +51,47 @@ public static class MarkerIndicatorCtrl
         GameObject gameObject2 = gameObject.AddComponent<Canvas>().gameObject;
         gameObject2.transform.position = position;
         gameObject2.transform.rotation = target.transform.rotation;
+
+        // targetのサイズを考慮して、直上Y座標、全面Z座標に配置するためのオフセットを計算
+        Vector3 offset = CalculateIndicatorOffset(target);
+        gameObject2.transform.localPosition += offset;
+
         return gameObject2;
+    }
+
+    private static Vector3 CalculateIndicatorOffset(GameObject target)
+    {
+        if (target == null)
+        {
+            return Vector3.zero;
+        }
+
+        // // Rendererから対象のサイズを取得
+        // Renderer renderer = target.GetComponent<Renderer>();
+        // if (renderer == null)
+        // {
+        //     Debug.LogWarning($"Renderer component not found on {target.name}");
+        //     return Vector3.zero;
+        // }
+
+        // Bounds bounds = renderer.bounds;
+        // Vector3 targetScale = target.transform.localScale;
+
+        // // Y軸: 対象の上部から上方へオフセット
+        // float yOffset = bounds.extents.y * targetScale.y;
+
+        // // Z軸: 対象の前面へオフセット（Z方向前面）
+        // float zOffset = bounds.extents.z * targetScale.z;
+
+        // Y軸: 対象の上部から上方へオフセット
+        float yOffset = 1.5f;
+
+        // Z軸: 対象の前面へオフセット（Z方向前面）
+        float zOffset = -2f;
+
+
+        // X軸: 対象の中央（オフセットなし）
+        return new Vector3(0f, yOffset, zOffset);
     }
 
     private static void StartDeleteProcess(GameObject target)

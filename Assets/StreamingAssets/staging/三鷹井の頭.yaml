@@ -41,7 +41,7 @@ pathmakers:
   # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
   #   pos: 9, 0, 15
 
-routenames:  # 
+routenames:  # ルートでまとめて指定しておけばユニットを呼び出すときに便利
   - name: route_wave1
     markers: path_marker_start_1, path_marker_1, path_marker_goal_1
   
@@ -94,7 +94,7 @@ events:
   # ========== Wave 1（0-25秒）==========
   - time: 1
     event: bloom_path
-    value: path_marker_start_1, path_marker_1, path_marker_goal_1
+    value: route_wave1
 
   - time: 5
     event: subtelop
@@ -106,28 +106,27 @@ events:
 
   - time: 8
     event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
-    # value: Litter, route_wave1
+    value: Litter, route_wave1
+  # 補足: このような呼び方もできる、同じルートを呼び出すときはルート名だけでもOK
+  # value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
   - time: 17
     event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+    value: Litter, route_wave1
 
   - time: 21
     event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+    value: Litter, route_wave1
 
   - time: 25
     event: spawn_enemy_unit
-    value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
+    value: Litter, route_wave1
 
   - time: 10
-    event: off_bloom_path_complete
+    event: off_bloom_path_complete  # ルート上にいる敵が全ていなくなったらOFFになる
+  #   event: off_bloom_path # 呼び出された瞬間OFFになる
     value: route_wave1
 
-  # - time: 130
-  #   event: off_bloom_path
-  #   value: path_marker_start_1, path_marker_1, path_marker_goal_1
 
   # ========== 桜咲く ==========
 
@@ -140,37 +139,41 @@ events:
     value: PowerCube, -5, auto, 140, 30
 
   # ========== Wave 2（30-60秒）==========
-  - time: 30
+  - time: 40
     event: bloom_path
-    value: start_iseya_mae, path_marker_2, path_marker_goal_1
+    value: route_wave2
 
-  - time: 30
+  - time: 40
     event: subtelop
-    value: "wave 2"
+    value: "wave 2 - 桜咲く -"
 
-  - time: 30
+  - time: 45
     event: spawn_enemy_unit
-    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+    value: Litter, route_wave2
 
-  - time: 33
+  - time: 48
     event: spawn_enemy_unit
-    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+    value: Litter, route_wave2
 
-  - time: 36
-    event: spawn_enemy_unit
-    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+  # - time: 33
+  #   event: spawn_enemy_unit
+  #   value: Litter, route_wave2
 
-  - time: 39
-    event: spawn_enemy_unit
-    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+  # - time: 36
+  #   event: spawn_enemy_unit
+  #   value: Litter, route_wave2
 
-  - time: 42
-    event: spawn_enemy_unit
-    value: Litter, start_iseya_mae, path_marker_2, path_marker_goal_1
+  # - time: 39
+  #   event: spawn_enemy_unit
+  #   value: Litter, route_wave2
 
-  - time: 60
-    event: off_bloom_path
-    value: start_iseya_mae, path_marker_2, path_marker_goal_1
+  # - time: 42
+  #   event: spawn_enemy_unit
+  #   value: Litter, route_wave2
+
+  - time: 50
+    event: off_bloom_path_complete
+    value: route_wave2
 
 
   # 桜の花を咲かせる
