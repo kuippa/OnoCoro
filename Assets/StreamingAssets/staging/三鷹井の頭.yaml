@@ -8,6 +8,7 @@ stages:
     note: "三鷹井の頭"
     BIT: 6000
     CLK: 6100
+    mode: debug
 itemlists:
   - item: FireCube  # 火事
   # - item: Litter  # フココロえもん ごみを巻き散らかす   アイテムではない敵ユニイットなので呼び出せない
@@ -90,13 +91,12 @@ events:
     event: spawn_unit
     value: PowerCube, -2, auto, 165, 1500
 
-
   # ========== Wave 1（0-25秒）==========
   - time: 1
     event: bloom_path
     value: route_wave1
 
-  - time: 5
+  - time: 8
     event: subtelop
     value: "wave 1"
 
@@ -110,6 +110,10 @@ events:
   # 補足: このような呼び方もできる、同じルートを呼び出すときはルート名だけでもOK
   # value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
+  - time: 10
+    event: spawn_unit_debug
+    value: DustBox, -2, auto, 160
+
   - time: 17
     event: spawn_enemy_unit
     value: Litter, route_wave1
@@ -117,6 +121,10 @@ events:
   - time: 21
     event: spawn_enemy_unit
     value: Litter, route_wave1
+
+  - time: 21
+    event: spawn_unit_debug
+    value: Sweeper, 6.7, auto, 140
 
   - time: 25
     event: spawn_enemy_unit
@@ -147,37 +155,37 @@ events:
     event: subtelop
     value: "wave 2 - 桜咲く -"
 
-  - time: 45
+  - time: 55
     event: spawn_enemy_unit
     value: Litter, route_wave2
 
-  - time: 48
+  - time: 58
     event: spawn_enemy_unit
     value: Litter, route_wave2
 
-  # - time: 33
-  #   event: spawn_enemy_unit
-  #   value: Litter, route_wave2
+  - time: 43
+    event: spawn_enemy_unit
+    value: Litter, route_wave2
 
-  # - time: 36
-  #   event: spawn_enemy_unit
-  #   value: Litter, route_wave2
+  - time: 46
+    event: spawn_enemy_unit
+    value: Litter, route_wave2
 
-  # - time: 39
-  #   event: spawn_enemy_unit
-  #   value: Litter, route_wave2
+  - time: 49
+    event: spawn_enemy_unit
+    value: Litter, route_wave2
 
-  # - time: 42
-  #   event: spawn_enemy_unit
-  #   value: Litter, route_wave2
+  - time: 52
+    event: spawn_enemy_unit
+    value: Litter, route_wave2
 
-  - time: 50
+  - time: 60
     event: off_bloom_path_complete
     value: route_wave2
 
 
   # 桜の花を咲かせる
-  - time: 60
+  - time: 70
     event: bloom_sakura
     value: TreeSakura
 

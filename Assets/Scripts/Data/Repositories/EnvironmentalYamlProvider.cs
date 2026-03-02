@@ -73,13 +73,20 @@ internal static class EnvironmentalYamlProvider
     }
 
     /// <summary>
-    /// stages セクションをパースして ScoreCtrl にスコアを初期化
+    /// stages セクションをパースして ScoreCtrl にスコアを初期化 + mode フラグを設定
+    /// mode: debug が指定されている場合, EventLoader._isDebugMode = true を設定
     /// </summary>
-    internal static void LoadStageInit(YamlStream yaml)
+    internal static void LoadStageInit(YamlStream yaml, EventLoader eventLoader)
     {
         if (yaml == null)
         {
             Debug.LogWarning("[EnvironmentalYamlProvider.LoadStageInit] yaml is null");
+            return;
+        }
+
+        if (eventLoader == null)
+        {
+            Debug.LogWarning("[EnvironmentalYamlProvider.LoadStageInit] eventLoader is null");
             return;
         }
 
@@ -93,6 +100,14 @@ internal static class EnvironmentalYamlProvider
         {
             foreach (KeyValuePair<string, string> entry in rowData)
             {
+                // mode フィールドを抽出（debug モード判定）
+                if (string.Equals(entry.Key, "mode", StringComparison.OrdinalIgnoreCase))
+                {
+                    eventLoader._isDebugMode = string.Equals(entry.Value, "debug", StringComparison.OrdinalIgnoreCase);
+                    continue;
+                }
+
+                // スコア初期化（既存ロジック）
                 if (!TrySetScore(GlobalConst.SHORT_SCORE1_SCALE, entry.Key, entry.Value))
                 {
                     TrySetScore(GlobalConst.SHORT_SCORE2_SCALE, entry.Key, entry.Value);

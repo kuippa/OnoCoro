@@ -84,6 +84,9 @@ namespace CommonsUtility
         /// <summary>敵ユニット配置イベント（SpawnController で処理）</summary>
         spawn_enemy_unit,
         
+        /// <summary>ユニット配置イベント（デバッグモード用、mode: debug 時に処理）</summary>
+        spawn_unit_debug,
+        
         // 環境イベント
         /// <summary>天候変更イベント（WeatherController で処理）</summary>
         weather,

@@ -3,6 +3,7 @@ using UnityEngine;
 using CommonsUtility;
 using Debug = CommonsUtility.Debug;
 using System.Linq;
+using UnityEngine.AI;
 
 /// <summary>
 /// 掃除機タワー（Sweeper）のターゲティング管理システム
@@ -29,6 +30,10 @@ public class SweeperTargetingService : MonoBehaviour
     private GameObject _targetGarbage = null;
     private List<GameObject> _AimGarbageLists = new List<GameObject>();
     private List<GameObject> _IgnoreGarbageLists = new List<GameObject>();
+
+    // ターゲット追跡時間（タイムアウト判定用）
+    private const float _TARGET_TIMEOUT = 5f;  // 5秒以上到達できないと Ignore リストに移動
+    private float _targetStartTime = 0f;       // 現在のターゲット設定時刻
 
     // 外部参照
     private Transform _myTransform = null;
@@ -61,6 +66,7 @@ public class SweeperTargetingService : MonoBehaviour
     /// <returns>最近いゴミ。なければ null</returns>
     internal GameObject GetBestTarget()
     {
+        CheckTargetTimeout();
         UpdateTargetGarbage();
         return _targetGarbage;
     }
@@ -173,12 +179,20 @@ public class SweeperTargetingService : MonoBehaviour
 
     /// <summary>
     /// ターゲットリストからゴミを設定
+    /// NavMesh 上にあるゴミのみを対象とする
     /// </summary>
     private void SetTargetGarbage(GameObject other)
     {
         if (_myTransform == null)
         {
             Debug.LogWarning("[SweeperTargetingService] myTransform is null");
+            return;
+        }
+
+        // NavMesh 上の位置チェック：ゴミがNavMesh上にない場合は対象外
+        if (!IsOnNavMesh(other.transform.position))
+        {
+            Debug.Log($"[SweeperTargetingService] ゴミ '{other.name}' は NavMesh 上にありません。掃除対象から除外します");
             return;
         }
 
@@ -196,6 +210,7 @@ public class SweeperTargetingService : MonoBehaviour
                 GameObjectTreat.DebugColorChange(_targetGarbage, Color.green);
             }
             _targetGarbage = other;
+            _targetStartTime = Time.time;  // ターゲット設定時刻を記録
         }
         else
         {
@@ -266,6 +281,37 @@ public class SweeperTargetingService : MonoBehaviour
         if (_targetGarbage == null || !IsValidTarget(_targetGarbage))
         {
             _targetGarbage = GetBestTargetFromList();
+        }
+    }
+
+    /// <summary>
+    /// 指定位置が NavMesh 上にあるかチェック
+    /// </summary>
+    private bool IsOnNavMesh(Vector3 position)
+    {
+        NavMeshHit hit;
+        float sampleDistance = 5f;
+        
+        bool isOnNavMesh = NavMesh.SamplePosition(position, out hit, sampleDistance, NavMesh.AllAreas);
+        return isOnNavMesh;
+    }
+
+    /// <summary>
+    /// ターゲット追跡時間をチェック
+    /// 規定秒数以上ターゲットに到達できない場合、Ignore リストに移動
+    /// </summary>
+    private void CheckTargetTimeout()
+    {
+        if (_targetGarbage == null)
+        {
+            return;
+        }
+
+        float elapsedTime = Time.time - _targetStartTime;
+        if (elapsedTime >= _TARGET_TIMEOUT)
+        {
+            Debug.Log($"[SweeperTargetingService] ターゲット '{_targetGarbage.name}' が {_TARGET_TIMEOUT}秒以上到達不可。Ignore リストに移動");
+            IgnoreCurrentTarget();
         }
     }
 

@@ -95,7 +95,12 @@ public class SpawnMarkerPointerCtrl : UIControllerBase
         {
             return;
         }
-
+        // instance の GameObject がアクティブでない場合はアクティブ化
+        if (!instance.gameObject.activeSelf)
+        {
+            return;
+            // instance.gameObject.SetActive(true);
+        }
         _ngPoint.SetActive(true);
         Debug.Log($"{_LOG_PREFIX} NG_point を表示（1秒後に自動消去）");
         instance.StartCoroutine(instance.HideNGPointAfterDelay());

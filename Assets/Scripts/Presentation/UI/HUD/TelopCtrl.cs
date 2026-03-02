@@ -12,8 +12,8 @@ public class TelopCtrl : MonoBehaviour
     private GameObject _subTelop = null;
     private GameObject _txtsubTelop = null;
 
-    private const float _TELOP_DISPLAY_TIME = 2.5f;
-    private const float _SUB_TELOP_DISPLAY_TIME = 2.5f;
+    private const float _TELOP_DISPLAY_TIME = 5.0f;
+    private const float _SUB_TELOP_DISPLAY_TIME = 5.0f;
     private float _telopDisplayTime = 0.0f;
 
     void Awake()

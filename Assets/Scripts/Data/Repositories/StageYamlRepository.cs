@@ -34,7 +34,7 @@ public class StageYamlRepository : MonoBehaviour
         List<Dictionary<string, string>> itemLists = YamlParserHelper.BuildDictionaryListFromYaml(yaml, YamlSectionKeys.ItemLists);
         EnvironmentalYamlProvider.LoadItemLists(itemLists);
 
-        EnvironmentalYamlProvider.LoadStageInit(yaml);
+        EnvironmentalYamlProvider.LoadStageInit(yaml, _eventLoader);
         EnvironmentalYamlProvider.LoadTimerEvents(yaml, _eventLoader);
 
         // パス・ナビゲーションセットアップ

@@ -56,6 +56,13 @@ public class EventLoader : MonoBehaviour, IInitializable
     /// </summary>
     internal Dictionary<string, string> _routeNameToMarkerSequenceDict = new Dictionary<string, string>();
 
+    /// <summary>
+    /// ステージがデバッグモード（mode: debug）かどうかを示すフラグ
+    /// EventLoaderYamlProvider.LoadStageInit() で stage の mode フィールドから設定される
+    /// spawn_unit_debug イベント処理時に参照される
+    /// </summary>
+    internal bool _isDebugMode = false;
+
     private GameTimerCtrl _gameTimerCtrl = null;
     
     /// <summary>
@@ -131,6 +138,12 @@ public class EventLoader : MonoBehaviour, IInitializable
                 break;
             case nameof(YamlEventType.spawn_enemy_unit):
                 SpawnEnemyUnit(event_value);
+                break;
+            case nameof(YamlEventType.spawn_unit_debug):
+                if (_isDebugMode)
+                {
+                    SpawnUnit(event_value);
+                }
                 break;
             case nameof(YamlEventType.notice):
                 ShowNotice(event_value);
