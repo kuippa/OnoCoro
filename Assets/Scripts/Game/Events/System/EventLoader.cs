@@ -423,7 +423,7 @@ public class EventLoader : MonoBehaviour, IInitializable
 
     private void CallWaterSurface(string event_value)
     {
-        GameObjectTreat.GetOrAddComponent<WaterSurfaceCtrl>(GameObjectTreat.GetEventSystem()).SetWaterSurfaceHeight(float.Parse(event_value));
+        GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(GameObjectTreat.GetEventSystem()).SetWaterSurfaceHeight(float.Parse(event_value));
     }
 
     private void CallEarthquake(string event_value)

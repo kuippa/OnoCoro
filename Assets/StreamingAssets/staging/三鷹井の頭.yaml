@@ -2,7 +2,7 @@
 stagename: 三鷹井の頭
 stagenotice: "三鷹井の頭"
 stageid: 三鷹井の頭
-ver: 1.0.0 # 2025/4/18 
+ver: 1.0.1 # 2026/03/04
 stages:
   - name: 三鷹井の頭
     note: "三鷹井の頭"
@@ -26,18 +26,16 @@ pathmakers:
     pos: 0, auto, 160   # Y を auto に → コード側で地面検出
 
   - name: path_marker_1
-    pos: 5.7, auto, 143   # プレイヤー方向へ少し南寄り
+    pos: 5.7, auto, 143
 
   - name: path_marker_goal_1
-    pos: 0, auto, 135   # プレイヤーの南側（Z = 135）、X は同じ
+    pos: 0, auto, 135
 
   - name: start_iseya_mae
-    # pos: 201, auto, 34.5   
     pos: 20, auto, 160
 
   - name: path_marker_2
-    # pos: 100, auto, 70
-    pos: 7, auto, 130
+    pos: 18.5, auto, 148
 
   # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
   #   pos: 9, 0, 15
@@ -71,6 +69,10 @@ events:
     event: wind
     value: 1, 0
 
+  # - time: 0
+  #   event: watersurface
+  #   value: 0  # 任意の高さ
+
   # ========== テロップ ==========
 
   - time: 1
@@ -91,12 +93,12 @@ events:
     event: spawn_unit
     value: PowerCube, -2, auto, 165, 1500
 
-  # ========== Wave 1（0-25秒）==========
+  # ========== Wave 1 ==========
   - time: 1
     event: bloom_path
     value: route_wave1
 
-  - time: 8
+  - time: 5
     event: subtelop
     value: "wave 1"
 
@@ -111,8 +113,8 @@ events:
   # value: Litter, path_marker_start_1, path_marker_1, path_marker_goal_1
 
   - time: 10
-    event: spawn_unit_debug
-    value: DustBox, -2, auto, 160
+    event: spawn_unit_debug # デバッグ用のスポーンイベント
+    value: DustBox, 5.8, auto, 153
 
   - time: 17
     event: spawn_enemy_unit
@@ -123,37 +125,44 @@ events:
     value: Litter, route_wave1
 
   - time: 21
-    event: spawn_unit_debug
+    event: spawn_unit_debug # デバッグ用のスポーンイベント
     value: Sweeper, 6.7, auto, 140
 
   - time: 25
     event: spawn_enemy_unit
     value: Litter, route_wave1
 
-  - time: 10
+  - time: 25
     event: off_bloom_path_complete  # ルート上にいる敵が全ていなくなったらOFFになる
   #   event: off_bloom_path # 呼び出された瞬間OFFになる
     value: route_wave1
 
 
   # ========== 桜咲く ==========
-
-  - time: 30
+  - time: 40
     event: bloom_sakura
     value: TreeSakura_01
 
-  - time: 30
+  - time: 40
     event: spawn_unit
     value: PowerCube, -5, auto, 140, 30
 
-  # ========== Wave 2（30-60秒）==========
-  - time: 40
+  - time: 45
+    event: subtelop
+    value: "wave 2 - 桜咲く -"
+
+  # ========== Wave 2 ==========
+  - time: 50
     event: bloom_path
     value: route_wave2
 
-  - time: 40
-    event: subtelop
-    value: "wave 2 - 桜咲く -"
+  - time: 51
+    event: spawn_unit_debug # デバッグ用のスポーンイベント
+    value: DustBox, 6, auto, 137.3
+
+  - time: 51
+    event: spawn_unit_debug # デバッグ用のスポーンイベント
+    value: DustBox, 15, auto, 154
 
   - time: 55
     event: spawn_enemy_unit
@@ -167,6 +176,10 @@ events:
     event: spawn_enemy_unit
     value: Litter, route_wave2
 
+  - time: 45
+    event: spawn_unit_debug # デバッグ用のスポーンイベント
+    value: Sweeper, 22, auto, 142
+
   - time: 46
     event: spawn_enemy_unit
     value: Litter, route_wave2
@@ -179,7 +192,7 @@ events:
     event: spawn_enemy_unit
     value: Litter, route_wave2
 
-  - time: 60
+  - time: 52
     event: off_bloom_path_complete
     value: route_wave2
 

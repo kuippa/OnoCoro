@@ -19,7 +19,7 @@ namespace CommonsUtility
         private const string _PLAYER_ARMATURE_NAME = "PlayerArmature";
         
         private GameObject _eventSystem = null;
-        private WaterSurfaceCtrl _waterSurface = null;
+        private WaterSurfaceManager _waterSurface = null;
         private HashSet<Collider> _collidersInTrigger = new HashSet<Collider>();
 
         protected override void Awake()
@@ -224,10 +224,10 @@ namespace CommonsUtility
                 return;
             }
 
-            _waterSurface = GameObjectTreat.GetOrAddComponent<WaterSurfaceCtrl>(_eventSystem);
+            _waterSurface = GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(_eventSystem);
             if (_waterSurface == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] WaterSurfaceCtrl not found");
+                Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] WaterSurfaceManager not found;");
                 return;
             }
 
