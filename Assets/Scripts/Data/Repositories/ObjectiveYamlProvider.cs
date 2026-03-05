@@ -46,6 +46,21 @@ internal static class ObjectiveYamlProvider
         }
 
         StageGoalController._dict_req = goalsRequirement;
+        
+        // [追加] GameTimerCtrl に countdown_time を設定
+        if (goalsRequirement.ContainsKey("notfailtime"))
+        {
+            GameTimerCtrl gameTimer = GameTimerCtrl.GetInstance();
+            if (gameTimer != null)
+            {
+                if (int.TryParse(goalsRequirement["notfailtime"], out int countdownTime))
+                {
+                    gameTimer._countdown_time = countdownTime;
+                    Debug.Log($"[ObjectiveYamlProvider] GameTimerCtrl._countdown_time set to: {countdownTime}");
+                }
+            }
+        }
+        
         StageGoalController.StartCheckStageGoal(caller);
     }
 

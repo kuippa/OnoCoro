@@ -191,12 +191,7 @@ public static class StageGoalController
 
     private static bool CheckGameStageTime(int goalTime)
     {
-        GameTimerCtrl gameTimerCtrl = null;
-        GameObject gameTimerObject = GameObject.Find("txtGameTime");
-        if (gameTimerObject != null)
-        {
-            gameTimerCtrl = gameTimerObject.GetComponent<GameTimerCtrl>();
-        }
+        GameTimerCtrl gameTimerCtrl = GameTimerCtrl.GetInstance();
         if (gameTimerCtrl == null)
         {
             Debug.Log("GameTimerCtrl is null");

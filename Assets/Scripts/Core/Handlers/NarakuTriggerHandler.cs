@@ -31,39 +31,95 @@ namespace CommonsUtility
         }
 
         /// <summary>
-        /// プレイヤーの初期スポーン Y 座標をもとに、この Naraku の Y 位置を調整する。
-        /// スポーン Y が高い場合に Naraku が遠すぎて落下検出が遅れるのを防ぐ。
-        /// インデックスは Naraku タグ付きオブジェクト中の順番で決まる。
-        ///   Naraku   (idx=1): playerY - 30
-        ///   Naraku_1 (idx=2): playerY - 60  ← 加速後の補足用予備
+        /// Ground タグのY座標を取得（優先度1）
+        /// すべての Ground オブジェクト中で最大 Y 値を返す
         /// </summary>
-        private void AdjustYPositionByPlayerSpawn()
+        private float GetGroundBaselineY()
+        {
+            GameObject[] groundObjects = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Ground.ToString());
+            if (groundObjects == null || groundObjects.Length == 0)
+            {
+                return float.MinValue;
+            }
+
+            float maxY = float.MinValue;
+            foreach (GameObject ground in groundObjects)
+            {
+                if (ground != null)
+                {
+                    float groundY = ground.transform.position.y;
+                    if (groundY > maxY)
+                    {
+                        maxY = groundY;
+                    }
+                }
+            }
+
+            return maxY;
+        }
+
+        /// <summary>
+        /// PlayerArmature のY座標を取得（優先度2・フォールバック）
+        /// </summary>
+        private float GetPlayerArmatureY()
         {
             GameObject playerArmature = GameObject.Find(_PLAYER_ARMATURE_NAME);
             if (playerArmature == null)
             {
-                Debug.LogWarning($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] PlayerArmature が見つかりません。{gameObject.name} の Y 位置を調整しません。");
-                return;
+                return float.MinValue;
+            }
+
+            return playerArmature.transform.position.y;
+        }
+
+        /// <summary>
+        /// プレイヤーの初期スポーン Y 座標をもとに、この Naraku の Y 位置を調整する。
+        /// Ground タグのY座標を優先、存在しない場合は PlayerArmature を使用
+        /// (narakuIdx + 1) で必ず _NARAKU_DISTANCE 分下に配置する
+        /// </summary>
+        private void AdjustYPositionByPlayerSpawn()
+        {
+            // ステップ 1: Ground Y座標を取得（優先）
+            float baselineY = GetGroundBaselineY();
+            if (baselineY == float.MinValue)
+            {
+                // Ground が見つからない場合は PlayerArmature を使用（フォールバック）
+                baselineY = GetPlayerArmatureY();
+                if (baselineY == float.MinValue)
+                {
+                    Debug.LogWarning($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] Ground も PlayerArmature も見つかりません。{gameObject.name} の Y 位置を調整しません。");
+                    return;
+                }
             }
 
             int narakuIdx = GetNarakuIndex();
-            float playerSpawnY = playerArmature.transform.position.y;
-            float targetY = playerSpawnY - (_NARAKU_DISTANCE * narakuIdx);
+            // (narakuIdx + 1) で必ず _NARAKU_DISTANCE 分下に配置
+            float targetY = baselineY - (_NARAKU_DISTANCE * narakuIdx);
 
             Vector3 currentPos = transform.position;
             currentPos.y = targetY;
             transform.position = currentPos;
 
-            Debug.Log($"[NarakuTriggerHandler] {gameObject.name} Y 位置を調整: {targetY:F1} (プレイヤースポーン Y: {playerSpawnY:F1}, インデックス: {narakuIdx})");
+            Debug.Log($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] {gameObject.name} Y 位置を調整: {targetY:F1} (基準Y: {baselineY:F1}, Idx: {narakuIdx}, 計算: {baselineY:F1} - (30 * {narakuIdx + 1}))");
         }
 
         /// <summary>
         /// Naraku タグを持つ全オブジェクト中でのインデックスを返す（1始まり）。
+        /// オブジェクトを名前でソートして順番を決定
         /// 見つからない場合は 1 を返す。
         /// </summary>
         private int GetNarakuIndex()
         {
             GameObject[] narakuObjects = GameObject.FindGameObjectsWithTag(GameEnum.TagType.Naraku.ToString());
+            
+            if (narakuObjects == null || narakuObjects.Length == 0)
+            {
+                return 1;
+            }
+            
+            // 名前でソート
+            System.Array.Sort(narakuObjects, (a, b) => a.name.CompareTo(b.name));
+            
             for (int i = 0; i < narakuObjects.Length; i++)
             {
                 if (narakuObjects[i] == this.gameObject)

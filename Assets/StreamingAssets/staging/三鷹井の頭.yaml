@@ -6,18 +6,20 @@ ver: 1.0.1 # 2026/03/04
 stages:
   - name: 三鷹井の頭
     note: "三鷹井の頭"
-    BIT: 6000
-    CLK: 6100
-    mode: debug
+    BIT: 0
+    CLK: 0
+    # BIT: 1000
+    # CLK: 1000
+    # mode: debug
 itemlists:
-  - item: FireCube  # 火事
+  # - item: FireCube  # 火事
   # - item: Litter  # フココロえもん ごみを巻き散らかす   アイテムではない敵ユニイットなので呼び出せない
   - item: DustBox  # ごみ箱
   - item: SentryGuard  # 監視員
   - item: Sweeper
-  - item: GarbageCube
-  - item: GarbageCubeBox
-  - item: PowerCube
+  # - item: GarbageCube
+  # - item: GarbageCubeBox
+  # - item: PowerCube
   # - item: StopPlate # 止水板
   # - item: WaterTurret # 消火
 
@@ -31,11 +33,21 @@ pathmakers:
   - name: path_marker_goal_1
     pos: 0, auto, 135
 
-  - name: start_iseya_mae
+  - name: path_marker_start_2
     pos: 20, auto, 160
 
   - name: path_marker_2
     pos: 18.5, auto, 148
+
+  - name: start_iseya_mae
+    pos: 45, auto, 148
+
+  - name: path_marker_3
+    pos: 30, auto, 128
+
+  - name: path_marker_4
+    pos: 22, auto, 120
+
 
   # - name: path_marker_02  # すでに定義済のマーカーは位置のみ変更
   #   pos: 9, 0, 15
@@ -45,7 +57,10 @@ routenames:  # ルートでまとめて指定しておけばユニットを呼�
     markers: path_marker_start_1, path_marker_1, path_marker_goal_1
   
   - name: route_wave2
-    markers: start_iseya_mae, path_marker_2, path_marker_goal_1
+    markers: path_marker_start_2, path_marker_2, path_marker_goal_1
+
+  - name: route_wave3
+    markers: start_iseya_mae, path_marker_3, path_marker_4, path_marker_goal_1
 
 
 goals:
@@ -57,7 +72,7 @@ gameovers:
   # - garbage: 60  # ゴミの数がｘを超えたらゲームオーバー
   # - building: repair_all
   - gameover_type: GarbageOverflow
-    threshold: 360   # ごみが規定数を超えたらゲームオーバー
+    threshold: 60   # ごみが規定数を超えたらゲームオーバー
 
 events:
   # ========== 環境設定 ==========
@@ -67,7 +82,7 @@ events:
 
   - time: 0
     event: wind
-    value: 1, 0
+    value: 2, 0
 
   # - time: 0
   #   event: watersurface
@@ -84,18 +99,13 @@ events:
     value: "ごみを60以下に保ち、5分間耐え抜こう！"
 
 
-  # ========== 補給 ==========
-  - time: 1
-    event: spawn_unit
-    value: PowerCube, -2, auto, 155, 15
-
-  - time: 1
-    event: spawn_unit
-    value: PowerCube, -2, auto, 165, 1500
-
   # ========== Wave 1 ==========
   - time: 1
-    event: bloom_path
+    event: spawn_unit # 補給
+    value: PowerCube, -2, auto, 165, 200
+
+  - time: 1
+    event: bloom_path # 経路表示
     value: route_wave1
 
   - time: 5
@@ -138,23 +148,26 @@ events:
     value: route_wave1
 
 
-  # ========== 桜咲く ==========
+  # ========== Wave 2 ==========
   - time: 40
-    event: bloom_sakura
-    value: TreeSakura_01
+    event: spawn_unit # 補給
+    value: PowerCube, -7, auto, 140, 200
+  
+  - time: 40
+    event: bloom_sakura  # 桜咲く
+    value: TreeSakura
 
   - time: 40
     event: spawn_unit
     value: PowerCube, -5, auto, 140, 30
 
-  - time: 45
-    event: subtelop
-    value: "wave 2 - 桜咲く -"
-
-  # ========== Wave 2 ==========
-  - time: 50
+  - time: 40
     event: bloom_path
     value: route_wave2
+
+  - time: 45
+    event: subtelop
+    value: "wave 2 - 桜開花 -"
 
   - time: 51
     event: spawn_unit_debug # デバッグ用のスポーンイベント
@@ -196,78 +209,198 @@ events:
     event: off_bloom_path_complete
     value: route_wave2
 
-
-  # 桜の花を咲かせる
+  # ========== Wave 3 ==========
   - time: 70
-    event: bloom_sakura
-    value: TreeSakura
+    event: bloom_sakura  # 桜咲く
+    value: TreeSakura_01
+
+  - time: 70
+    event: spawn_unit
+    value: PowerCube, -5, auto, 140, 250
+
+  - time: 70
+    event: bloom_path
+    value: route_wave3
+
+  - time: 75
+    event: subtelop
+    value: "wave 3 - 桜 八部咲き -"
+
+  - time: 85
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 90
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 95
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 100
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 105
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 110
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 115
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 135
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 140
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 145
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 92
+    event: spawn_unit_debug # デバッグ用のスポーンイベント
+    value: Sweeper, 45, auto, 140
+
+  - time: 92
+    event: off_bloom_path_complete
+    value: route_wave3
 
 
+  # ========== Wave 4 ==========
+  # 総攻撃
 
-  # # ========== Wave 2（25-60秒）: 本格上昇フェーズ ==========
-  # # 【目的】敵が増える、タワーの有効性を試す
+  - time: 150
+    event: spawn_unit
+    value: PowerCube, -15, auto, 140, 150
 
-  # # Wave 2-1: ペア（敵が 2 体同時）
-  # - time: 25
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 150
+    event: spawn_unit
+    value: PowerCube, -20, auto, 120, 150
 
-  # - time: 26
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 150
+    event: spawn_unit
+    value: PowerCube, -30, auto, 110, 150
 
-  # # Wave 2-2: 短いインターバル後、もう 1 ウェーブ
-  # - time: 35
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 150
+    event: spawn_unit
+    value: PowerCube, -50, auto, 100, 150
 
-  # - time: 36
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 150
+    event: spawn_unit
+    value: PowerCube, 20, auto, 100, 150
 
-  # # Wave 2-3: リソース圧迫（3 体連続）
-  # - time: 48
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 180
+    event: bloom_path
+    value: route_wave1
 
-  # - time: 49
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 190
+    event: bloom_path
+    value: route_wave2
 
-  # - time: 50
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 200
+    event: bloom_path
+    value: route_wave3
 
-  # # ========== Wave 3（60-100秒）: 最大難易度フェーズ ==========
-  # # 【目的】高頻度で敵が出現、タワーの有効範囲・クリア判定を試す
+  - time: 210
+    event: spawn_enemy_unit
+    value: Litter, route_wave1
 
-  # # Wave 3-1: 高速ウェーブ開始（敵2体を連続で）
-  # - time: 60
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 213
+    event: spawn_enemy_unit
+    value: Litter, route_wave2    
 
-  # - time: 61
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 216
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
 
-  # # Wave 3-2: 連続小波
-  # - time: 70
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 219
+    event: spawn_enemy_unit
+    value: Litter, route_wave1
 
-  # - time: 71
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 222
+    event: spawn_enemy_unit
+    value: Litter, route_wave2
 
-  # # Wave 3-3: 最終ラッシュ（100秒近くまで敵出現）
-  # - time: 85
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 225
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
 
-  # - time: 86
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 228
+    event: spawn_enemy_unit
+    value: Litter, route_wave1
 
-  # - time: 95
-  #   event: spawn_enemy_unit
-  #   value: Litter, path_marker_start2, path_marker_03, path_marker_04, path_marker_goal2
+  - time: 231
+    event: spawn_enemy_unit
+    value: Litter, route_wave2    
+
+  - time: 234
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 237
+    event: spawn_enemy_unit
+    value: Litter, route_wave1
+
+  - time: 240
+    event: spawn_enemy_unit
+    value: Litter, route_wave2
+
+  - time: 243
+    event: spawn_enemy_unit
+    value: Litter, route_wave3
+
+  - time: 250
+    event: bloom_sakura  # 桜咲く
+    value: TreeSakura_02
+
+  - time: 252
+    event: subtelop
+    value: "wave 4 - 桜 満開 -"
+
+  # - time: 260
+  #   event: spawn_unit_debug # デバッグ用のスポーンイベント
+  #   value: DustBox, 6, auto, 137.3
+
+
+  - time: 280
+    event: off_bloom_path_complete
+    value: route_wave1
+
+  - time: 280
+    event: off_bloom_path_complete
+    value: route_wave2
+
+  - time: 280
+    event: off_bloom_path_complete
+    value: route_wave3
+
+  # ========== おまけ ==========
+
+  - time: 350
+    event: spawn_unit
+    value: FireCube, -21.3, auto, 170
+
+  - time: 350
+    event: spawn_unit
+    value: FireCube, random_position
+
+  - time: 350
+    event: spawn_unit
+    value: FireCube, random_position
+
+  - time: 350
+    event: spawn_unit
+    value: FireCube, random_position
+
+  - time: 350
+    event: spawn_unit
+    value: FireCube, random_position

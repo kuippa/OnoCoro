@@ -24,10 +24,10 @@ public class EscMenuCtrl : UIControllerBase
     {
         base.Awake();
         
-        GameObject txtGameTime = GameObject.Find("txtGameTime");
-        if (txtGameTime != null)
+        GameTimerCtrl gameTimer = GameTimerCtrl.GetInstance();
+        if (gameTimer != null)
         {
-            _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
+            _gameTimerCtrl = gameTimer;
         }
 
         // menuWindow 参照取得

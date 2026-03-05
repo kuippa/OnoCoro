@@ -109,8 +109,8 @@ public class NarakuController : MonoBehaviour
         return 1;
     }
 
-    void Update()
-    {
-        // TODO: 一定時間経過後、ナラク以下まで落ちているオブジェクトがあれば削除する
-    }
+    // void Update()
+    // {
+    //     // TODO: 一定時間経過後、ナラク以下まで落ちているオブジェクトがあれば削除する
+    // }
 }

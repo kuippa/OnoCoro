@@ -17,7 +17,7 @@ public class DustBox : MonoBehaviour, IItemStructProvider
             , "DustBoxID"
             , "ゴミ箱"
             , "ごみが入ると消える。近くにあればそこに捨てようかなぐらいのモラルを引き起こす。"
-            , 10
+            , 300
             , "BIT"
             , 1f
             , 1

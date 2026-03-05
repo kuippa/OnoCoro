@@ -20,10 +20,13 @@ public static class WindController
 
         // WaterSurfaceManager を取得・必要に応じてオンデマンド作成
         GameObject eventSystem = GameObjectTreat.GetEventSystem();
-        WaterSurfaceManager waterCtrl = GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(eventSystem);
-        if (waterCtrl != null)
+        if (eventSystem.GetComponent<WaterSurfaceManager>() != null)
         {
-            waterCtrl.SetDistalWindSpeed(speed * DEFAULT_DISTAL_WIND_SPEED);
+            WaterSurfaceManager waterCtrl = GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(eventSystem);
+            if (waterCtrl != null)
+            {
+                waterCtrl.SetDistalWindSpeed(speed * DEFAULT_DISTAL_WIND_SPEED);
+            }
         }
     }
 

@@ -615,7 +615,7 @@ namespace CommonsUtility
                     EventName = $"{unitName} ×{resourceGain}",
                     Description = "リソース取得",
                     ResourceGain = resourceGain,
-                    ResourceGainType = "BIT"  // PowerCube は BIT を供与
+                    ResourceGainType = "CLK"  // PowerCube は CLK を供与
                 });
             }
         }

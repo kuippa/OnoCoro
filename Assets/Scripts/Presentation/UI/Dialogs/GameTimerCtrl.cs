@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Debug = CommonsUtility.Debug;
 
 public class GameTimerCtrl : UIControllerBase
 {
@@ -24,9 +25,25 @@ public class GameTimerCtrl : UIControllerBase
 
 
     [SerializeField] TextMeshProUGUI _text = null;
-    [SerializeField] float _countdown_time = 300; // [Sec]
+    internal float _countdown_time = 300; // [Sec]
     [SerializeField] bool _countdown = true; // カウントダウンモード
 
+    /// <summary>
+    /// GameTimerCtrl インスタンスを取得（キャッシング）
+    /// GameObject.Find 負荷を軽減するため、複数呼び出し時に使用
+    /// </summary>
+    internal static GameTimerCtrl GetInstance()
+    {
+        if (instance == null)
+        {
+            GameObject txtGameTime = GameObject.Find("txtGameTime");
+            if (txtGameTime != null)
+            {
+                instance = txtGameTime.GetComponent<GameTimerCtrl>();
+            }
+        }
+        return instance;
+    }
 
     protected override void Awake()
     {
@@ -70,10 +87,18 @@ public class GameTimerCtrl : UIControllerBase
         if (_text != null)
         {
             string text = "";
+            bool isNegative = false;
+            
             if (_countdown)
             {
                 time = _countdown_time - time;
-                // _time_stock = _countdown_time - _time_stock;
+                
+                // マイナス値の場合、フラグを立てて絶対値で計算
+                if (time < 0)
+                {
+                    isNegative = true;
+                    time = Mathf.Abs(time);
+                }
             }
 
             int minutes = Mathf.FloorToInt(time / 60F);
@@ -81,45 +106,17 @@ public class GameTimerCtrl : UIControllerBase
             int mseconds = Mathf.FloorToInt((time - minutes * 60 - seconds) * 10);
 
             text = string.Format("{0:00}:{1:00}.{2:0}", minutes, seconds, mseconds);
-
-            // if (this.name == "txtGameTime")
-            // {
-            //     text = string.Format("{0:00}:{1:00}.{2:0}", minutes, seconds, mseconds);
-            // }
-            // else
-            // {
-            //     text = String.Format("{00:00:00.0}", _time_stock);
-            // }
+            
+            // マイナスの場合は負号を付ける
+            if (isNegative)
+            {
+                text = "-" + text;
+            }
+            
             _text.SetText(text);
         }
     }
 
-    // internal void SetEvent()
-    // {
-    //     if (_eventLoader != null)
-    //     {
-    //         foreach (var gevent in _eventLoader._events)
-    //         {
-    //             string event_name = gevent.Key;
-    //             Debug.Log(gevent.Key);
-    //             foreach (var event_data in _eventLoader._events[event_name])
-    //             {
-    //                 foreach (var entry in event_data)
-    //                 {
-    //                     Debug.Log(entry.Key + " : " + entry.Value);
-
-    //                     if (entry.Key == "time")
-    //                     {
-    //                         Debug.Log(entry.Value);
-    //                         _eventTimeList.Add(float.Parse(entry.Value));
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         // _eventTimeList を時間でソートする
-    //         _eventTimeList.Sort();
-    //     }
-    // }
 
     internal void SetTimerEvent()
     {

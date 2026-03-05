@@ -17,7 +17,7 @@ public class SentryGuard : MonoBehaviour, IItemStructProvider, IUnitStructProvid
 			, "SentryGuard"
 			, "監視員さん"
 			, "ごみの投げ捨てを見られている間だけ思いとどまらせる。"
-			, 20 // CreateCost
+			, 400 // CreateCost
 			, "BIT"
 			, 1f
 			, 1

@@ -623,12 +623,8 @@ public class EventLoader : MonoBehaviour, IInitializable
             instance = this;
         }
 
-        GameObject txtGameTime = GameObject.Find("txtGameTime");
-        if (txtGameTime != null)
-        {
-            _gameTimerCtrl = txtGameTime.GetComponent<GameTimerCtrl>();
-            // txtGameTime.GetComponent<GameTimerCtrl>()._time = 0.0f;
-        }
+        _gameTimerCtrl = GameTimerCtrl.GetInstance();
+        // txtGameTime.GetComponent<GameTimerCtrl>()._time = 0.0f;
 
         // [重要] Awake では IsInitialized = false
         IsInitialized = false;

@@ -17,6 +17,7 @@ public class WaterSurfaceManager : MonoBehaviour
 
 	private void Start()
 	{
+		// Debug.Log("[WaterSurfaceCtrl] Start called");
 		// SetDistalWindSpeed(DEFAULT_DISTAL_WIND_SPEED);
 	}
 

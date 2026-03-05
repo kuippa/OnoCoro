@@ -50,6 +50,9 @@ events:
     event: spawn_unit
     value: PowerCube, 4, 2, 4
 
+  # - time: 0
+  #   event: watersurface
+  #   value: -50  # 任意の高さ
 
   # - time: 3
   #   event: spawn_unit
