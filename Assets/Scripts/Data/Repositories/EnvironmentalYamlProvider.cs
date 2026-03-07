@@ -25,6 +25,7 @@ internal static class EnvironmentalYamlProvider
         }
 
         List<string> itemList = StageYamlRepository._ItemList;
+        itemList.Clear();  // 新しいステージの itemlists をロード前にリセット（二重防止）
 
         foreach (Dictionary<string, string> rowData in yamlDataList)
         {

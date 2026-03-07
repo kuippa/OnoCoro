@@ -35,19 +35,21 @@ public static class StageRepository
     }
 
     /// <summary>
-    /// CSVファイルからステージ情報を読み込んで辞書を構築
+    /// CSVファイルからステージ情報を読み込んでリストを構築（CSV順序を保持）
     /// </summary>
-    /// <returns>シーン名をキーとしたステージ情報の辞書</returns>
-    public static Dictionary<string, string[]> GetSceneInfoDict()
+    /// <returns>シーン名とステージ情報のタプルリスト（CSV読み込み順）</returns>
+    internal static List<(string SceneName, string[] StageInfo)> GetSceneInfoList()
     {
-        Dictionary<string, string[]> dictionary = new Dictionary<string, string[]>();
+        var list = new List<(string, string[])>();
         string[] csvLines = LoadStreamingAsset.CsvLines(LoadStreamingAsset.STAGE_LIST_FILE_NAME);
         
         if (csvLines == null)
         {
             Debug.LogError($"ステージリストファイルが見つかりません: {LoadStreamingAsset.STAGE_LIST_FILE_NAME}");
-            return dictionary;
+            return list;
         }
+        
+        var seenSceneNames = new HashSet<string>();
         
         for (int i = 0; i < csvLines.Length; i++)
         {
@@ -59,54 +61,22 @@ public static class StageRepository
             }
             
             // 重複キーをスキップ
-            if (dictionary.ContainsKey(csvColumns[0]))
+            if (seenSceneNames.Contains(csvColumns[0]))
             {
                 Debug.LogWarning($"重複するシーン名をスキップ: {csvColumns[0]}");
                 continue;
             }
             
-            dictionary.Add(csvColumns[0], new string[3]
+            seenSceneNames.Add(csvColumns[0]);
+            list.Add((csvColumns[0], new string[3]
             {
                 csvColumns[1],
                 csvColumns[2],
                 csvColumns[3]
-            });
+            }));
         }
         
-        return dictionary;
-    }
-
-    /// <summary>
-    /// ビルド設定のシーンとCSVのステージ情報をマージした辞書を構築
-    /// </summary>
-    /// <returns>表示用のステージ辞書</returns>
-    public static Dictionary<string, string[]> GetSceneDict()
-    {
-        string[] sceneNames = GetSceneNames();
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        Dictionary<string, string[]> sceneInfoDict = GetSceneInfoDict();
-        Dictionary<string, string[]> result = new Dictionary<string, string[]>();
-        string[] defaultStageInfo = new string[3] { "StageName", "StageIcon", "StageInfo" };
-        
-        foreach (string sceneName in sceneNames)
-        {
-            if (sceneInfoDict.ContainsKey(sceneName))
-            {
-                // 重複キーをスキップ
-                if (!result.ContainsKey(sceneName))
-                {
-                    result.Add(sceneName, sceneInfoDict[sceneName]);
-                }
-            }
-            else if (sceneName != currentSceneName && !result.ContainsKey(sceneName))
-            {
-                string[] fallbackInfo = (string[])defaultStageInfo.Clone();
-                fallbackInfo[0] = sceneName;
-                // result.Add(sceneName, fallbackInfo);   // シーンマネージャーに登録されているものをすべて表示する場合は有効化
-            }
-        }
-
-        return result;
+        return list;
     }
 
     /// <summary>

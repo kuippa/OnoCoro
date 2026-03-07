@@ -77,14 +77,14 @@ public class TitleStartController : MonoBehaviour
     {
         ClearContetArea(content);
         StageRepository.GetSceneNames();
-        Dictionary<string, string[]> sceneDict = StageRepository.GetSceneDict();
-        foreach (KeyValuePair<string, string[]> item in sceneDict)
+        var sceneList = StageRepository.GetSceneInfoList();
+        
+        foreach (var (scenePath, stageInfo) in sceneList)
         {
-            string key = item.Key;
-            string[] value = item.Value;
-            SetStageContent(content, key, value);
+            SetStageContent(content, scenePath, stageInfo);
         }
-        int count = sceneDict.Count;
+        
+        int count = sceneList.Count;
         content.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, _STAGE_SELECTOR_HEIGHT * count + _STAGE_SELECTOR_MARGIN * (count - 1));
     }
 
