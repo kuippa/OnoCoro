@@ -23,6 +23,7 @@
 
 | ファイル | 行番号 | 内容 | タイプ | 関連バグ | 対応予定 |
 |---------|--------|------|--------|---------|---------|
+| Environment Volume | - | [HDRI Sky のキューブマップが欠如、SpaceEmission も欠如] | FIXME | - | Phase 1.5 |
 | UICanvasManager.cs | (参考欄) | [複数解像度対応時の動的更新] | TODO | - | Phase 2 |
 | InitializationManager.cs | (参考) | [FontManager 初期化] | TODO | - | Phase 1.4～1.5 |
 | YamlLoader.cs | (参考) | [ストリーミング読み込み最適化] | FIXME | - | Phase 2 |
