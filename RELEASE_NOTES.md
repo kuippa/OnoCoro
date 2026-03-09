@@ -61,7 +61,24 @@ unity -projectPath . -openFile
 
 ---
 
-## 新機能 [NEW]
+## プレイ動画
+
+### プロトタイプビルド デモンストレーション
+
+以下の動画でゲームプレイと基本操作をご確認いただけます：
+
+**[OnoCoro v0.0.21-prototype - Gameplay Demo](https://youtu.be/VTvzlBCW4Jg)**
+
+▶️ 動画内容：
+- タイトル画面～ステージ選択
+- 兼六園ステージでのチュートリアル
+- ユニット配置・操作方法
+- ゲームプレイの流れ
+- カメラ操作・視点切り替え
+
+*注: 低スペック環境での起動遅延が含まれています（診断中）*
+
+---
 
 ### 起動パフォーマンス診断インフラ
 
@@ -325,7 +342,8 @@ MIT License - [LICENSE](https://github.com/kuippa/OnoCoro/blob/main/LICENSE)
 
 - 🐛 [バグ報告](https://github.com/kuippa/OnoCoro/issues)
 - 💬 [Discussions](https://github.com/kuippa/OnoCoro/discussions)
-- 📺 [開発ライブ配信](https://www.youtube.com/playlist?list=PLxWlv9T7cA6YhDW4aLlfn6BCZQFYPrOJ3)
+- � [プレイ動画](https://youtu.be/VTvzlBCW4Jg) - v0.0.21-prototype デモンストレーション
+- �📺 [開発ライブ配信](https://www.youtube.com/playlist?list=PLxWlv9T7cA6YhDW4aLlfn6BCZQFYPrOJ3)
 
 ---
 
