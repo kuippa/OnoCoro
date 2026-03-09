@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace CommonsUtility
 {
@@ -172,6 +173,38 @@ namespace CommonsUtility
                 watch.Stop();
                 string message = $"[{processName}] 実行時間: {watch.ElapsedMilliseconds}ms";
                 string formattedMessage = BuildLogMessage(message);
+                UnityEngine.Debug.Log(formattedMessage);
+                LogUtility.WriteLog(LogUtility.LogLevel.Log, formattedMessage);
+            }
+        }
+
+        /// <summary>
+        /// タイムスタンプと起動からの経過時間付きでログを出力
+        /// Bootstrap フェーズの計測用に使用
+        /// 出力例: [10:23:45.123] [5.234s] PLATEAU初期化完了
+        /// </summary>
+        public static void LogWithMilliseconds(string message)
+        {
+            if (ShouldLog(DebugLevel.Log))
+            {
+                string timestamp = System.DateTime.Now.ToString("HH:mm:ss.fff");
+                float elapsedSeconds = Time.realtimeSinceStartup;
+                string formattedMessage = BuildLogMessage($"[{timestamp}] [{elapsedSeconds:F3}s] {message}");
+                UnityEngine.Debug.Log(formattedMessage);
+                LogUtility.WriteLog(LogUtility.LogLevel.Log, formattedMessage);
+            }
+        }
+
+        /// <summary>
+        /// ミリ秒精度のタイムスタンプ付きでログを出力
+        /// 時刻のみが必要な場合はこちらを使用
+        /// </summary>
+        public static void LogWithTimestamp(string message)
+        {
+            if (ShouldLog(DebugLevel.Log))
+            {
+                string timestamp = System.DateTime.Now.ToString("HH:mm:ss.fff");
+                string formattedMessage = BuildLogMessage($"[{timestamp}] {message}");
                 UnityEngine.Debug.Log(formattedMessage);
                 LogUtility.WriteLog(LogUtility.LogLevel.Log, formattedMessage);
             }

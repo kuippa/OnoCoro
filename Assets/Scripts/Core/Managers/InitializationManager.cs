@@ -143,18 +143,20 @@ internal class InitializationManager : MonoBehaviour
         // 全ての Awake が完了するまで1フレーム待機
         yield return null;
         
-        Debug.Log("[InitializationManager] 初期化開始");
+        Debug.LogWithTimestamp("=== [Phase 2-3] 初期化フェーズ開始 ===");
         
         // GamePrefabs（親オブジェクト）が準備完了したことを通知
         // このタイミングで EventLoader / YamlLoader が起動可能に
+        Debug.LogWithMilliseconds("[Phase 2] GamePrefabs 準備完了通知");
         NotifyGamePrefabsReady();
         
+        Debug.LogWithMilliseconds("[Phase 2-3] マネージャー・UI 初期化開始");
         // 順序制御された初期化処理を実行
         yield return InitializeAllComponents();
         
         // 全初期化完了フラグを立てる
         _isInitialized = true;
-        Debug.Log("[InitializationManager] 全ての初期化が完了しました");
+        Debug.LogWithTimestamp("=== [Phase 2-3] 初期化フェーズ完了 ===");
     }
     
     /// <summary>
@@ -164,13 +166,19 @@ internal class InitializationManager : MonoBehaviour
     private IEnumerator InitializeAllComponents()
     {
         // ステップ1: リソース読み込み系の初期化（必要に応じて）
+        Debug.LogWithMilliseconds("[Phase 2] リソースローダー初期化開始");
         yield return InitializeResourceLoaders();
+        Debug.LogWithMilliseconds("[Phase 2] リソースローダー初期化完了");
         
         // ステップ2: マネージャークラスの初期化（FireCubeCtrl など）
+        Debug.LogWithMilliseconds("[Phase 2] マネージャー初期化開始");
         yield return InitializeManagers();
+        Debug.LogWithMilliseconds("[Phase 3] マネージャー初期化完了");
         
         // ステップ3: UI系の初期化（Phase 1.4 で実装）
+        Debug.LogWithMilliseconds("[Phase 3] UI初期化開始");
         yield return InitializeUIComponents();
+        Debug.LogWithMilliseconds("[Phase 3] UI初期化完了");
     }
     
     /// <summary>
@@ -272,7 +280,6 @@ internal class InitializationManager : MonoBehaviour
     /// </summary>
     private IEnumerator InitializeUIComponents()
     {
-        Debug.Log("[InitializationManager] UI コンポーネント初期化開始");
         
         // UIInitializationService で Canvas Scaler + フォント初期化を実行
         yield return UIInitializationService.InitializeUIForScene();

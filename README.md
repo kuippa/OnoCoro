@@ -135,6 +135,29 @@ Assets/Scripts/
 
 ---
 
+## バグ報告
+
+問題を発見した場合は、以下の情報をご用意の上 [GitHub Issues](https://github.com/kuippa/OnoCoro/issues) にご報告ください：
+
+### ログファイルの位置
+
+```
+C:\Users\[ユーザー名]\AppData\LocalLow\Hagurachaya\Onokoro\
+```
+
+以下のファイルが出力されます：
+
+| ファイル | 内容 |
+|---------|------|
+| `Player.log` | Unity 標準ログ（エラー・警告など） |
+| `20260310_onoco.log` | 起動タイミング・性能情報 |
+
+※日付部分は実行日により変わります
+
+**ログファイルを添付していただくと、開発者が問題の原因を特定しやすくなります。**
+
+---
+
 ## 既知の問題
 
 詳細は [KNOWN_ISSUES.md](KNOWN_ISSUES.md) を参照。

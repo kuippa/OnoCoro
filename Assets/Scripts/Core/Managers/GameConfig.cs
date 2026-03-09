@@ -22,13 +22,18 @@ namespace CommonsUtility
         internal static DebugLevel DebugLevel { get; set; } = DebugLevel.Editor;
 
         // ログレベル（実行時に変更可能）
-        internal static LogUtility.LogLevel LogLevel { get; set; } = LogUtility.LogLevel.Editor;
+        // internal static LogUtility.LogLevel LogLevel { get; set; } = LogUtility.LogLevel.Editor;
+        internal static LogUtility.LogLevel LogLevel { get; set; } = LogUtility.LogLevel.Log;
 
         // ログファイル関連（実行時に変更可能）
         internal static string LogFileName { get; set; } = GlobalConst._LOG_FILE_NAME;
-        // internal static string LogFilePath => System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, LogFileName);
-        // internal static string LogFilePath => UnityEngine.Application.persistentDataPath;
-       internal static string LogFilePath = "G:\\log";
+
+        // ex.Unity エディタ実行時
+        // C:\Users\[ユーザー名]\AppData\LocalLow\DefaultCompany\OnoCoro2026\
+        // ex.ビルド後実行時
+        // C:\Users\[ユーザー名]\AppData\LocalLow\[ProjectName]\[Product Name]\
+        internal static string LogFilePath => UnityEngine.Application.persistentDataPath;
+    //    internal static string LogFilePath = "G:\\log";
 
         // リソースパス設定（実行時に変更可能）
         internal static string CursorIconPath { get; set; } = GlobalConst.CURSOR_ICON_PATH;

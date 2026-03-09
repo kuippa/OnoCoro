@@ -47,10 +47,20 @@ public static class StageGoalController
 
     private static void BackToStartPage()
     {
+        BackToStartPageInternal("Stage Cleared, want to back start page?");
+    }
+
+    private static void BackToStartPageFail()
+    {
+        BackToStartPageInternal("Stage Failed, want to back start page?");
+    }
+
+    private static void BackToStartPageInternal(string message)
+    {
         try
         {
             MessageBoxCtrl messageBox = GameObject.Find("UIMessageBox").GetComponent<MessageBoxCtrl>();
-            messageBox.Show("Stage Cleared, want to back start page?", (result) =>
+            messageBox.Show(message, (result) =>
             {
                 if (result)
                 {
@@ -61,7 +71,7 @@ public static class StageGoalController
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"[StageGoalController.BackToStartPage] Exception: {ex.Message}");
+            Debug.LogError($"[StageGoalController.BackToStartPageInternal] Exception: {ex.Message}");
         }
     }
 
@@ -108,7 +118,7 @@ public static class StageGoalController
         {
             telopCtrl.ShowTelop("Stage Fail!! Game Over");
             _is_stage_fail = true;
-            ActionDelay(3000, () => BackToStartPage());
+            ActionDelay(3000, () => BackToStartPageFail());
         }
     }
 

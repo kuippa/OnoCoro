@@ -1,16 +1,17 @@
-# OnoCoro v0.1.0-alpha - Prototype Build
+# OnoCoro v0.0.21-prototype - Prototype Build
 
-**Release Date**: 2026-03-08  
-**Tag**: `prototype2026.03.08.01.40`  
-**Version**: v0.1.0-alpha
+**Release Date**: 2026-03-10  
+**Tag**: `v0.0.21-prototype`  
+**Version**: v0.0.21-prototype
+**Build Number**: 21
 
 ---
 
 ## 概要
 
-OnoCoro プロトタイプビルド第 2 段階です。前回リリース（v0.0.6, 2026-01-26）から約 1.5 ヶ月にわたり、新機能実装、バグ修正、リファクタリングを進めました。
+OnoCoro プロトタイプビルド。前回リリース（v0.0.6, 2026-01-26）からの開発成果をまとめました。
 
-本ビルドでは **複数シーン間のユニットメニュー更新問題の根本解決** と **ItemCreateCtrl の責任分離** を実施。ゲームシステムの安定性が向上しました。
+本ビルドでは **パフォーマンス診断インフラ実装** と **複数シーン間のユニットメニュー更新問題の根本解決** を実施。ゲームシステムの安定性が向上しました。
 
 ### ゲーム概要
 
@@ -24,7 +25,7 @@ OnoCoro プロトタイプビルド第 2 段階です。前回リリース（v0.
 
 | 形式 | リンク |
 |------|--------|
-| **Standalone PC (EXE)** | [OnoCoro_v0.1.0-alpha.zip](https://github.com/kuippa/OnoCoro/releases/download/v0.1.0-alpha/OnoCoro_v0.1.0-alpha.zip) |
+| **Standalone PC (EXE)** | [OnoCoro_v0.0.21-prototype.zip](https://github.com/kuippa/OnoCoro/releases/download/v0.0.21-prototype/OnoCoro_v0.0.21-prototype.zip) |
 | **ソースコード (ZIP)** | GitHub リポジトリ から Clone |
 | **ソースコード (TAR)** | GitHub リポジトリ から Clone |
 
@@ -34,7 +35,7 @@ OnoCoro プロトタイプビルド第 2 段階です。前回リリース（v0.
 
 ### 方法 1: EXE ファイル（推奨）
 
-1. `OnoCoro_v0.1.0-alpha.zip` をダウンロード
+1. `OnoCoro_v0.0.21-prototype.zip` をダウンロード
 2. 任意のフォルダに解凍
 3. `OnoCoro.exe` をダブルクリック
 
@@ -62,102 +63,51 @@ unity -projectPath . -openFile
 
 ## 新機能 [NEW]
 
-### ゲームシステム
+### 起動パフォーマンス診断インフラ
 
-- **Water System Wind Speed Control**
-  - Water Surface が WindController と統合
-  - 風速に応じた波の動きを実装
+- **LogWithTimestamp()** - 初期化各フェーズでタイムスタンプ記録
+- **LogWithMilliseconds()** - 各フェーズの実行時間を計測
+- **InitializationManager 計測** - Phase 2-3 の ResourceLoaders / Managers / UIComponents ごとにタイミング記録
+- **パフォーマンスログ出力** - Application.persistentDataPath に YYYYMMDD_onoco.log として自動出力
 
-- **TreeSakura Ornament System**
-  - `bloom_sakura` イベントで桜開花演出実装
-  - 季節演出の拡張ポイント
+### ドキュメント充実化
 
-- **PollutantManager**
-  - ごみ数表示を static class で一元管理
-  - UI リアルタイム更新
-
-- **Enemy Litter**
-  - ナビゲーションシステム統合
-  - タイムアウト検出、DustBox破壊機能
-
-### UI・ゲーム制御
-
-- **UIControllerBase**
-  - Panel・Dialog の初期化ベースクラス導入
-  - UI 責任分離の基盤
-
-- **Game Speed Debugging**
-  - Time.timeScale 統合
-  - デバッグパネル自動更新機能
-
-- **Path Tracking**
-  - `off_bloom_path_complete` イベントで敵生命周期管理実装
-
-- **YAML Route 互換性**
-  - Factory/Spawner パターンでルート名互換性実装
+- **versioning.md** - バージョン管理・タグ付ルール、BuildDate.txt フォーマット、GitHub リリースタグ規則を体系化
+- **debugging-and-logging.md** - デバッグログ・パフォーマンス診断ガイドを追加
+- **内部ドキュメント更新** - AGENTS.md / aboutthisgame.txt をプロトタイプ版表記に統一
 
 ---
 
 ## バグ修正 [FIX]
 
-### Critical
+### Build 21 での修正
 
-**2026-03-08 - シーン遷移時 itemlist が更新されない（#e31348b4）**
+- **(2026-03-10) Debug.cs コンパイルエラー** - `using UnityEngine;` を追加
+  - Time.realtimeSinceStartup へのアクセス時に UnityEngine の参照が必要
 
-**問題**: Scene A (itemlist: [Sweeper, GarbageCube]) → Scene B (既存の Sweeper, GarbageCube に加えて新規アイテムが追加) - 古いデータが蓄積
+### 既存修正（v0.0.20 からの継続）
 
-**原因**: `StageYamlRepository._ItemList` が static List で、シーン遷移時に Clear() されていなかった
-
-**解決**:
-- `StageYamlRepository.LoadYamlData()` に `_ItemList.Clear()` を追加
-- `EnvironmentalYamlProvider.LoadItemLists()` に `itemList.Clear()` を追加
-- `ItemCreateCtrl._UIItemCreate` を `static` → `instance` に変更し MissingReferenceException も対策
-
-**影響**: 複数シーン間でユニット作成メニューのアイテムがシーンごとに正しく更新される
-
-### Major
-
-- **(2026-02-27) GarbageCount 表示されない**
-  - TextMeshProUGUI 参照をシーン遷移時にリフレッシュ
-
-- **(2026-02-11) Stage Goal 判定エラー**
-  - static フラグリセット漏れを修正
-  - UINotice 自動閉じ機能追加
-
-- **(2026-02-07) Raycast QueryTriggerInteraction**
-  - IgnoreTriggers を全 Physics.Raycast に統一（衝突判定の安定化）
-
-### Minor
-
-- Enemy Litter タイムアウト検出と破壊フォールバック改善
-- Naraku 落下フォールバック改善 + Y 位置プレイヤースポーン追従
-- CircularIndicator Prefab パス修正
+- **(2026-03-08) シーン遷移時 itemlist が更新されない** - `StageYamlRepository._ItemList.Clear()` を追加
+- **(2026-03-06) GameTimer GameObject.Find 統合** - Naraku 配置ロジック改善
+- **(2026-02-27) GarbageCount 表示されない** - TextMeshProUGUI 参照をシーン遷移時にリフレッシュ
+- **(2026-02-11) Stage Goal 判定エラー** - static フラグリセット漏れ修正
+- **(2026-02-07) Raycast QueryTriggerInteraction** - IgnoreTriggers を全 Physics.Raycast に統一
 
 ---
 
 ## リファクタリング [REFACTOR]
 
-### Code Quality
+### パフォーマンス診断インフラ
 
-**ItemCreateCtrl 全体リファクタリング (2026-03-08)**
+- **Debug.cs 拡張** - LogWithTimestamp / LogWithMilliseconds メソッド追加
+- **GameConfig ログ設定** - LogFilePath / LogFileName を Application.persistentDataPath に統一
+- **InitializationManager 計測** - Phase 2-3 で詳細なタイミング情報を記録
 
-責任範囲を明確化：
+### ドキュメント整備
 
-- `RegisterButtonListeners()` - ボタン登録のみに限定
-- `RebuildItemList()` - 最新データでリスト再構築（SwitchActive 時）
-- `RefreshView()` - SetActive 後に画面更新（アイコン再描画保証）
-
-**その他**
-
-- **TriggerHandler Refactoring** - 12個すべての trigger handler 実装完了
-- **Resources.Load 統一化** - PrefabManager へ全コード統一
-- **YAML コマンド処理の統一** - Validation を簡素化
-
-### Architecture
-
-- **Factory/Spawner パターン** - Enemy・Unit 生成の統一化
-- **UI Canvas 統一** - UICanvasManager で Canvas 設定一元管理
-- **Debug Logger** - Debug alias を CommonsUtility.Debug に統一
+- **AGENTS.md / CHANGELOG.md** - プロトタイプ版表記に統一
+- **versioning.md 新規作成** - GitHub タグ・バージョン管理規則を体系化
+- **aboutthisgame.txt 更新** - Unity 6.3.10f1、プロトタイプ版表記
 
 ---
 
@@ -165,24 +115,22 @@ unity -projectPath . -openFile
 
 ### 新規作成
 
-- `docs/architecture/camera-exposure-settings.md` - カメラ・Depth of Field トラブルシューティング
-- `docs/architecture/camera-deoccluder-implementation.md` - CinemachineDeoccluder 実装ガイド
-- `docs/BUILD_ENVIRONMENT.md` - Unity 6.3.10f1 パッケージ完全仕様書
+- `docs/project-rules/versioning.md` - バージョン管理・タグ付ルール完全ガイド
+- パフォーマンス診断ガイド - ログファイル位置・フォーマット説明
 
 ### 更新
 
-- `AGENTS.md` - スリム化・ドキュメント構造整理
-- `prototype-phase-roadmap.md` - Phase 2-3 進捗追跡
-- `TODO.md` - carrera地面潜り対策 TODO 追加
-- `README.md` - プロトタイプリリース用に全面更新
-- `CHANGELOG.md` - v0.1.0-alpha の詳細変更履歴
+- `AGENTS.md` - プロトタイプ版表記、セッション情報要件統一
+- `CHANGELOG.md` - v0.0.20-prototype / v0.0.21-prototype の詳細変更履歴
+- `aboutthisgame.txt` - Unity 6.3.10f1、プロトタイプ版表記に統一
+- `README.md` - ビルド環境・ログ位置情報を詳細化
 
 ---
 
 ## パフォーマンス [PERF]
 
-- **Depth of Field 無効化** による描画最適化（HDRP 17.3.0+ 対応）
-- **Sweep movement physics 統合** による Sweeper 移動滑らか化
+- **起動パフォーマンス診断インフラ完成** - Phase 2-3 の詳細な実行時間計測機能を実装
+- **ログ記録の標準化** - LogWithTimestamp / LogWithMilliseconds で統一フォーマット確立
 
 ---
 
@@ -210,13 +158,12 @@ unity -projectPath . -openFile
 
 | 問題 | 状態 | 予定 |
 |------|------|------|
+| **低スペック環境での起動遅延** | ⏳ 診断中 | ログ分析により原因特定・最適化予定 |
 | マップの端から落ちる可能性 | ⏳ | Phase 3 で修正予定 |
 | Fire イベント延焼範囲の表示 | ❌ 未実装 | Phase 3 機能追加 |
 | ユニットアップグレード機能 | ❌ 未実装 | Phase 3 機能追加 |
 | ゲーム効果音・BGM | ❌ 未実装 | Phase 3 機能追加 |
 | セーブ機能 | ❌ 未実装 | Phase 3 以降検討 |
-
-詳細: [KNOWN_ISSUES.md](https://github.com/kuippa/OnoCoro/blob/main/KNOWN_ISSUES.md)
 
 ---
 
@@ -289,7 +236,7 @@ unity -projectPath . -openFile
 **Environment**:
 - Windows バージョン:
 - GPU モデル:
-- ビルド番号: prototype2026.03.08.01.40
+- ビルド番号: v0.0.21-prototype
 
 **Reproduction**:
 1. 手順1
@@ -300,7 +247,20 @@ unity -projectPath . -openFile
 (スクリーンショット添付)
 
 **Logs**:
-(Editor.log からの関連部分)
+ログファイルをご確認の上、添付ください。
+
+場所: `C:\Users\[username]\AppData\LocalLow\Hagurachaya\Onokoro\`
+
+ファイル:
+- `Player.log` - Unity 標準ログ（エラー・警告など）
+- `[日付]_onoco.log` - パフォーマンス計測ログ（起動タイミング情報）
+
+例: 
+```
+C:\Users\[ユーザー名]\AppData\LocalLow\Hagurachaya\Onokoro\
+├── Player.log
+└── 20260310_onoco.log
+```
 ```
 
 ### アンケート
@@ -319,7 +279,7 @@ unity -projectPath . -openFile
 
 - **Repository**: https://github.com/kuippa/OnoCoro
 - **Branch**: main
-- **Commit**: e31348b4
+- **Version**: v0.0.21-prototype (Build 21)
 
 ### 開発ドキュメント
 
@@ -371,6 +331,7 @@ MIT License - [LICENSE](https://github.com/kuippa/OnoCoro/blob/main/LICENSE)
 
 **感謝**: 本プロジェクトの復旧とリリースを可能にしていただいたすべてのコントリビューターとテストユーザーの皆様に感謝申し上げます。
 
-**作成日**: 2026-03-08  
-**バージョン**: v0.1.0-alpha  
-**Tag**: `prototype2026.03.08.01.40`
+**作成日**: 2026-03-10  
+**バージョン**: v0.0.21-prototype  
+**ビルド番号**: 21  
+**Tag**: `v0.0.21-prototype`

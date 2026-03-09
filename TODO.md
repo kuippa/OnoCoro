@@ -80,7 +80,9 @@ OnoCoro プロジェクトの実装状況、既知の問題、および今後の
 - [ ] ズームレベルの動作感を再調整（期待値: 0.5秒で target zoom に到達）
 - [ ] 視界カメラの障害物衝突による上下反転を修正
 - [ ] カメラ制御のチュートリアル UI ガイダンス追加
-- [ ] **地面下への カメラ潜り対策** (2026-03-08 新規)
+- [ ] **地面下への カメラ潜り対策** (2026-03-09 Phase 3 以降に延期)
+  - **理由**: CinemachineDeoccluder 実装による重処理のため、Phase 2.2 では見送り
+  - **予定フェーズ**: Phase 3 以降（優先度: Medium）
   - [ ] 地面下専用 Collider オブジェクト配置（CinemachineDeoccluder 対象）
   - [ ] マイナス方向フォグ追加（Fog Bounds 設定）
   - [ ] 詳細: [docs/architecture/camera-deoccluder-implementation.md](docs/architecture/camera-deoccluder-implementation.md)

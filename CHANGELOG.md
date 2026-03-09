@@ -4,23 +4,25 @@ OnoCoro プロジェクトの変更履歴です。
 
 ---
 
-## [0.1.0-alpha] - 2026-03-08
+## [0.0.20-prototype] - 2026-03-10
 
-**前回リリース**: 0.0.6 (2026-01-26)
+**前回リリース**: 0.0.6 (2026-01-26)  
+**Status**: Prototype / Recovery Phase 2.2  
+**Build Number**: 20  
+**Tag**: `v0.0.20-prototype`
 
 ### [NEW] 新機能
 
-#### ゲームシステム
-- **Water System Wind Speed Control** - Water Surface が WindController と統合され、風速に応じた波の動きを実装
-- **TreeSakura Ornament System** - bloom_sakura イベントで桜開花演出実装
-- **PollutantManager** - ごみ数表示を static class で一元管理
-- **Enemy Litter** - ナビゲーションシステム統合、タイムアウト検出、DustBox破壊機能
+#### 起動パフォーマンス診断
+- **LogWithTimestamp()** - 初期化各フェーズでタイムスタンプ記録
+- **LogWithMilliseconds()** - 各フェーズの実行時間を計測
+- **InitializationManager 計測** - Phase 2-3 の ResourceLoaders / Managers / UIComponents ごとにタイミング記録
+- **パフォーマンスログ出力** - Application.persistentDataPath に YYYYMMDD_onoco.log として自動出力
 
-#### UI・ゲーム制御
-- **UIControllerBase** - Panel・Dialog の初期化ベースクラス導入
-- **Game Speed Debugging** - Time.timeScale 統合、デバッグパネル自動更新機能
-- **Path Tracking** - off_bloom_path_complete イベントで敵生命周期管理実装
-- **YAML Route 互換性** - Factory/Spawner パターンでルート名互換性実装
+#### ドキュメントの充実
+- **versioning.md** - バージョン管理・タグ付ルール、BuildDate.txt フォーマット、GitHub リリースタグ規則
+- **debugging-and-logging.md** - デバッグログ・パフォーマンス診断ガイド
+- **Release documentation** - README.md / RELEASE_NOTES.md / aboutthisgame.txt の統一化
 
 ### [FIX] バグ修正
 
@@ -46,14 +48,13 @@ OnoCoro プロジェクトの変更履歴です。
   - `RegisterButtonListeners()` - ボタン登録のみに限定
   - `RebuildItemList()` - 最新データでリスト再構築（SwitchActive 時）
   - `RefreshView()` - SetActive 後に画面更新（アイコン再描画保証）
-- **TriggerHandler Refactoring** - 12個すべての trigger handler 実装完了
-- **Resources.Load 統一化** - PrefabManager へ全コード統一完了
-- **YAML コマンド処理の統一** - Validation を簡素化
+- **GameConfig ログ設定** - LogFilePath / LogFileName を Application.persistentDataPath に統一
+- **Debug.cs 拡張** - LogWithTimestamp / LogWithMilliseconds メソッド追加
 
-#### Architecture
-- **Factory/Spawner パターン** - Enemy・Unit 生成の統一化
-- **UI Canvas 統一** - UICanvasManager で Canvas 設定一元管理
-- **Debug Logger** - Debug alias を CommonsUtility.Debug に統一
+#### Documentation
+- **AGENTS.md** - セッション情報要件の統一
+- **versioning.md** - バージョン管理規則の体系化
+- **aboutthisgame.txt** - プロトタイプ版表記・Unity バージョン更新
 
 ### [DOCS] ドキュメント
 
@@ -68,12 +69,13 @@ OnoCoro プロジェクトの変更履歴です。
 
 ### [PERF] パフォーマンス
 
-- Depth of Field 無効化による描画最適化（HDRP 17.3.0+ 対応）
-- Sweep movement physics 統合による Sweeper 移動滑らか化
+- 起動遅延診断インフラストラクチャ実装（詳細な初期化タイミング記録）
+- Phase 2 段階での計測準備完了
 
 ### [KNOWN_ISSUES] 既知の問題
 
-- [ ] マップの端から落ちる可能性がある（TODO リストにあり）
+- [ ] ⏳ **低スペック環境での起動遅延** - Phase 2.2 で診断中 (詳細は README.md 参照)
+- [ ] マップの端から落ちる可能性がある
 - [ ] Fire イベント延焼範囲の表示が未実装
 - [ ] ユニットアップグレード機能が未実装
 - [ ] ゲーム効果音・BGM が未実装
@@ -84,9 +86,8 @@ OnoCoro プロジェクトの変更履歴です。
 | 項目 | バージョン |
 |------|----------|
 | **Unity** | 6.3.10f1 |
-| **Cinemachine** | 3.1.6 |
-| **HDRP** | 17.3.0 |
 | **PLATEAU SDK** | Latest |
+| **Cinemachine** | Unity Standard |
 
 詳細なパッケージ構成と開発環境設定は [docs/BUILD_ENVIRONMENT.md](docs/BUILD_ENVIRONMENT.md) を参照。
 
@@ -98,43 +99,48 @@ Phase 0 初期ビルド版。エディター参照削除、設定更新実施。
 
 ---
 
-## リリース対象シーン
+## このリリースに含まれるシーン
 
-- TitleScene
-- 石川県金沢市兼六園 （チュートリアルステージ）
-- 三鷹井の頭 （Wave テストステージ）
+- ✅ TitleScene - タイトル・シーン選択画面
+- ✅ 石川県金沢市兼六園 - チュートリアルステージ（推奨）
+- ✅ 三鷹井の頭 - Wave テストステージ
 
 ---
 
-## テスト対象機能
+## このリリースでのテスト焦点
 
-### ✓ 確認済み
+### ✓ Prototype 段階で確認済み
 - [x] マルチシーン遷移・UI初期化
 - [x] itemlist シーン別更新
 - [x] YAML イベント・パス読み込み
 - [x] ユニット作成・配置
 - [x] Enemy Litter スポーン・移動
 - [x] カメラ制御（FPS/TPS/LongShot/BirdView）
-- [x] Sweeper 移動・掃除
+- [x] 起動タイミング・パフォーマンスログ記録
 
-### ⏳ 未確認（テストユーザー向け検証必要）
+### ⏳ テストユーザー向け検証必要事項
 - [ ] GPU 互換性（Intel/NVIDIA/AMD）
-- [ ] 低仕様環境での FPS 安定性
+- [ ] 低仕様環境での FPS 安定性（特に新宿都庁、東京駅）
 - [ ] 長時間連続プレイ（メモリリーク検証）
+- [ ] 起動遅延の詳細分析（ログ提供 / フィードバック希望）
 
 ---
 
 ## テストユーザー向け報告方法
 
-GitHub Issues で以下の形式で報告をお願いします：
+GitHub Issues で以下の形式で報告をお願いします。**ログファイルの添付が特に重要です**：
 
 ```
 **Title**: [BUG] 現象を一行で説明
 
 **Environment**:
-- Windows バージョン
-- GPU モデル
-- ビルド番号
+- OS: Windows XXX
+- GPU: モデル
+- ビルド番号: v0.0.20-prototype
+
+**Logs**:
+- Player.log: %AppData%/../LocalLow/Hagurachaya/Onokoro/
+- Performance Log: YYYYMMDD_onoco.log (same directory)
 
 **Reproduction**:
 1. 手順1
@@ -143,20 +149,17 @@ GitHub Issues で以下の形式で報告をお願いします：
 **Expected vs Actual**:
 期待: xxx
 実際: yyy
-
-**Log**:
-(ログファイルまたはスクリーンショット)
 ```
 
-ログファイル: `OnoCoro_Data/output_log.txt`
+ログファイル位置: `C:\Users\[ユーザー名]\AppData\LocalLow\Hagurachaya\Onokoro\`
 
 ---
 
-## 導入手順
+## インストール・起動方法
 
-1. `OnoCoro.zip` を解凍
+1. `OnoCoro-v0.0.20-prototype.zip` を解凍
 2. `OnoCoro.exe` を実行
-3. シーン選択画面から「石川県金沢市兼六園」を選択
+3. シーン選択画面から「石川県金沢市兼六園」（チュートリアル）を選択
 4. TAB キーでユニット作成メニュー表示
 5. ユニットを配置してテスト
 

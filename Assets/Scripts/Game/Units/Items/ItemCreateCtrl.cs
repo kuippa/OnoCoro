@@ -33,6 +33,7 @@ public class ItemCreateCtrl : MonoBehaviour
     // === UI オブジェクト参照 ===
     // 子の CreateWindow を指す。this.gameObject（UIItemCreate）は常にアクティブを維持する
     private GameObject _UIItemCreate;
+    private GameObject _itemInfo;
 
     [SerializeField]
     public Button _btnClose;
@@ -59,10 +60,26 @@ public class ItemCreateCtrl : MonoBehaviour
             _UIItemCreate = createWindowTransform.gameObject;
         }
 
+        // ItemInfo オブジェクトを初期化
+        Transform itemInfoTransform = this.gameObject.transform.Find("ItemInfo");
+        if (itemInfoTransform == null)
+        {
+            Debug.LogWarning($"[ItemCreateCtrl] ItemInfo not found on {this.gameObject.name}");
+            _itemInfo = null;
+        }
+        else
+        {
+            _itemInfo = itemInfoTransform.gameObject;
+        }
+
         RegisterButtonListeners();
 
         // 初期状態は非表示（SwitchActive(true) 呼び出し時に表示・画面構築する）
         _UIItemCreate.SetActive(false);
+        if (_itemInfo != null)
+        {
+            _itemInfo.SetActive(false);
+        }
     }
 
     private void Update()
@@ -94,6 +111,10 @@ public class ItemCreateCtrl : MonoBehaviour
         if (!isActive)
         {
             _UIItemCreate.SetActive(false);
+            if (_itemInfo != null)
+            {
+                _itemInfo.SetActive(false);
+            }
             return;
         }
 
@@ -109,6 +130,10 @@ public class ItemCreateCtrl : MonoBehaviour
         // SetActive(true) の後に RefreshView を呼ぶ (非アクティブ状態での UI 更新を回避)
         // → アイコン等の Sprite 系コンポーネントが確実に再描画される
         _UIItemCreate.SetActive(true);
+        if (_itemInfo != null)
+        {
+            _itemInfo.SetActive(true);
+        }
         RefreshView();
     }
 
@@ -212,6 +237,9 @@ public class ItemCreateCtrl : MonoBehaviour
         {
             Debug.Log("[ItemCreateCtrl] btnLeft or btnRight is null");
         }
+
+        // ゲージを初期化（インディケーターバーが最初から正しい状態で表示される）
+        ResetGauge();
     }
 
     /// <summary>
@@ -263,6 +291,24 @@ public class ItemCreateCtrl : MonoBehaviour
         GameObject imgIcon = pnlMain.transform.Find("imgIcon").gameObject;
         SpriteResourceLoader.SetSpriteToImage(imgIcon.GetComponent<Image>(), itemStruct.ItemImagePath);
         imgIcon.transform.Find("txtAlt").GetComponent<Text>().text = itemStruct.Info;
+
+        // ItemInfo の Content にアイテム説明を表示
+        if (_itemInfo != null)
+        {
+            TextMeshProUGUI contentText = _itemInfo.transform.Find("Scroll View/Viewport/Content/tmpItemInfo").GetComponent<TextMeshProUGUI>();
+            if (contentText != null)
+            {
+                contentText.text = itemStruct.Info;
+            }
+            else
+            {
+                Debug.LogWarning("[ItemCreateCtrl] ItemInfo/tmpItemInfo component not found");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("[ItemCreateCtrl] _itemInfo is null");
+        }
 
         RefreshCreateButton(itemStruct);
     }
