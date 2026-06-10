@@ -1,0 +1,11 @@
+---
+# スポーンパターン: 小規模火災
+# Season 3 W1: 再利用可能スポーンパターン（2階層YAML構成の階層1）
+# time はパターン内相対秒。場所は {spot} スロットでステージ側から束縛する。
+pattern_id: fire_small
+note: "小規模火災（FireCube 1体）"
+ver: 1.0.0
+events:
+  - time: 5
+    event: spawn_unit
+    value: FireCube, {spot}

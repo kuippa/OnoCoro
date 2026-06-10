@@ -57,15 +57,16 @@ note: "小規模火災（FireCube 1 体）"
 ver: 1.0.0
 events:                         # time はパターン内の相対秒
   - time: 5
-    event: spawn_enemy_unit
-    value: FireCube, {route}    # ルートはスロット（ステージ側で束縛）
+    event: spawn_unit
+    value: FireCube, {spot}     # 場所はスロット（ステージ側で束縛）
 ```
 
 **設計ルール**:
 
 - `time` は必ずパターン内相対秒。絶対時刻は持たない
-- マーカー名・ルート名の直書き禁止。`{route}` 等のスロットにして場所への結び付けはステージ側に委ねる（マーカーはステージ固有のため。これを破るとパターンが再利用できなくなる）
-- スロット解決には既存の `_routeNameDict`（ルート別名→マーカー列）機構を利用する
+- マーカー名・座標の直書き禁止。`{spot}` 等の名前付きスロットにして場所への結び付けはステージ側に委ねる（場所はステージ固有のため。これを破るとパターンが再利用できなくなる）
+- スロットの束縛値は任意文字列（座標 `"-184, 40, -52"`・マーカー名・`random_position`）。既存ステージの実態（spawn_unit + 座標指定）に合わせ、`{route}` 限定ではなく一般化した（2026-06-10 Task 1 実装時に修正）
+- ルートベースのスポーン（spawn_enemy_unit）を使う場合はスロットにルート名を束縛し、既存の `_routeNameDict` 機構で解決する
 
 ### 階層 2: ステージ YAML（年 = パターンの編成表）
 
@@ -137,12 +138,17 @@ years:
 
 ## 実装タスク
 
-### Task 1: YAML 仕様確定 + パターン/サンプルステージ作成（45 分）
+### Task 1: YAML 仕様確定 + パターン/サンプルステージ作成（45 分）[完了 2026-06-10]
 
-- [ ] 上記 2 階層スキーマ（patterns + years/schedule）を確定し [../../reference/yaml-format.md](../../reference/yaml-format.md) に追記
-- [ ] パターンファイルを 1-2 個作成: `patterns/fire_small.yaml`（必要なら `fire_spread.yaml`）
-- [ ] 既存の火災ステージをベースに `SimFireKenrokuen.yaml`（仮称、3 年構成、schedule 参照）を作成
+- [x] 上記 2 階層スキーマ（patterns + years/schedule）を確定し [../../reference/yaml-format.md](../../reference/yaml-format.md) に追記（v1.1.0）
+- [x] パターンファイルを 2 個作成: `patterns/fire_small.yaml`、`patterns/fire_spread.yaml`
+- [x] 兼六園ステージの座標を流用した `SimFireKenrokuen.yaml`（3 年構成、schedule 参照）を作成
 - 配置: `Assets/StreamingAssets/staging/` および `staging/patterns/`
+
+**Task 1 で判明した制約（Task 5 への申し送り）**:
+
+- YAML ファイル名 = シーン名の束縛（`LoadStreamingAsset.GetYamlFileName()`）があるため、SimFireKenrokuen を起動するには Unity Editor で「石川県金沢市兼六園」シーンを複製して `SimFireKenrokuen.unity` を作成し、ビルドのシーンリストと `stagelist.csv` に登録する必要がある（Editor 作業、約 10-15 分）
+- stagelist.csv は Shift-JIS エンコーディング。編集時に注意
 
 ### Task 2: パターン読み込み + 年別イベント展開（1.5 時間）
 

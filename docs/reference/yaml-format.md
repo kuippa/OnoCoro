@@ -551,21 +551,86 @@ events:
 
 ---
 
+## Season 3 拡張: スポーンパターン + 年編成（v1.1.0）
+
+**状態**: [NOTE] 仕様確定・実装中（Season 3 W1）
+**目的**: ターンベース化（年サイクル）と、敵出現パターンの再利用可能なパッケージ化
+**設計の経緯**: [../_tasklist/detailed/season3-w1-turnbased-detailed-plan.md](../_tasklist/detailed/season3-w1-turnbased-detailed-plan.md)
+
+### 階層 1: スポーンパターン定義
+
+**配置**: `Assets/StreamingAssets/staging/patterns/*.yaml`
+**用途**: 複数ステージ・複数年で再利用できる敵出現パターンのパッケージ
+
+```yaml
+---
+pattern_id: fire_small        # REQUIRED: システム内で一意
+note: "小規模火災（FireCube 1体）"
+ver: 1.0.0
+events:                       # time はパターン内の相対秒
+  - time: 5
+    event: spawn_unit
+    value: FireCube, {spot}   # {名前} はスロット。ステージ側で束縛する
+```
+
+**ルール**:
+
+- `time` は必ずパターン内相対秒。絶対時刻は持たない
+- `value` 内の `{名前}` はスロット（穴埋め）。座標・マーカー名・`random_position` などの文字列をステージ側の schedule で束縛する
+- ステージ固有のマーカー名・座標の直書きは禁止（パターンが再利用できなくなる）
+
+### 階層 2: ステージ YAML の years セクション
+
+**用途**: 年（Year）ごとのイベント編成表。`years` があるステージはターンベース（年サイクル）で進行する
+
+```yaml
+years:
+  - year: 1                   # REQUIRED: 年番号（1 始まり連番）
+    duration: 60              # REQUIRED: 年の長さ（秒）。経過で年終了
+    note: "小規模な火災"
+    schedule:                 # スポーンパターンの編成（OPTIONAL）
+      - pattern: fire_small   # patterns/<pattern_id>.yaml を参照
+        at: 5                 # 年内の開始オフセット（秒）
+        spot: "-184, 40, -52" # パターンのスロット束縛（スロット名: 値）
+    events:                   # パターン化しない単発イベント（OPTIONAL）
+      - time: 1               # time は年内の相対秒
+        event: telop
+        value: "Year 1: 小さな火災が発生"
+```
+
+**展開ロジック**: 年の開始時に `schedule` の各エントリを「`at` + パターン内相対 time」で実時刻に展開し、`events` とマージしてタイマーに積む。同一実時刻のイベントは List 追記でマージされる（消失しない）。
+
+**トップレベル `events` との関係**: `years` を持つステージでは、トップレベル `events` は「年に依存しない初期設定」（天候・テロップ等）として Year 1 開始前に 1 回だけ実行される。
+
+**後方互換**: `years` セクションが無い YAML は従来どおりのタイムライン駆動で動作する。
+
+### 制約事項
+
+- **YAML ファイル名 = シーン名**（`LoadStreamingAsset.GetYamlFileName()`）。新しいシミュレーションステージにはシーンの複製 + `stagelist.csv` 登録が必要
+- `years` ステージでは `goals` / `gameovers` を定義しない（年の途中で StageGoalController のクリア/失敗判定が走るのを防ぐ）
+
+### サンプル
+
+- パターン: `staging/patterns/fire_small.yaml`、`staging/patterns/fire_spread.yaml`
+- ステージ: `staging/SimFireKenrokuen.yaml`（3 年構成）
+
+---
+
 ## 互換性・バージョン管理
 
 ### 現在のバージョン
 
-**yaml-format.md v1.0.0**
+**yaml-format.md v1.1.0**（2026-06-10）
 
-- すべてのセクションが実装完了
-- YAML DotNet でのバリデーション確立
+- v1.0.0: すべてのセクションが実装完了、YAML DotNet でのバリデーション確立
+- v1.1.0: Season 3 拡張（patterns / years）の仕様追加（実装中）
 
 ### 将来予定
 
-**v1.1.0 以降**:
+**v1.2.0 以降**:
+- パターンのパラメータ化（`count:` による敵数指定等）
 - `BIT` / `CLK` 機能の実装
 - `solar` イベント（太陽高度制御）の実装
-- データバインディングシステムの追加
 - ステージエディタ UI の実装
 
 ---

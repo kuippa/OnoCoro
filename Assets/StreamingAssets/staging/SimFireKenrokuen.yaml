@@ -1,0 +1,88 @@
+---
+# SimFireKenrokuen - 防災投資シミュレーション 兼六園（Season 3 MVP サンプル）
+#
+# [NOTE] YAML ファイル名 = シーン名の制約（LoadStreamingAsset.GetYamlFileName）があるため、
+# このステージを起動するには「石川県金沢市兼六園」シーンを複製した
+# SimFireKenrokuen シーンの作成 + stagelist.csv への登録が必要（W1 Task 5 で対応）。
+#
+# years セクション: 年ごとの編成表。schedule がスポーンパターン（patterns/*.yaml）を
+# at オフセット + スロット束縛で参照する。詳細仕様: docs/reference/yaml-format.md
+stagename: 防災投資シミュレーション 兼六園
+stagenotice: "防災投資シミュレーション（ワークショップ用）"
+stageid: SimFireKenrokuen
+ver: 1.1.0 # 2026/6/10 Season 3 W1
+stages:
+  - name: 防災投資シミュレーション 兼六園
+    note: "3年間の防災投資で火災被害を抑えよう"
+    BIT: 5000
+    CLK: 2000
+itemlists:
+  - item: FireCube      # 火事（敵）
+  - item: WaterTurret   # 消火器（施策・W2 で防災施策に拡張予定）
+  - item: Sweeper       # お掃除ロボット
+
+# goals / gameovers は定義しない（3年完走がシミュレーション終了条件。
+# StageGoalController による年途中のクリア/失敗判定を発生させないため）
+
+years:
+  - year: 1
+    duration: 60
+    note: "小規模な火災"
+    schedule:
+      - pattern: fire_small
+        at: 5
+        spot: "-184, 40, -52"
+    events:
+      - time: 1
+        event: telop
+        value: "Year 1: 小さな火災が発生"
+
+  - year: 2
+    duration: 75
+    note: "風が強い年・2地点出火"
+    schedule:
+      - pattern: fire_spread
+        at: 5
+        spot_a: "-184, 40, -52"
+        spot_b: "-155, 45, -35"
+    events:
+      - time: 0
+        event: wind
+        value: 8, 225  # 風速, 風向き
+      - time: 1
+        event: telop
+        value: "Year 2: 強風下で2地点から出火"
+
+  - year: 3
+    duration: 90
+    note: "大規模延焼"
+    schedule:
+      - pattern: fire_spread
+        at: 5
+        spot_a: "-184, 40, -52"
+        spot_b: "-245, 40, -55"
+      - pattern: fire_small
+        at: 30
+        spot: "-210, 38, -60"
+    events:
+      - time: 0
+        event: wind
+        value: 10, 225
+      - time: 1
+        event: telop
+        value: "Year 3: 大規模延焼の危機"
+
+# 年に依存しない初期設定イベント（Year 1 開始前に1回だけ実行）
+events:
+  - time: 0
+    event: weather
+    value: sunny, 0.00, 0.25, 500  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
+  - time: 0
+    event: wind
+    value: 5, 225  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
+  - time: 1
+    event: telop
+    value: "防災投資シミュレーション 兼六園"
+  - time: 1
+    event: subtelop
+    value: "3年間の投資で被害を最小化しよう"

@@ -1,0 +1,14 @@
+---
+# スポーンパターン: 延焼火災
+# Season 3 W1: 再利用可能スポーンパターン（2階層YAML構成の階層1）
+# 2地点に時間差で出火する。場所は {spot_a} {spot_b} スロットで束縛する。
+pattern_id: fire_spread
+note: "延焼火災（FireCube 2体・時間差出火）"
+ver: 1.0.0
+events:
+  - time: 5
+    event: spawn_unit
+    value: FireCube, {spot_a}
+  - time: 20
+    event: spawn_unit
+    value: FireCube, {spot_b}
