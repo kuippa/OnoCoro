@@ -150,19 +150,28 @@ years:
 - YAML ファイル名 = シーン名の束縛（`LoadStreamingAsset.GetYamlFileName()`）があるため、SimFireKenrokuen を起動するには Unity Editor で「石川県金沢市兼六園」シーンを複製して `SimFireKenrokuen.unity` を作成し、ビルドのシーンリストと `stagelist.csv` に登録する必要がある（Editor 作業、約 10-15 分）
 - stagelist.csv は Shift-JIS エンコーディング。編集時に注意
 
-### Task 2: パターン読み込み + 年別イベント展開（1.5 時間）
+### Task 2: パターン読み込み + 年別イベント展開（1.5 時間）[実装完了 2026-06-10・検証待ち]
 
-- [ ] パターンリポジトリの新設: `SpawnPatternRepository`（Data/Repositories/）
+- [x] パターンリポジトリの新設: `SpawnPatternRepository`（Data/Repositories/）
   - `patterns/*.yaml` を読み込み `pattern_id` → 相対イベントリストの辞書を構築
-  - `pattern_id` 重複・スロット未束縛は YamlValidator 系の検証でエラー報告
-- [ ] EnvironmentalYamlProvider に `years` セクションのパースを追加
+  - `pattern_id` 重複・events 空・パース失敗は警告ログでスキップ
+- [x] `YearScheduleYamlProvider`（Data/Repositories/ 新設）に `years` セクションのパースを実装
+  - [NOTE] 計画では EnvironmentalYamlProvider への追記だったが、既存の Provider 分割慣習
+    （UIYamlProvider / RouteYamlProvider / ObjectiveYamlProvider）に合わせ専用 Provider とした
   - `schedule` エントリを「`at` + パターン内相対 time」で実時刻に展開し、年内 `events` とマージ
   - 格納形式: `Dictionary<int year, Dictionary<float, List<Dictionary<string,string>>>>`
-  - `{route}` スロットは schedule の束縛値で置換（`_routeNameDict` の別名解決を利用）
-  - `years` が無い場合は従来の `events` パスを通す（後方互換）
-- [ ] EventLoader に年別辞書の保持と `LoadYearEvents(int year)` を追加
-  - 指定年の展開済みイベントを `_timer_events` に差し替え
-- 配置: 既存ファイルへの追記 + Repository 1 件新設（層は Data → Core 依存のみで適合）
+  - 名前付きスロット `{名前}` を schedule の束縛値で文字列置換（pattern / at は予約キーで除外）
+  - `years` が無い場合は何もしない（後方互換）
+  - 呼び出しは StageYamlRepository.LoadYamlData() に追加
+- [x] EventLoader に年別辞書の保持と `LoadYearEvents(int year)` を追加
+  - `SetYearEvents` / `ClearYearEvents` / `HasYearEvents` / `GetYearCount` / `GetYearDuration` を追加
+  - LoadYearEvents は `_timer_events` を Clear + 再充填（dict 参照を保つため差し替えではなく中身を更新）
+  - タイマー側（GameTimerCtrl）の時刻リセット・発火リスト再構築は Task 3 で接続
+- [x] YamlSectionType.cs に Years キー・YearCommandFields・ScheduleCommandFields・YamlPatternKeys を追加
+- [x] YamlParserHelper に BuildDictionaryListFromSequence / GetChildSequence / GetChildScalar を追加
+- [x] 手動実行テスト `UnitTest/YearScheduleExpansionTest.cs`（スロット置換・at オフセット展開）
+- [x] 武蔵野堺南木密.yaml を years 3年構成に変更（quake_fire パターン使用）、SimFireKenrokuen.yaml は削除
+- 配置: 既存ファイルへの追記 + Repository/Provider 各 1 件新設
 
 ### Task 3: YearCycleSystem 実装（1 時間）
 

@@ -17,6 +17,15 @@ internal static class YamlParserHelper
     internal static List<Dictionary<string, string>> BuildDictionaryListFromYaml(YamlStream yaml, string sectionKey)
     {
         YamlSequenceNode sequenceNode = GetYamlSequenceNode(yaml, sectionKey);
+        return BuildDictionaryListFromSequence(sequenceNode);
+    }
+
+    /// <summary>
+    /// YamlSequenceNode の各 MappingNode を Dictionary のリストに変換
+    /// ネストされたセクション（years.schedule 等）のパースに使用
+    /// </summary>
+    internal static List<Dictionary<string, string>> BuildDictionaryListFromSequence(YamlSequenceNode sequenceNode)
+    {
         List<Dictionary<string, string>> resultList = new List<Dictionary<string, string>>();
 
         if (sequenceNode == null)
@@ -91,6 +100,50 @@ internal static class YamlParserHelper
                 {
                     return sequenceNode;
                 }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// MappingNode の子から指定キーの YamlSequenceNode を取得（無ければ null）
+    /// </summary>
+    internal static YamlSequenceNode GetChildSequence(YamlMappingNode mappingNode, string key)
+    {
+        if (mappingNode == null)
+        {
+            return null;
+        }
+
+        foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
+        {
+            YamlScalarNode keyNode = entry.Key as YamlScalarNode;
+            if (keyNode != null && keyNode.Value == key)
+            {
+                return entry.Value as YamlSequenceNode;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// MappingNode の子から指定キーのスカラー値を取得（無ければ null）
+    /// </summary>
+    internal static string GetChildScalar(YamlMappingNode mappingNode, string key)
+    {
+        if (mappingNode == null)
+        {
+            return null;
+        }
+
+        foreach (KeyValuePair<YamlNode, YamlNode> entry in mappingNode.Children)
+        {
+            YamlScalarNode keyNode = entry.Key as YamlScalarNode;
+            if (keyNode != null && keyNode.Value == key)
+            {
+                return GetYamlScalarValue(entry.Value);
             }
         }
 

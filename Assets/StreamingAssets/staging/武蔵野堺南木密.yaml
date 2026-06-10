@@ -1,13 +1,20 @@
 ---
-# 武蔵野堺南木密
-# 
+# 武蔵野堺南木密 - 防災投資シミュレーション（Season 3 ターンベース版）
+#
+# Season 3 W1 で years 構成（年サイクル）に変更。旧タイムライン版は git 履歴を参照。
+# 木密（木造住宅密集）地域の地震連動火災を3年間の防災投資で抑えるシミュレーション。
+#
+# 風速・風向・湿度の設定根拠（旧版から引き継ぎ）:
+#   風向……北北西（12月から2月の東京の気象観測地点における最も頻度が多い風向）
+#   風速……6m/s（12月から2月の東京の気象観測地点における平均風速の約2倍に設定）
+#   湿度……50%（12月から2月の東京の気象観測地点における平均湿度を参考に設定）
 stagename: 武蔵野堺南木密
-stagenotice: "木密地域"
+stagenotice: "木密地域 防災投資シミュレーション"
 stageid: test2
-ver: 1.0.0 # 2024/2/1 0:00:00
+ver: 1.1.0 # 2026/6/10 Season 3 W1 ターンベース化
 stages:
   - name: 武蔵野堺南木密
-    note: "武蔵野堺南木密"
+    note: "3年間の防災投資で木密地域の火災被害を抑えよう"
     BIT: 5000
     CLK: 5000
 itemlists:
@@ -18,77 +25,62 @@ itemlists:
   - item: Litter
   - item: WaterTurret # 消火器
   - item: FireCube  # 火事
-goals:
-  - building: repair_all
+
+# goals / gameovers は定義しない（3年完走がシミュレーション終了条件。
+# StageGoalController による年途中のクリア/失敗判定を発生させないため）
+
+# 年に依存しない初期設定イベント（ステージ開始時に1回だけ実行）
 events:
   - time: 0
     event: wind
-    # value: 5, 225  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
-    # 風向……北北西（12月から2月の東京の気象観測地点における最も頻度が多い風向）
-    # 風速……6m/s（12月から2月の東京の気象観測地点における平均風速の約2倍に設定）
-    # 湿度……50%（12月から2月の東京の気象観測地点における平均湿度を参考に設定）
     value: 12, 340  # 風速, 風向き(0~360 北0度, 東90度, 南180度, 西270度)
-
-  # - time: 1.5
-  #   event: spawn_unit
-  #   value: GarbageCubeBox, 65, 60, -122
-
-  # - time: 1.5
-  #   event: spawn_unit
-  #   value: GarbageCubeBox, 70, 60, -122
-
-  # - time: 2.5
-  #   event: spawn_unit
-  #   value: FireCube, 66, 70, -122
-
   - time: 1
-    event: earthquake
-    value: 1.6
+    event: telop
+    value: "武蔵野堺南木密（防災投資シミュレーション）"
+  - time: 1
+    event: subtelop
+    value: "3年間の投資で被害を最小化しよう"
 
-  - time: 2
-    event: notice
-    value: "地震が発生しました。"
+years:
+  - year: 1
+    duration: 60
+    note: "中規模の地震・倒壊5棟"
+    schedule:
+      - pattern: quake_fire
+        at: 5
+        intensity: "1.6"
+        break_count: "5"
+    events:
+      - time: 1
+        event: telop
+        value: "Year 1: 地震発生の年"
 
-  - time: 3
-    event: building_break
-    # value: 3
-    value: 5
+  - year: 2
+    duration: 75
+    note: "強めの地震・倒壊8棟"
+    schedule:
+      - pattern: quake_fire
+        at: 5
+        intensity: "1.8"
+        break_count: "8"
+    events:
+      - time: 1
+        event: telop
+        value: "Year 2: 揺れが強くなった"
 
-  # - time: 2.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-
-  - time: 3.5
-    event: spawn_unit
-    value: FireCube, random_doom_building
-
-  - time: 4.5
-    event: spawn_unit
-    value: FireCube, random_doom_building
-
-  # - time: 4.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-
-  # - time: 5.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-
-  # - time: 6.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-
-  # - time: 7.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-
-  # - time: 7.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-  # - time: 7.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-  # - time: 7.5
-  #   event: spawn_unit
-  #   value: FireCube, random_position
-
+  - year: 3
+    duration: 90
+    note: "大地震・2連動"
+    schedule:
+      - pattern: quake_fire
+        at: 5
+        intensity: "2.0"
+        break_count: "10"
+      - pattern: quake_fire
+        at: 40
+        intensity: "1.6"
+        break_count: "5"
+    events:
+      - time: 1
+        event: telop
+        value: "Year 3: 大地震と余震の年"

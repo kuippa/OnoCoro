@@ -29,7 +29,7 @@
 **詳細計画**: [_tasklist/detailed/season3-w1-turnbased-detailed-plan.md](_tasklist/detailed/season3-w1-turnbased-detailed-plan.md)
 
 ### タスク概要（詳細は計画書）
-- [ ] Task 1: YAML 2階層スキーマ確定（スポーンパターン + 年編成表）+ サンプル作成（45分）
+- [x] Task 1: YAML 2階層スキーマ確定（スポーンパターン + 年編成表）+ サンプル作成（45分）2026-06-10 完了
 - [ ] Task 2: パターン読み込み（SpawnPatternRepository 新設）+ 年別イベント展開（1.5h）
 - [ ] Task 3: YearCycleSystem 実装（状態機械 + GameTimerCtrl 接続 + 年末敵除去）（1h）
 - [ ] Task 4: UI - Year 表示 + Start Year ボタン（YearPanelController）（1h）

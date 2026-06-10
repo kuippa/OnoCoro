@@ -38,6 +38,9 @@ public class StageYamlRepository : MonoBehaviour
         EnvironmentalYamlProvider.LoadStageInit(yaml, _eventLoader);
         EnvironmentalYamlProvider.LoadTimerEvents(yaml, _eventLoader);
 
+        // 年サイクルセットアップ（Season 3: years セクションが無ければ何もしない）
+        YearScheduleYamlProvider.LoadYears(yaml, _eventLoader);
+
         // パス・ナビゲーションセットアップ
         RouteYamlProvider.LoadPathMakers(yaml);
         RouteYamlProvider.LoadRouteNames(yaml, _eventLoader);

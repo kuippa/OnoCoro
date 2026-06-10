@@ -26,6 +26,18 @@ public class EventLoader : MonoBehaviour, IInitializable
 
     internal Dictionary<float, List<Dictionary<string, string>>> _timer_events = new Dictionary<float, List<Dictionary<string, string>>>();
 
+    /// <summary>
+    /// 年別イベント辞書（Season 3 ターンベース化）
+    /// 年番号 → （発火時刻 → イベントリスト）。YearScheduleYamlProvider が登録する。
+    /// </summary>
+    internal Dictionary<int, Dictionary<float, List<Dictionary<string, string>>>> _year_events
+        = new Dictionary<int, Dictionary<float, List<Dictionary<string, string>>>>();
+
+    /// <summary>
+    /// 年別の duration（年の長さ・秒）。年番号 → 秒数
+    /// </summary>
+    internal Dictionary<int, float> _year_durations = new Dictionary<int, float>();
+
     internal Dictionary<string, string> _board_data = new Dictionary<string, string>();
     
     /// <summary>
@@ -113,6 +125,77 @@ public class EventLoader : MonoBehaviour, IInitializable
         }
         
         return returndata;
+    }
+
+    /// <summary>
+    /// このステージが年サイクル（years セクション）を持つか
+    /// </summary>
+    internal bool HasYearEvents()
+    {
+        return _year_events.Count > 0;
+    }
+
+    /// <summary>
+    /// 登録されている年数を取得（最終年判定に使用）
+    /// </summary>
+    internal int GetYearCount()
+    {
+        return _year_events.Count;
+    }
+
+    /// <summary>
+    /// 指定年の duration（秒）を取得。未定義なら 0 を返す
+    /// </summary>
+    internal float GetYearDuration(int year)
+    {
+        if (_year_durations.TryGetValue(year, out float duration))
+        {
+            return duration;
+        }
+        return 0f;
+    }
+
+    /// <summary>
+    /// 年別イベントを登録（YearScheduleYamlProvider から呼ばれる）
+    /// </summary>
+    internal void SetYearEvents(int year, Dictionary<float, List<Dictionary<string, string>>> timerEvents, float duration)
+    {
+        if (timerEvents == null)
+        {
+            return;
+        }
+        _year_events[year] = timerEvents;
+        _year_durations[year] = duration;
+    }
+
+    /// <summary>
+    /// 年別イベントをすべて破棄（ステージロード時のリセット用）
+    /// </summary>
+    internal void ClearYearEvents()
+    {
+        _year_events.Clear();
+        _year_durations.Clear();
+    }
+
+    /// <summary>
+    /// 指定年のイベントを _timer_events に差し替える
+    /// [NOTE] タイマー側（GameTimerCtrl）の時刻リセット・発火リスト再構築は
+    /// 呼び出し側（Task 3: YearCycleSystem 経由）が SetEventToTimer 相当の処理で行うこと
+    /// </summary>
+    internal bool LoadYearEvents(int year)
+    {
+        if (!_year_events.TryGetValue(year, out Dictionary<float, List<Dictionary<string, string>>> yearEvents))
+        {
+            Debug.LogWarning($"[EventLoader.LoadYearEvents] year {year} のイベントが未登録です");
+            return false;
+        }
+
+        _timer_events.Clear();
+        foreach (KeyValuePair<float, List<Dictionary<string, string>>> entry in yearEvents)
+        {
+            _timer_events[entry.Key] = entry.Value;
+        }
+        return true;
     }
 
     internal void SetEventToTimer()

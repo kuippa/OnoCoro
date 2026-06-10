@@ -224,6 +224,55 @@ namespace CommonsUtility
 
         /// <summary>ボード設定セクション</summary>
         internal const string Boards = "boards";
+
+        /// <summary>年サイクル定義セクション（Season 3 ターンベース化）</summary>
+        internal const string Years = "years";
+    }
+
+    /// <summary>
+    /// YAML の years セクションで使用可能なフィールド名（Season 3）
+    /// </summary>
+    internal enum YearCommandFields
+    {
+        /// <summary>year - 年番号（1 始まり連番）</summary>
+        year,
+
+        /// <summary>duration - 年の長さ（秒）。経過で年終了</summary>
+        duration,
+
+        /// <summary>note - 年の説明（任意）</summary>
+        note,
+
+        /// <summary>schedule - スポーンパターンの編成リスト（任意）</summary>
+        schedule,
+
+        /// <summary>events - 年内の単発イベントリスト（任意）</summary>
+        events
+    }
+
+    /// <summary>
+    /// YAML の years.schedule エントリで使用可能な予約フィールド名（Season 3）
+    /// これ以外のキーはすべてスロット束縛（スロット名: 値）として扱われる
+    /// </summary>
+    internal enum ScheduleCommandFields
+    {
+        /// <summary>pattern - 参照するスポーンパターン ID（patterns/*.yaml の pattern_id）</summary>
+        pattern,
+
+        /// <summary>at - 年内の開始オフセット（秒）</summary>
+        at
+    }
+
+    /// <summary>
+    /// スポーンパターンファイル（staging/patterns/*.yaml）のトップレベルキー（Season 3）
+    /// </summary>
+    internal static class YamlPatternKeys
+    {
+        /// <summary>パターン ID（システム内で一意）</summary>
+        internal const string PatternId = "pattern_id";
+
+        /// <summary>パターン内イベントリスト（time はパターン内相対秒）</summary>
+        internal const string Events = "events";
     }
 
     /// <summary>
