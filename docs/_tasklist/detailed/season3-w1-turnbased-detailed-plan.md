@@ -189,13 +189,17 @@ years:
 - [x] StageYamlRepository.LoadYamlData() で `ResetSimulation()`（ステージ跨ぎの状態漏れ防止）
 - [x] InitializeForStage / ResetSimulation で `OnPhaseChanged` 購読をクリア（破棄済み UI への通知防止）
 
-### Task 4: UI - Year 表示 + Start Year ボタン（1 時間）
+### Task 4: UI - Year 表示 + Start Year ボタン（1 時間）[実装完了 2026-06-10・検証待ち]
 
-- [ ] 新規 `YearPanelController`（Presentation/UI/Panels/、UIControllerBase 派生）
-  - "Year N / 3" 表示
-  - "Start Year" ボタン（Placement 中のみ表示）→ `YearCycleSystem.StartYear()`
+- [x] 新規 `YearPanelController`（Presentation/UI/Panels/）
+  - [NOTE] 計画では UIControllerBase 派生だったが、シーンへの手動配置を不要にするため
+    自己構築型（RuntimeInitializeOnLoadMethod で起動時に生成・DontDestroyOnLoad 常駐、
+    Canvas/ボタンをコードで構築）に変更。年サイクル非対象ステージでは非表示
+  - "Year N / M" 表示 + フェーズ注記（準備中/進行中）
+  - "Start Year N" ボタン（Placement 中のみ表示）→ `GameTimerCtrl.StartYearCycle()`
   - YearRunning 中は残り時間表示（既存 GameTimerCtrl のカウントダウン表示を流用）
-- [ ] Year 3 終了後は暫定で "Simulation Finished" 表示（結果パネルは W3）
+  - フェーズ反映は Update ポーリング（OnPhaseChanged 購読の初期化順序問題を回避）
+- [x] 全年終了後は "シミュレーション終了" 表示（結果パネルは W3）
 
 ### Task 5: PlayMode 検証（30 分）
 
