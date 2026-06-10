@@ -19,6 +19,7 @@ public class StageYamlRepository : MonoBehaviour
     internal void LoadYamlData(string stageName)
     {
         StageGoalController.ResetStageState();
+        YearCycleSystem.ResetSimulation();  // 前ステージの年サイクル状態をクリア（Season 3）
         _ItemList.Clear();  // シーン遷移時に古いアイテムデータをクリア
 
         YamlStream yaml = LoadStreamingAsset.LoadYamlFile(Path.GetFileName(stageName + LoadStreamingAsset.YAML_FILE_EXTENSION));

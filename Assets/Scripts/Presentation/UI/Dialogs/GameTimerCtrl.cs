@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using CommonsUtility;
 using Debug = CommonsUtility.Debug;
 
 public class GameTimerCtrl : UIControllerBase
@@ -174,6 +175,9 @@ public class GameTimerCtrl : UIControllerBase
             return;
         }
 
+        // 年サイクルステージの初回セットアップ（Season 3）
+        TrySetupYearCycle();
+
         if (_isPaused)
         {
             return;
@@ -198,6 +202,92 @@ public class GameTimerCtrl : UIControllerBase
                     }
                 }
             }
+
+            CheckYearTimeUp();
         }
+    }
+
+    /// <summary>
+    /// 年サイクルステージの初回セットアップ（Season 3）
+    /// 全初期化完了後の最初の Update で 1 回だけ実行される。
+    /// 年に依存しない初期設定イベント（天候・風等）を即時発火してから
+    /// Year 1 の配置フェーズ（タイマー停止）に入る
+    /// </summary>
+    private void TrySetupYearCycle()
+    {
+        if (YearCycleSystem.IsActive())
+        {
+            return;
+        }
+
+        if (_eventLoader == null)
+        {
+            _eventLoader = EventLoader.instance;
+        }
+
+        if (_eventLoader == null || !_eventLoader.HasYearEvents())
+        {
+            return;
+        }
+
+        FireAllPendingEventsNow();
+        YearCycleSystem.InitializeForStage(_eventLoader);
+        _isPaused = true;
+        _time = 0.0f;
+        SetTimeToText(_time);
+    }
+
+    /// <summary>
+    /// 発火待ちのタイマーイベントをすべて即時実行する（年サイクルの初期設定用）
+    /// </summary>
+    private void FireAllPendingEventsNow()
+    {
+        foreach (float eventTime in _eventTimeList)
+        {
+            ActionEvent(eventTime);
+        }
+        _eventTimeList.Clear();
+    }
+
+    /// <summary>
+    /// 現在年を開始する（Start Year ボタン → YearPanelController から呼ばれる）
+    /// 年イベントをタイマーに積み直し、duration をカウントダウンに設定して進行再開
+    /// </summary>
+    internal bool StartYearCycle()
+    {
+        float yearDuration = YearCycleSystem.StartYear();
+        if (yearDuration <= 0f)
+        {
+            return false;
+        }
+
+        _eventTimeList.Clear();
+        SetTimerEvent();  // EventLoader.LoadYearEvents 済みの _timer_events から再構築
+
+        _time = 0.0f;
+        _buf_time = 0.0f;
+        _countdown_time = yearDuration;
+        SetTimeToText(_time);
+        _isPaused = false;
+        return true;
+    }
+
+    /// <summary>
+    /// 年の duration 経過を検出して年末処理へ渡す（Season 3）
+    /// </summary>
+    private void CheckYearTimeUp()
+    {
+        if (YearCycleSystem.CurrentPhase != YearCyclePhase.YearRunning)
+        {
+            return;
+        }
+
+        if (_time < _countdown_time)
+        {
+            return;
+        }
+
+        _isPaused = true;
+        YearCycleSystem.OnYearTimeUp();
     }
 }

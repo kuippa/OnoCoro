@@ -173,17 +173,21 @@ years:
 - [x] 武蔵野堺南木密.yaml を years 3年構成に変更（quake_fire パターン使用）、SimFireKenrokuen.yaml は削除
 - 配置: 既存ファイルへの追記 + Repository/Provider 各 1 件新設
 
-### Task 3: YearCycleSystem 実装（1 時間）
+### Task 3: YearCycleSystem 実装（1 時間）[実装完了 2026-06-10・検証待ち]
 
-- [ ] 新規クラス `YearCycleSystem`（internal、namespace CommonsUtility）
+- [x] 新規クラス `YearCycleSystem`（internal static、namespace CommonsUtility）
   - 配置: `Assets/Scripts/Game/Systems/Simulation/YearCycleSystem.cs`
-  - 責務: 年カウンタ・フェーズ状態機械・年開始/終了の制御
-  - 公開メンバ: `CurrentYear`, `CurrentPhase`, `StartYear()`, `AdvanceToNextYear()`, `ResetSimulation()`
-- [ ] GameTimerCtrl との接続
-  - `StartYear()`: `LoadYearEvents(year)` → `_time = 0` リセット → `_countdown_time = duration` → `_isPaused = false`
-  - duration 経過の検出 → `YearCycleSystem.OnYearTimeUp()` 呼び出し → YearEnd 処理
-  - GameTimerCtrl に「年リセット用の internal メソッド」を追加する（外部から `_time` を直接触らない）
-- [ ] YearEnd 処理: 敵ユニット一括除去（タグ or GameEnum.UnitType で検索）、タワーは残す
+  - フェーズ: Inactive → Placement → YearRunning → (年末処理) → Placement(翌年) → Finished
+  - 公開メンバ: `CurrentYear`, `CurrentPhase`, `IsActive()`, `InitializeForStage()`, `StartYear()`,
+    `OnYearTimeUp()`, `ResetSimulation()`, `OnPhaseChanged` イベント（UI 購読用・Task 4）
+- [x] GameTimerCtrl との接続（参照方向は Presentation → Game で層規約に適合）
+  - `TrySetupYearCycle()`: 全初期化完了後の最初の Update で 1 回実行。初期設定イベント
+    （天候・風等）を即時発火してから Year 1 の Placement（タイマー停止）に入る
+  - `StartYearCycle()`: StartYear() → イベントリスト再構築 → `_time = 0`・`_countdown_time = duration` → 再開
+  - `CheckYearTimeUp()`: duration 経過検出 → 停止 → `YearCycleSystem.OnYearTimeUp()`
+- [x] YearEnd 処理: タグ `FireCube` の残存ユニットを一括除去（除去対象は定数配列で拡張可能）、タワーは残す
+- [x] StageYamlRepository.LoadYamlData() で `ResetSimulation()`（ステージ跨ぎの状態漏れ防止）
+- [x] InitializeForStage / ResetSimulation で `OnPhaseChanged` 購読をクリア（破棄済み UI への通知防止）
 
 ### Task 4: UI - Year 表示 + Start Year ボタン（1 時間）
 
