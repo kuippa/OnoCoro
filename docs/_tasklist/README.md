@@ -21,25 +21,21 @@ tasklist/ フォルダは、**ドキュメント層（docs/）** とは異なる
 
 ## ファイル構成
 
-### 🔄 作業中のロードマップ
+### 作業中のロードマップ（Season 3）
 
-| ロードマップ | 対象フェーズ | 状態 | 参照 |
+| ロードマップ | 対象 | 状態 | 参照 |
 |-----------|----------|------|------|
-| [roadmap-phase-2.md](./roadmap-phase-2.md) | Phase 2 ステージ設計 | 📋 計画中 | 2026-03-初旬～中旬 |
-| [roadmap-phase-3.md](./roadmap-phase-3.md) | Phase 3 QA・リリース | 📋 計画中 | 2026-03-中旬～末 |
+| [../vision/roadmap_season3.md](../vision/roadmap_season3.md) | Season 3 全体（防災投資シミュレーション MVP） | 進行中 | 2026-06 |
+| [../season3_schedure.md](../season3_schedure.md) | 週単位スケジュール（W1-W4） | 進行中 | 2026-06 |
 
-**古いロードマップ**:
-- [archive/roadmap-phase-1-4-completed.md](./archive/roadmap-phase-1-4-completed.md) - Phase 1-4 (完了・アーカイブ)
+### フェーズ別詳細実装計画（detailed/ フォルダ）
 
-### 📄 フェーズ別詳細実装計画（detailed/ フォルダ）
-
-| ドキュメント | 対象フェーズ | 状態 |
+| ドキュメント | 対象 | 状態 |
 |------------|----------|------|
-| [phase-2-stage-gamebalance.md](./detailed/phase-2-stage-gamebalance.md) | Phase 2 | 計画中 |
-| [phase-3-qa-release.md](./detailed/phase-3-qa-release.md) | Phase 3 | 計画中 |
+| [season3-w1-turnbased-detailed-plan.md](./detailed/season3-w1-turnbased-detailed-plan.md) | W1 ターンベース化 | 進行中 |
 
-**古い計画**:
-- [archive/detailed/phase-1-4-ui-improvement.md](./archive/detailed/phase-1-4-ui-improvement.md) - Phase 1.4 (完了・アーカイブ)
+**Season 2 の計画（アーカイブ）**:
+- [../season2_archive/](../season2_archive/) - roadmap-phase-2/3、phase-2/3 詳細計画、bugs/fixme の Season 2 分
 
 ### 1. bugs.md - バグ報告・修正追跡
 
@@ -164,9 +160,9 @@ Project ボードで進捗管理
 
 ## 関連ドキュメント
 
-- [roadmap-phase-1-4-2-3.md](./roadmap-phase-1-4-2-3.md) - 現在進行中のロードマップ（Phase 1.4～3）
-- [ルート TODO.md](../TODO.md) - 現在作業中の備忘録
-- [docs/vision/roadmap.md](../vision/roadmap.md) - 長期ビジョン
+- [docs/vision/roadmap_season3.md](../vision/roadmap_season3.md) - 現在進行中のロードマップ（Season 3 MVP）
+- [docs/season3_schedure.md](../season3_schedure.md) - 週単位スケジュール
+- [docs/vision/project-statement.md](../vision/project-statement.md) - 長期ビジョン
 - [AGENTS.md](../../AGENTS.md) - プロジェクトルール
 
 ---

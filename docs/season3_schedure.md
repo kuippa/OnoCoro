@@ -22,42 +22,26 @@
 
 ## Week 1: ターンベース化基本実装（夜 3-4h）
 
-**目標**: 既存の敵・タワー・ステージをベースに、「年度」の概念を加える
+**目標**: 既存のタイムライン駆動（EventLoader/GameTimerCtrl）を年単位に分割し、年の開始をユーザートリガー化する
 
-### Task 1-1: 構造理解（30分）
-- [ ] 既存の Enemy/Tower/Stage クラス を読む
-- [ ] 現在の敵スポーン・タワー配置フロー確認
-- [ ] 「Year 1 → Year 2 への遷移」に必要な変更点をメモ
+[NOTE] 旧計画（TurnManager を GameManager に統合する案）は既存アーキテクチャの理解不足があったため、2026-06-10 に再計画。詳細は以下を参照：
 
-### Task 1-2: TurnManager/SimulationController 実装（2h）
-- [ ] 新クラス作成: `TurnManager.cs` or `SimulationController.cs`
-  ```csharp
-  namespace CommonsUtility
-  {
-      internal class SimulationController
-      {
-          public int CurrentYear { get; set; }
-          public void NextYear() { /* Year + 1 */ }
-          public void ResetSimulation() { /* Year 1 へ */ }
-      }
-  }
-  ```
-- [ ] GameManager に統合
-- [ ] PlayMode で Year カウントが正常に動作確認
+**詳細計画**: [_tasklist/detailed/season3-w1-turnbased-detailed-plan.md](_tasklist/detailed/season3-w1-turnbased-detailed-plan.md)
 
-### Task 1-3: UI に「Year ボタン」追加（1.5h）
-- [ ] Canvas に "Next Year" ボタン追加
-- [ ] ボタン押下 → NextYear() 呼び出し
-- [ ] 画面に "Year ◯" を表示
-- [ ] 1回のクリックで Year が正常に進むこと確認
+### タスク概要（詳細は計画書）
+- [ ] Task 1: YAML 2階層スキーマ確定（スポーンパターン + 年編成表）+ サンプル作成（45分）
+- [ ] Task 2: パターン読み込み（SpawnPatternRepository 新設）+ 年別イベント展開（1.5h）
+- [ ] Task 3: YearCycleSystem 実装（状態機械 + GameTimerCtrl 接続 + 年末敵除去）（1h）
+- [ ] Task 4: UI - Year 表示 + Start Year ボタン（YearPanelController）（1h）
+- [ ] Task 5: PlayMode 検証（後方互換含む）（30分）
 
 ### チェックリスト
-- [ ] TurnManager 実装完了
-- [ ] PlayMode で Year 1→2→3 が確認できる
-- [ ] "Year N" が画面に表示される
-- [ ] 敵・タワーは Year 1 と同じ動作
+- [ ] Year 1 → 2 → 3 → Finished まで完走できる
+- [ ] 配置済みタワーが翌年に引き継がれる
+- [ ] 年末に残存敵が除去される
+- [ ] `years` セクションの無い既存ステージが従来どおり動く
 
-**成果物**: Year カウント + 表示が動く状態
+**成果物**: 年サイクル骨格（Placement → YearRunning → YearEnd の状態遷移）が動く状態
 
 ---
 

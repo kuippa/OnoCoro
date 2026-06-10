@@ -4,7 +4,7 @@
 
 **Last Updated**: 2026-03-08  
 **Status**: 実装手順待ち（TODO リストに記載）  
-**関連**: [camera-exposure-settings.md](camera-exposure-settings.md)、[TODO.md](../../TODO.md)
+**関連**: [camera-exposure-settings.md](camera-exposure-settings.md)、[TODO_season2.md](../season2_archive/TODO_season2.md)
 
 ---
 

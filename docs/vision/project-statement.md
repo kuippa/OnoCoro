@@ -247,9 +247,9 @@
 
 ## 📚 **関連資料**
 
-- [docs/vision/introduction.md](introduction.md) - プロジェクト概要・非目的
-- [docs/vision/roadmap.md](roadmap.md) - 段階別ロードマップ
-- [docs/_tasklist/roadmap-phase-2.md](../_tasklist/roadmap-phase-2.md) - Phase 2 詳細実装計画
+- [docs/vision/roadmap_season3.md](roadmap_season3.md) - Season 3 ロードマップ
+- [docs/season3_schedure.md](../season3_schedure.md) - Season 3 週単位スケジュール
+- [docs/season2_archive/](../season2_archive/) - Season 2 のロードマップ・introduction（アーカイブ）
 - [AGENTS.md](../../AGENTS.md) - プロジェクト全体ルール
 
 ---

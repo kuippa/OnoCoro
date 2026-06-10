@@ -58,5 +58,5 @@ OnoCoro プロジェクトの特定機能・システムの詳細設計・実装
 
 **関連資料**:
 - [project-rules/](../project-rules/) - コーディング規約・設計パターン
-- [vision/introduction.md](../vision/introduction.md) - プロジェクト概要
+- [vision/project-statement.md](../vision/project-statement.md) - プロジェクト概要
 - [AGENTS.md](../../AGENTS.md) - プロジェクト全体ルール

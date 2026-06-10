@@ -254,7 +254,7 @@ Remove-Item -Path ".git\index.lock" -Force
 | ドキュメント | 目的 |
 |-----------|------|
 | [AGENTS.md](../../AGENTS.md) | プロジェクト開発ガイド全般 |
-| [docs/architecture.md](../architecture.md) | システム構成図 |
+| [docs/architecture/README.md](architecture/README.md) | システム構成図 |
 | [docs/project-rules/coding-csharp.md](../project-rules/coding-csharp.md) | C# コーディング標準 |
 | [docs/TEXMESHPRO_BUILD_SETTINGS.md](TEXMESHPRO_BUILD_SETTINGS.md) | **TextMeshPro シェーダー設定ガイド** |
 | [.github/instructions/](../../.github/instructions/) | Recovery フェーズ実装ガイド |

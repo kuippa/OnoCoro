@@ -22,22 +22,23 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 
 ## Project Overview
 
-**OnoCoro** is a geospatial visualization application (tower defense game) implemented in **Unity 6.3** using C#.
+**OnoCoro** is a geospatial visualization application implemented in **Unity 6.3** using C#.
 
 **Key Characteristics**:
 - Processes and visualizes **CityGML format geographical data** via PLATEAU SDK
 - Built with Unity 6.3 (cannot be changed)
-- Implements tower defense mechanics with environmental cleanup themes
+- Season 2 (2026-01 to 2026-05): tower defense mechanics with environmental cleanup themes
+- Season 3 (2026-06 onward): repurposed as a **disaster-prevention investment simulation** for community workshops, reusing the tower defense assets
 - Originally a 2-year-old backup recovery project
 
 **Project Goals**:
 - Display Japanese urban 3D data (PLATEAU format)
 - Provide interactive geospatial visualization
-- Implement tower defense gameplay mechanics
+- Provide a turn-based (Year cycle) disaster simulation for workshop facilitation
 
 **Related Documentation**:
-- [docs/introduction.md](docs/introduction.md) - Project purpose and non-goals
-- [docs/architecture.md](docs/architecture.md) - System architecture
+- [docs/vision/roadmap_season3.md](docs/vision/roadmap_season3.md) - Season 3 roadmap and project direction
+- [docs/architecture/README.md](docs/architecture/README.md) - System architecture
 - [docs/project-rules/coding-csharp.md](docs/project-rules/coding-csharp.md) - C# implementation standards
 - [.github/instructions.md](.github/instructions.md) - Project management guide
 
@@ -303,9 +304,9 @@ When adding a file:
 | Folder Structure Guide | `docs/project-rules/folder-structure.md` | Before adding new files | 高 |
 | Markdown Style Guide | `docs/project-rules/MARKDOWN-STYLE-GUIDE.md` | When creating documentation | 高 |
 | Unity Design Patterns | `docs/project-rules/unity-design-patterns.md` | Before implementing MonoBehaviour | 高 |
-| architecture.md | `docs/architecture.md` | Before class design or refactoring | 高 |
-| scripts-folder-structure-completed.md | `docs/scripts-folder-structure-completed.md` | Before adding new files | 高 |
-| introduction.md | `docs/introduction.md` | For policy confirmation | 中 |
+| Architecture docs | `docs/architecture/README.md` | Before class design or refactoring | 高 |
+| Folder Structure Guide | `docs/project-rules/folder-structure.md` | Before adding new files | 高 |
+| Season 3 Roadmap | `docs/vision/roadmap_season3.md` | For policy confirmation | 中 |
 
 ### .github/instructions/ フォルダについて
 
@@ -393,14 +394,15 @@ The following detailed architecture documents provide context for system design 
 | Asset Management | `docs/architecture/asset-management.md` | Resource loading and caching strategies |
 | Initialization Flow | `docs/architecture/initialization-flow.md` | Game startup and system initialization sequence |
 | PLATEAU Integration | `docs/architecture/plateau-integration.md` | Geospatial data processing and PLATEAU SDK integration |
-| Recovery Guidelines | `docs/architecture/recovery-guidelines.md` | Recovery phase practices and deprecation patterns |
 | UI System | `docs/architecture/ui-system.md` | UI framework and interaction patterns |
 
 ### Vision & Roadmap
 
 | Document | Path | Purpose |
 |----------|------|---------|
-| Project Roadmap | `docs/vision/roadmap.md` | Feature roadmap and future direction |
+| Season 3 Roadmap | `docs/vision/roadmap_season3.md` | Current roadmap (disaster-prevention simulation MVP) |
+| Weekly Schedule | `docs/season3_schedure.md` | Season 3 week-by-week schedule |
+| Project Statement | `docs/vision/project-statement.md` | Vision, milestones, KPI |
 
 ### Reference Data Models
 
@@ -510,5 +512,5 @@ MIT License - See [LICENSE](LICENSE) for details
 
 ---
 
-**Last Updated**: 2026-01-26
+**Last Updated**: 2026-06-10
 **Project**: OnoCoro (Unity 6.3 Geospatial Visualization)

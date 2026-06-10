@@ -20,7 +20,7 @@ reference/ 層は、OnoCoro プロジェクトの **標準仕様・データフ�
 
 ### [学習] 初めて OnoCoro に参加する場合
 
-1. [vision/introduction.md](../vision/introduction.md) - プロジェクト概要
+1. [vision/project-statement.md](../vision/project-statement.md) - プロジェクト概要
 2. [project-rules/README.md](../project-rules/README.md) - 実装ルール
 3. **[yaml-format.md](yaml-format.md)** - ステージデータの仕組み
 4. [architecture/asset-management.md](../architecture/asset-management.md) - リソース管理

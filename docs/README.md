@@ -25,9 +25,9 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 実装中のバグ・改善案・機能要望を管理（アルファベット先頭 `_` で最上位）
 
 - [_tasklist/README.md](_tasklist/README.md) - タスク管理層概要
-- [_tasklist/bugs.md](_tasklist/bugs.md) - バグ報告・修正追跡
-- [_tasklist/fixme.md](_tasklist/fixme.md) - コード内 FIXME 集約
-- [_tasklist/backlog.md](_tasklist/backlog.md) - 機能要望・改善案
+- [_tasklist/bugs.md](_tasklist/bugs.md) - バグ報告・修正追跡（Season 3）
+- [_tasklist/fixme.md](_tasklist/fixme.md) - コード内 FIXME 集約（Season 3）
+- [_tasklist/detailed/](_tasklist/detailed/) - フェーズ別詳細実装計画
 
 ---
 
@@ -35,8 +35,9 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 
 プロジェクトの目的・方針・ロードマップ
 
-- [introduction.md](vision/introduction.md) - プロジェクト概要・目的・非目的
-- [roadmap.md](vision/roadmap.md) - 段階別ロードマップ
+- [project-statement.md](vision/project-statement.md) - プロジェクト概要・ビジョン・KPI
+- [roadmap_season3.md](vision/roadmap_season3.md) - Season 3 ロードマップ（防災投資シミュレーション MVP）
+- [../season3_schedure.md](season3_schedure.md) - Season 3 週単位スケジュール
 
 ### [Coding Rules] 実装ルール層
 
@@ -71,7 +72,8 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 
 古いドキュメント・廃止予定ファイル
 
-- [README.md](archive/README.md) - アーカイブ方針
+- [x_archive/README.md](x_archive/README.md) - アーカイブ方針（ドキュメント統合の経緯）
+- [season2_archive/](season2_archive/) - Season 2（タワーディフェンス期）のロードマップ・計画・タスクリスト
 
 ---
 
@@ -79,7 +81,7 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 
 ### 新規参加者向け
 
-1. [introduction.md](vision/introduction.md) でプロジェクト概要を確認
+1. [project-statement.md](vision/project-statement.md) でプロジェクト概要を確認
 2. [README.md](project-rules/README.md) で実装ルールを学習
 3. [folder-structure.md](project-rules/folder-structure.md) でコード配置を理解
 4. [initialization-flow.md](architecture/initialization-flow.md) で初期化フローを把握
@@ -93,9 +95,9 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 
 ### 既存コード修正・追加開発向け
 
-1. [folder-structure.md](coding-rules/folder-structure.md) で配置先を決定
-2. [coding-csharp.md](coding-rules/coding-csharp.md) で実装規約を確認
-3. [naming-conventions.md](coding-rules/naming-conventions.md) で命名を決定
+1. [folder-structure.md](project-rules/folder-structure.md) で配置先を決定
+2. [coding-csharp.md](project-rules/coding-csharp.md) で実装規約を確認
+3. [naming-conventions.md](project-rules/naming-conventions.md) で命名を決定
 4. 関連機能の [architecture/](architecture/) ドキュメントを参照
 
 ---
@@ -118,7 +120,7 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 
 **UI 実装**
 - [ui-system.md](architecture/ui-system.md) - Canvas Scaler, 解像度対応
-- [naming-conventions.md](coding-rules/naming-conventions.md) - Controller 命名
+- [naming-conventions.md](project-rules/naming-conventions.md) - Controller 命名
 
 **初期化・セットアップ**
 - [initialization-flow.md](architecture/initialization-flow.md) - フェーズ・順序制御
@@ -150,4 +152,4 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 
 ---
 
-**Last Updated**: 2026-02-01
+**Last Updated**: 2026-06-10
