@@ -148,7 +148,9 @@ public class SpawnController : MonoBehaviour
             return false;
         }
 
-        return InfrastructureFactory.SpawnInfrastructure(infraType, spawnPoint);
+        // プレイヤー配置はマーカーの XZ を維持して DEM 高さに接地（位置ずれ防止）
+        // YAML 等の明示座標（random_doom_building の屋根角など）は周辺最低点方式で接地
+        return InfrastructureFactory.SpawnInfrastructure(infraType, spawnPoint, isPlayerPlacement);
     }
 
     /// <summary>

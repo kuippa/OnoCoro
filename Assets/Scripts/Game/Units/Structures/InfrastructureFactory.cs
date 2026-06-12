@@ -43,10 +43,15 @@ namespace CommonsUtility
         /// <summary>生成連番（ユニット名の一意化用）</summary>
         private static int _spawnCounter = 0;
 
+        private const float _RAY_ORIGIN_HEIGHT = 500f;
+        private const float _RAY_MAX_DISTANCE = 1000f;
+
         /// <summary>
         /// 施策ユニットを生成して配置する
         /// </summary>
-        internal static bool SpawnInfrastructure(GameEnum.ModelsType infraType, Vector3 spawnPoint)
+        /// <param name="keepXZ">true: XZ を維持して DEM 高さに接地（プレイヤーのマーカー配置用）。
+        /// false: 周囲の最低点を探して接地（建物屋根角など不正確な座標用）</param>
+        internal static bool SpawnInfrastructure(GameEnum.ModelsType infraType, Vector3 spawnPoint, bool keepXZ = false)
         {
             if (!TryGetSpec(infraType, out int cost, out float radius, out float power, out Color color))
             {
@@ -57,7 +62,14 @@ namespace CommonsUtility
             GameObject unitObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             _spawnCounter = _spawnCounter + 1;
             unitObject.name = infraType.ToString() + _spawnCounter.ToString();
-            unitObject.transform.position = SnapToGround(spawnPoint);
+            if (keepXZ)
+            {
+                unitObject.transform.position = SnapToDemHeight(spawnPoint);
+            }
+            else
+            {
+                unitObject.transform.position = SnapToGround(spawnPoint);
+            }
             unitObject.transform.localScale = new Vector3(1.5f, 1.2f, 1.5f);
             unitObject.transform.SetParent(GetParentContainer().transform, true);
 
@@ -194,9 +206,6 @@ namespace CommonsUtility
         /// </summary>
         private static bool TryRaycastDown(float x, float z, out Vector3 hitPoint)
         {
-            const float _RAY_ORIGIN_HEIGHT = 500f;
-            const float _RAY_MAX_DISTANCE = 1000f;
-
             Vector3 rayOrigin = new Vector3(x, _RAY_ORIGIN_HEIGHT, z);
             if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE))
             {
@@ -206,6 +215,26 @@ namespace CommonsUtility
 
             hitPoint = Vector3.zero;
             return false;
+        }
+
+        /// <summary>
+        /// XZ を維持したまま DEM（Ground レイヤー）の高さに接地する
+        /// プレイヤーのマーカー配置で位置がずれないようにするための接地方式
+        /// （2026-06-13 Task 4 フィードバック対応）
+        /// </summary>
+        private static Vector3 SnapToDemHeight(Vector3 point)
+        {
+            int groundLayerMask = 1 << LayerMask.NameToLayer(nameof(GameEnum.LayerType.Ground));
+            Vector3 rayOrigin = new Vector3(point.x, _RAY_ORIGIN_HEIGHT, point.z);
+
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, groundLayerMask))
+            {
+                return new Vector3(point.x, hit.point.y, point.z);
+            }
+
+            // DEM レイヤーにヒットしない場合は周辺最低点方式にフォールバック
+            Debug.LogWarning($"[InfrastructureFactory] Ground レイヤーが見つからないため周辺接地にフォールバック: {point}");
+            return SnapToGround(point);
         }
 
         /// <summary>
