@@ -29,19 +29,24 @@
 
 ## 実装タスク
 
-### Task 1: カメラシェイク化（エージェント・1-1.5h）
+### Task 1: カメラシェイク化（エージェント・1-1.5h）[実装完了 2026-06-12・検証待ち]
 
 地震の表現を「DEM・建物のテレポート変位」から「カメラの揺れ」に変更する。
 
-- [ ] Earthquake.cs を改修: DEM/建物の transform 変位を廃止し、メインカメラ
-  （Cinemachine 構成を確認の上）に減衰付き Sin 振動を適用
-- [ ] 既存の振幅計算（CalcSin / CalcAmpDecay）は流用
-- [ ] quake_fire パターンのタイミング制約コメントを更新
-  （揺れ中スポーン禁止の制約が消えるが、演出順序として倒壊→出火は揺れ後を維持）
-- [ ] 武蔵野堺南木密で床抜けが起きないことを確認（BUG-S3-002 クローズ）
+- [x] カメラ構成調査: Cinemachine 3（Unity.Cinemachine）+ CinemachineBrain 構成と確認。
+  NoiseSettings アセットを要する Perlin/Impulse 方式は Editor 作業が必要なため不採用とし、
+  Brain の LateUpdate 後（DefaultExecutionOrder 30000）にオフセット加算する方式を採用
+- [x] Earthquake.cs を改修: DEM/建物の transform 変位を廃止し、揺れオフセット値の計算のみ
+  を行い静的プロパティ（CurrentVerticalOffset / IsShaking）で公開。
+  既存の振幅計算（CalcSin / CalcAmpDecay）は流用。OnDestroy で残留揺れをリセット
+- [x] `CameraShakeController`（Presentation/View/Effects/ 新設・自己構築型）が
+  Earthquake の静的プロパティを参照してメインカメラに加算（Presentation → Game の参照方向）
+- [x] quake_fire パターンのタイミング制約コメントを更新
+  （奈落落下制約は解消、揺れ→倒壊→出火の順序は演出として維持）
+- [ ] 武蔵野堺南木密で床抜けが起きないことを確認（BUG-S3-002 クローズ判定・要プレイ検証）
 
-**リスク**: Cinemachine の Virtual Camera 構成によっては素direct transform 操作が
-効かない場合がある（Cinemachine Impulse の利用を検討）。着手時にカメラ構成を先に調査する。
+[NOTE] Editor がユーザーの小マップ作業（Task 2）で使用中のため、コンパイル確認は
+Editor 解放後に実施する。
 
 ### Task 2: 小マップ新設（ユーザー Editor 作業 1-1.5h + エージェント 0.5h）
 
