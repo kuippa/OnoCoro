@@ -109,12 +109,23 @@ BuildingBreak のランダム化は必須ではなくなった（必要なら W3
   W3 の結果計算で「人的被害の軽減」として効いてくる設計。マップ中心に実在の学校・校庭が
   あるため「リアルの指定避難場所と一致する」というワークショップの説明素材になる
 
-### Task 4: 施策選択 UI（エージェント・0.5-1h）
+### Task 4: 施策選択 UI（エージェント・0.5-1h）[実装完了 2026-06-13・検証待ち]
 
-- [ ] 既存の TAB ビルドメニュー（ユニット作成メニュー）に施策 3 種を追加する方式を第一候補に調査
-  - itemlists に追加すれば既存フローに乗る見込み。乗らない場合のみ専用ボタンを YearPanel に追加
-- [ ] 配置は既存のアイテムストック → マーカークリック方式を流用
-- [ ] Placement フェーズ中のみ配置可能とする制御（YearRunning 中は配置不可）
+- [x] 既存 TAB ビルドメニューへの統合方式を確定:
+  ItemCreateCtrl が itemlists の名前を `Type.GetType()` で解決し IItemStructProvider から
+  ItemStruct を取得する仕組みのため、**itemlists の名前と一致するエンティティクラス**
+  （Hydrant / Cistern / Plaza、Game/Units/Structures/）を新設して統合
+  - [NOTE] Type.GetType() が単純名で解決する制約上、エンティティクラスは
+    グローバル名前空間（FireCube 等の既存 Units と同じ慣習）
+  - アイコンは既存素材を流用（fire-extinguisher / house-flood-water / building）
+  - コスト定数は InfrastructureFactory に一元化（ItemStruct から参照）
+- [x] 配置は既存フロー（ビルド → アイテムストック → マーカークリック → CallUnitByName）を流用。
+  SpawnController.SpawnInfrastructureUnit がマーカー位置解決（GetSpawnPoint）+
+  Factory の SnapToGround で接地
+- [x] Placement フェーズ中のみ配置可能とする制御（プレイヤー配置のみ対象。
+  YAML イベント等の明示座標指定は動作確認用に常時許可）
+- [ ] PlayMode 検証: TAB メニューに施策 3 種が表示され、ビルド → 配置 → 鎮火まで動くこと。
+  確認後、三鷹井の頭５丁目.yaml の自動配置イベントを削除してプレイヤー配置に置き換える
 
 ### Task 5: 簡易ヒートマップ（エージェント・0.5-1h）
 

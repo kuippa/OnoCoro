@@ -104,21 +104,51 @@ public class SpawnController : MonoBehaviour
         }
         else if (unitName == GameEnum.ModelsType.Hydrant.ToString())
         {
-            ret = InfrastructureFactory.SpawnInfrastructure(GameEnum.ModelsType.Hydrant, spawnPoint);
+            ret = SpawnInfrastructureUnit(GameEnum.ModelsType.Hydrant, spawnPoint);
         }
         else if (unitName == GameEnum.ModelsType.Cistern.ToString())
         {
-            ret = InfrastructureFactory.SpawnInfrastructure(GameEnum.ModelsType.Cistern, spawnPoint);
+            ret = SpawnInfrastructureUnit(GameEnum.ModelsType.Cistern, spawnPoint);
         }
         else if (unitName == GameEnum.ModelsType.Plaza.ToString())
         {
-            ret = InfrastructureFactory.SpawnInfrastructure(GameEnum.ModelsType.Plaza, spawnPoint);
+            ret = SpawnInfrastructureUnit(GameEnum.ModelsType.Plaza, spawnPoint);
         }
         else
         {
             Debug.Log("default CallUnitByName: " + unitName);
         }
         return ret;
+    }
+
+    /// <summary>
+    /// 防災施策ユニットをスポーンします（Season 3 W2）
+    /// プレイヤー配置（位置指定なし＝マーカー経由）の場合は、年サイクル中なら
+    /// 配置フェーズ（Placement）のみ許可する。YAML イベント等の明示座標指定は常時許可
+    /// </summary>
+    private bool SpawnInfrastructureUnit(GameEnum.ModelsType infraType, Vector3 spawnPoint)
+    {
+        bool isPlayerPlacement = (spawnPoint == default(Vector3));
+        if (isPlayerPlacement
+            && YearCycleSystem.IsActive()
+            && YearCycleSystem.CurrentPhase != YearCyclePhase.Placement)
+        {
+            Debug.Log("[SpawnController] 施策の配置は年の開始前（配置フェーズ）のみ可能です");
+            if (EventLogCtrl.Instance != null)
+            {
+                EventLogCtrl.Instance.ShowEventLog("施策の配置は年の開始前のみ可能です");
+            }
+            return false;
+        }
+
+        spawnPoint = GetSpawnPoint(0.05f, spawnPoint);
+        if (spawnPoint == Vector3.zero)
+        {
+            Debug.LogWarning($"[SpawnController] {infraType}: 配置位置を解決できませんでした");
+            return false;
+        }
+
+        return InfrastructureFactory.SpawnInfrastructure(infraType, spawnPoint);
     }
 
     /// <summary>

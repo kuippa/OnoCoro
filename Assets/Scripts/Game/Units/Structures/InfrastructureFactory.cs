@@ -14,22 +14,25 @@ namespace CommonsUtility
     {
         private const string _PARENT_CONTAINER_NAME = "Infrastructures";
         private const int _RING_SEGMENT_COUNT = 48;
-        private const float _RING_LINE_WIDTH = 0.3f;
-        private const float _RING_HEIGHT_OFFSET = 0.2f;
+        private const float _RING_LINE_WIDTH = 0.5f;
+        // 効果範囲リングの表示高さ（ローカル値・親スケール1.2倍で実高約30m）
+        // 地面の起伏や建物に埋まらないよう、住宅の屋根高さより上に固定表示する（2026-06-13 フィードバック）
+        private const float _RING_HEIGHT_OFFSET = 25f;
         private const string _RING_SHADER_NAME = "HDRP/Unlit";
 
         // 施策パラメータ（コスト, 効果半径[m], 鎮火力/秒）
         // 半径は 2026-06-13 テストプレイのフィードバックで拡大（建物 1 棟分では狭すぎる）。
         // 「何個置けばマップをカバーできるか」起点の正式バランスは W3 デモ準備時に調整
-        private const int _HYDRANT_COST = 50;
+        // コストはエンティティクラス（Hydrant/Cistern/Plaza）の ItemStruct からも参照される
+        internal const int HYDRANT_COST = 50;
         private const float _HYDRANT_RADIUS = 50f;
         private const float _HYDRANT_POWER = 0.25f;
 
-        private const int _CISTERN_COST = 30;
+        internal const int CISTERN_COST = 30;
         private const float _CISTERN_RADIUS = 70f;
         private const float _CISTERN_POWER = 0.06f;
 
-        private const int _PLAZA_COST = 100;
+        internal const int PLAZA_COST = 100;
         private const float _PLAZA_RADIUS = 50f;
         private const float _PLAZA_POWER = 0f;  // W2 では記録のみ（人的被害補正は W3 の結果計算で使用）
 
@@ -89,7 +92,7 @@ namespace CommonsUtility
 
             if (infraType == GameEnum.ModelsType.Hydrant)
             {
-                cost = _HYDRANT_COST;
+                cost = HYDRANT_COST;
                 radius = _HYDRANT_RADIUS;
                 power = _HYDRANT_POWER;
                 color = _HYDRANT_COLOR;
@@ -97,7 +100,7 @@ namespace CommonsUtility
             }
             if (infraType == GameEnum.ModelsType.Cistern)
             {
-                cost = _CISTERN_COST;
+                cost = CISTERN_COST;
                 radius = _CISTERN_RADIUS;
                 power = _CISTERN_POWER;
                 color = _CISTERN_COLOR;
@@ -105,7 +108,7 @@ namespace CommonsUtility
             }
             if (infraType == GameEnum.ModelsType.Plaza)
             {
-                cost = _PLAZA_COST;
+                cost = PLAZA_COST;
                 radius = _PLAZA_RADIUS;
                 power = _PLAZA_POWER;
                 color = _PLAZA_COLOR;
