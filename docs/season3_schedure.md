@@ -30,16 +30,19 @@
 
 ### タスク概要（詳細は計画書）
 - [x] Task 1: YAML 2階層スキーマ確定（スポーンパターン + 年編成表）+ サンプル作成（45分）2026-06-10 完了
-- [ ] Task 2: パターン読み込み（SpawnPatternRepository 新設）+ 年別イベント展開（1.5h）
-- [ ] Task 3: YearCycleSystem 実装（状態機械 + GameTimerCtrl 接続 + 年末敵除去）（1h）
-- [ ] Task 4: UI - Year 表示 + Start Year ボタン（YearPanelController）（1h）
-- [ ] Task 5: PlayMode 検証（後方互換含む）（30分）
+- [x] Task 2: パターン読み込み（SpawnPatternRepository 新設）+ 年別イベント展開（1.5h）2026-06-10 完了
+- [x] Task 3: YearCycleSystem 実装（状態機械 + GameTimerCtrl 接続 + 年末敵除去）（1h）2026-06-10 完了
+- [x] Task 4: UI - Year 表示 + Start Year ボタン（YearPanelController）（1h）2026-06-10 完了
+- [x] Task 5: PlayMode 検証（後方互換含む）（30分）2026-06-12 完了
 
 ### チェックリスト
-- [ ] Year 1 → 2 → 3 → Finished まで完走できる
-- [ ] 配置済みタワーが翌年に引き継がれる
-- [ ] 年末に残存敵が除去される
-- [ ] `years` セクションの無い既存ステージが従来どおり動く
+- [x] Year 1 → 2 → 3 → Finished まで完走できる
+- [x] 配置済みタワーが翌年に引き継がれる
+- [x] 年末に残存敵が除去される
+- [x] `years` セクションの無い既存ステージが従来どおり動く
+
+**W1 完了（2026-06-12）**。検出課題（火災の視認性・床抜け・UI 表示崩れ・ゲームデザイン論点）は
+[_tasklist/bugs.md](_tasklist/bugs.md) と W1 詳細計画の Task 5 欄を参照。W2 計画時に持ち越し論点を扱う。
 
 **成果物**: 年サイクル骨格（Placement → YearRunning → YearEnd の状態遷移）が動く状態
 
