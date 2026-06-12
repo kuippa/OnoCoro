@@ -29,3 +29,78 @@ Unity UI tool kitやUnity Graphicsなどをつかって、表示するべき項�
 
 
 
+# 井の頭５丁目気がついた点メモ
+## 赤丸 消火栓
+配置はDEMに設置する箇所を探してから設置する必要あり、現在は建物屋根面と同じ高さにスポーンしている
+
+ズームアウトでカメラをバードビューに切り替えるときに、一瞬プレイヤー方向ではなく真上を向いている。オートターゲットが有効になるまえにプレイヤー方向を向いていないためだとおもうが、初期設定値を確認する必要がある。プレファブのPlayerArmature の座標をかえてスポーン位置を変えた関係？LongShotCameraか、PlayerFollowCameraのY座標がらみだとおもわれる。
+
+UI、タイトル画面に戻ってから開くと、FONT設定を読み込むので今回新規追加したUIが著しく壊れる。
+
+マップの縁から落ちたオブジェクトが、奈落で地面上に再スポーンしているが、再び落ちてしまっている。マップの端すぎるのでもう少し内側にスポーンさせる必要があるが、建物がギリギリに立っていると難しく、再調整、あるいは別ロジックによるループ落下禁止のアルゴリズムが必要。
+
+消火栓の半径が建物１つぶんしかカバーしていないのであと３～４倍ぐらい広くてもいいとおもう。
+防火水槽についてももう少し広めでいい。
+何個置けばMAPをカバーできるかをもとにゲーム時間とユニットの効果範囲を決めたい。
+コストや火の勢いを弱める強さなどについてはのちほど要調整の必要がある。プレイヤーが移動するまでに火が弱まるのを確認するのが困難であった。
+
+避難広場は役割がいまのところわからなかった。マップの真ん中に学校があり校庭があるので、リアルの避難場所に指定されるとおもう。
+
+
+## InvestmentLedger
+ [InvestmentLedger.RecordInvestment] [InvestmentLedger] Year 1: Hydrant を配置（コスト 50）年合計 50 / 総計 50
+UnityEngine.Debug:Log (object)
+CommonsUtility.Debug:Log (string) (at Assets/Scripts/Core/Utilities/Debug.cs:61)
+CommonsUtility.InvestmentLedger:RecordInvestment (GameEnum/ModelsType,int) (at Assets/Scripts/Game/Systems/Simulation/InvestmentLedger.cs:44)
+CommonsUtility.InfrastructureFactory:SpawnInfrastructure (GameEnum/ModelsType,UnityEngine.Vector3) (at Assets/Scripts/Game/Units/Structures/InfrastructureFactory.cs:72)
+SpawnController:CallUnitByName (string,UnityEngine.Vector3) (at Assets/Scripts/Game/Systems/Spawn/SpawnController.cs:107)
+EventLoader:SpawnUnit (string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:427)
+EventLoader:ActionEvent (string,string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:220)
+GameTimerCtrl:ActionEvent (single) (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:153)
+GameTimerCtrl:Update () (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:199)
+
+ [InvestmentLedger.RecordInvestment] [InvestmentLedger] Year 1: Hydrant を配置（コスト 50）年合計 100 / 総計 100
+UnityEngine.Debug:Log (object)
+CommonsUtility.Debug:Log (string) (at Assets/Scripts/Core/Utilities/Debug.cs:61)
+CommonsUtility.InvestmentLedger:RecordInvestment (GameEnum/ModelsType,int) (at Assets/Scripts/Game/Systems/Simulation/InvestmentLedger.cs:44)
+CommonsUtility.InfrastructureFactory:SpawnInfrastructure (GameEnum/ModelsType,UnityEngine.Vector3) (at Assets/Scripts/Game/Units/Structures/InfrastructureFactory.cs:72)
+SpawnController:CallUnitByName (string,UnityEngine.Vector3) (at Assets/Scripts/Game/Systems/Spawn/SpawnController.cs:107)
+EventLoader:SpawnUnit (string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:427)
+EventLoader:ActionEvent (string,string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:220)
+GameTimerCtrl:ActionEvent (single) (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:153)
+GameTimerCtrl:Update () (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:199)
+
+ [InvestmentLedger.RecordInvestment] [InvestmentLedger] Year 2: Cistern を配置（コスト 30）年合計 30 / 総計 130
+UnityEngine.Debug:Log (object)
+CommonsUtility.Debug:Log (string) (at Assets/Scripts/Core/Utilities/Debug.cs:61)
+CommonsUtility.InvestmentLedger:RecordInvestment (GameEnum/ModelsType,int) (at Assets/Scripts/Game/Systems/Simulation/InvestmentLedger.cs:44)
+CommonsUtility.InfrastructureFactory:SpawnInfrastructure (GameEnum/ModelsType,UnityEngine.Vector3) (at Assets/Scripts/Game/Units/Structures/InfrastructureFactory.cs:72)
+SpawnController:CallUnitByName (string,UnityEngine.Vector3) (at Assets/Scripts/Game/Systems/Spawn/SpawnController.cs:111)
+EventLoader:SpawnUnit (string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:427)
+EventLoader:ActionEvent (string,string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:220)
+GameTimerCtrl:ActionEvent (single) (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:153)
+GameTimerCtrl:Update () (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:199)
+
+ [InvestmentLedger.RecordInvestment] [InvestmentLedger] Year 2: Cistern を配置（コスト 30）年合計 60 / 総計 160
+UnityEngine.Debug:Log (object)
+CommonsUtility.Debug:Log (string) (at Assets/Scripts/Core/Utilities/Debug.cs:61)
+CommonsUtility.InvestmentLedger:RecordInvestment (GameEnum/ModelsType,int) (at Assets/Scripts/Game/Systems/Simulation/InvestmentLedger.cs:44)
+CommonsUtility.InfrastructureFactory:SpawnInfrastructure (GameEnum/ModelsType,UnityEngine.Vector3) (at Assets/Scripts/Game/Units/Structures/InfrastructureFactory.cs:72)
+SpawnController:CallUnitByName (string,UnityEngine.Vector3) (at Assets/Scripts/Game/Systems/Spawn/SpawnController.cs:111)
+EventLoader:SpawnUnit (string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:427)
+EventLoader:ActionEvent (string,string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:220)
+GameTimerCtrl:ActionEvent (single) (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:153)
+GameTimerCtrl:Update () (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:199)
+
+ [InvestmentLedger.RecordInvestment] [InvestmentLedger] Year 3: Plaza を配置（コスト 100）年合計 100 / 総計 260
+UnityEngine.Debug:Log (object)
+CommonsUtility.Debug:Log (string) (at Assets/Scripts/Core/Utilities/Debug.cs:61)
+CommonsUtility.InvestmentLedger:RecordInvestment (GameEnum/ModelsType,int) (at Assets/Scripts/Game/Systems/Simulation/InvestmentLedger.cs:44)
+CommonsUtility.InfrastructureFactory:SpawnInfrastructure (GameEnum/ModelsType,UnityEngine.Vector3) (at Assets/Scripts/Game/Units/Structures/InfrastructureFactory.cs:72)
+SpawnController:CallUnitByName (string,UnityEngine.Vector3) (at Assets/Scripts/Game/Systems/Spawn/SpawnController.cs:115)
+EventLoader:SpawnUnit (string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:427)
+EventLoader:ActionEvent (string,string) (at Assets/Scripts/Game/Events/System/EventLoader.cs:220)
+GameTimerCtrl:ActionEvent (single) (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:153)
+GameTimerCtrl:Update () (at Assets/Scripts/Presentation/UI/Dialogs/GameTimerCtrl.cs:199)
+
+

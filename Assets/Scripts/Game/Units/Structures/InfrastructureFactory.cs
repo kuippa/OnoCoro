@@ -19,12 +19,14 @@ namespace CommonsUtility
         private const string _RING_SHADER_NAME = "HDRP/Unlit";
 
         // 施策パラメータ（コスト, 効果半径[m], 鎮火力/秒）
+        // 半径は 2026-06-13 テストプレイのフィードバックで拡大（建物 1 棟分では狭すぎる）。
+        // 「何個置けばマップをカバーできるか」起点の正式バランスは W3 デモ準備時に調整
         private const int _HYDRANT_COST = 50;
-        private const float _HYDRANT_RADIUS = 15f;
+        private const float _HYDRANT_RADIUS = 50f;
         private const float _HYDRANT_POWER = 0.25f;
 
         private const int _CISTERN_COST = 30;
-        private const float _CISTERN_RADIUS = 30f;
+        private const float _CISTERN_RADIUS = 70f;
         private const float _CISTERN_POWER = 0.06f;
 
         private const int _PLAZA_COST = 100;
@@ -52,7 +54,7 @@ namespace CommonsUtility
             GameObject unitObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             _spawnCounter = _spawnCounter + 1;
             unitObject.name = infraType.ToString() + _spawnCounter.ToString();
-            unitObject.transform.position = spawnPoint;
+            unitObject.transform.position = SnapToGround(spawnPoint);
             unitObject.transform.localScale = new Vector3(1.5f, 1.2f, 1.5f);
             unitObject.transform.SetParent(GetParentContainer().transform, true);
 
@@ -145,6 +147,62 @@ namespace CommonsUtility
                 float z = Mathf.Sin(angle) * radius / parentScale.z;
                 ring.SetPosition(i, new Vector3(x, _RING_HEIGHT_OFFSET, z));
             }
+        }
+
+        /// <summary>
+        /// 配置点を地面（DEM）に接地させる
+        /// random_doom_building 由来の配置点は建物屋根の角になるため（2026-06-13 テストで判明）、
+        /// 周囲 8 方向 + 中心の Raycast で最も低いヒット点（= 屋根ではなく地面の可能性が高い）を選ぶ
+        /// </summary>
+        private static Vector3 SnapToGround(Vector3 point)
+        {
+            const float _PROBE_OFFSET_DISTANCE = 6f;
+            const int _PROBE_DIRECTION_COUNT = 8;
+
+            Vector3 bestPoint = point;
+            bool hasHit = TryRaycastDown(point.x, point.z, out Vector3 centerHit);
+            if (hasHit)
+            {
+                bestPoint = centerHit;
+            }
+
+            for (int i = 0; i < _PROBE_DIRECTION_COUNT; i++)
+            {
+                float angle = 2f * Mathf.PI * i / _PROBE_DIRECTION_COUNT;
+                float probeX = point.x + Mathf.Cos(angle) * _PROBE_OFFSET_DISTANCE;
+                float probeZ = point.z + Mathf.Sin(angle) * _PROBE_OFFSET_DISTANCE;
+
+                if (!TryRaycastDown(probeX, probeZ, out Vector3 probeHit))
+                {
+                    continue;
+                }
+                if (!hasHit || probeHit.y < bestPoint.y)
+                {
+                    bestPoint = probeHit;
+                    hasHit = true;
+                }
+            }
+
+            return bestPoint;
+        }
+
+        /// <summary>
+        /// 指定 XZ から下方向に Raycast し、ヒット点を返す（ヒット無しなら false）
+        /// </summary>
+        private static bool TryRaycastDown(float x, float z, out Vector3 hitPoint)
+        {
+            const float _RAY_ORIGIN_HEIGHT = 500f;
+            const float _RAY_MAX_DISTANCE = 1000f;
+
+            Vector3 rayOrigin = new Vector3(x, _RAY_ORIGIN_HEIGHT, z);
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE))
+            {
+                hitPoint = hit.point;
+                return true;
+            }
+
+            hitPoint = Vector3.zero;
+            return false;
         }
 
         /// <summary>
