@@ -1,11 +1,15 @@
 ---
 # スポーンパターン: 地震連動火災
 # Season 3 W1: 再利用可能スポーンパターン（2階層YAML構成の階層1）
-# 地震発生 → 建物倒壊 → 倒壊建物から出火、の一連シーケンス。
+# 地震発生 → 揺れ収束 → 建物倒壊 → 倒壊建物から出火、の一連シーケンス。
 # スロット: {intensity}=地震の強さ, {break_count}=倒壊建物数
+#
+# [IMPORTANT] earthquake は約 4.5 秒間 DEM・建物を上下に変位させるため、
+# 揺れ期間中にスポーンしたオブジェクトは地面をすり抜けて奈落トラップで消える
+# （BUG-S3-001/002）。倒壊・出火は揺れ終了（開始+5.5 秒）より後に配置すること。
 pattern_id: quake_fire
-note: "地震連動火災（地震→倒壊→倒壊建物から出火）"
-ver: 1.0.0
+note: "地震連動火災（地震→揺れ収束→倒壊→出火）"
+ver: 1.1.0
 events:
   - time: 1
     event: earthquake
@@ -13,12 +17,12 @@ events:
   - time: 2
     event: notice
     value: "地震が発生しました。"
-  - time: 3
+  - time: 7
     event: building_break
     value: "{break_count}"
-  - time: 3.5
+  - time: 8
     event: spawn_unit
     value: FireCube, random_doom_building
-  - time: 4.5
+  - time: 9
     event: spawn_unit
     value: FireCube, random_doom_building
