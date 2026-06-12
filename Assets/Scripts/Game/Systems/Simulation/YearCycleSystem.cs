@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Debug = CommonsUtility.Debug;
@@ -145,8 +146,75 @@ namespace CommonsUtility
         /// タイマー停止はイベント発火を止めるだけで敵の挙動は止まらないため、
         /// 配置フェーズ中に延焼が進まないよう残存する火災ユニットを取り除く。
         /// 配置済みタワー（施策）は除去しない（翌年への引き継ぎ要件）
+        ///
+        /// [BUG-S3-010 対策] 延焼は「灰 → 2 秒遅延コルーチン → FireCubeSpawner の
+        /// 非同期キュー」経由で発火するため、即時破棄だけではキュー上の発火予約が
+        /// 年をまたいで湧く。スポーン予約の破棄 + 遅延フォローアップ掃除で多重防御する
         /// </summary>
         private static void CleanupYearEndUnits()
+        {
+            ClearPendingFireSpawns();
+            int removedCount = DestroyCleanupTargets();
+            Debug.Log($"[YearCycleSystem] 年末処理: 残存敵ユニット {removedCount} 体を除去");
+
+            CoroutineManager.Instance.StartCoroutine(FollowUpCleanup());
+        }
+
+        /// <summary>
+        /// 年末処理の取りこぼし（遅延延焼）を時間差で追加掃除する
+        /// </summary>
+        private static IEnumerator FollowUpCleanup()
+        {
+            const float _FIRST_SWEEP_DELAY = 0.5f;
+            const float _SECOND_SWEEP_DELAY = 2.5f;
+
+            yield return new WaitForSeconds(_FIRST_SWEEP_DELAY);
+            SweepLeakedUnits();
+            yield return new WaitForSeconds(_SECOND_SWEEP_DELAY);
+            SweepLeakedUnits();
+        }
+
+        /// <summary>
+        /// 配置フェーズ中に漏れて発生した火災を追加除去する
+        /// （年が再開・リセットされていたら何もしない）
+        /// </summary>
+        private static void SweepLeakedUnits()
+        {
+            if (CurrentPhase != YearCyclePhase.Placement && CurrentPhase != YearCyclePhase.Finished)
+            {
+                return;
+            }
+
+            ClearPendingFireSpawns();
+            int removedCount = DestroyCleanupTargets();
+            if (removedCount > 0)
+            {
+                Debug.LogWarning($"[YearCycleSystem] 年末処理後に発生した火災 {removedCount} 体を追加除去（遅延延焼の漏れ）");
+            }
+        }
+
+        /// <summary>
+        /// FireCubeSpawner の未処理スポーン予約を破棄する
+        /// </summary>
+        private static void ClearPendingFireSpawns()
+        {
+            GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
+            if (gameManagerObject == null)
+            {
+                return;
+            }
+
+            FireCubeSpawner fireCubeSpawner = gameManagerObject.GetComponent<FireCubeSpawner>();
+            if (fireCubeSpawner != null)
+            {
+                fireCubeSpawner.ClearSpawnQueue();
+            }
+        }
+
+        /// <summary>
+        /// 除去対象タグのユニットをすべて破棄し、除去数を返す
+        /// </summary>
+        private static int DestroyCleanupTargets()
         {
             int removedCount = 0;
             foreach (string tagName in _YEAR_END_CLEANUP_TAGS)
@@ -158,7 +226,7 @@ namespace CommonsUtility
                     removedCount = removedCount + 1;
                 }
             }
-            Debug.Log($"[YearCycleSystem] 年末処理: 残存敵ユニット {removedCount} 体を除去");
+            return removedCount;
         }
 
         private static void ChangePhase(YearCyclePhase newPhase)
