@@ -102,6 +102,18 @@ public class SpawnController : MonoBehaviour
         {
             ret = SpawnSentryGuard(spawnPoint);
         }
+        else if (unitName == GameEnum.ModelsType.Hydrant.ToString())
+        {
+            ret = InfrastructureFactory.SpawnInfrastructure(GameEnum.ModelsType.Hydrant, spawnPoint);
+        }
+        else if (unitName == GameEnum.ModelsType.Cistern.ToString())
+        {
+            ret = InfrastructureFactory.SpawnInfrastructure(GameEnum.ModelsType.Cistern, spawnPoint);
+        }
+        else if (unitName == GameEnum.ModelsType.Plaza.ToString())
+        {
+            ret = InfrastructureFactory.SpawnInfrastructure(GameEnum.ModelsType.Plaza, spawnPoint);
+        }
         else
         {
             Debug.Log("default CallUnitByName: " + unitName);

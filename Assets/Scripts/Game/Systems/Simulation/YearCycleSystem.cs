@@ -86,6 +86,7 @@ namespace CommonsUtility
             _eventLoader = null;
             OnPhaseChanged = null;
             CurrentPhase = YearCyclePhase.Inactive;
+            InvestmentLedger.Reset();  // 投資台帳もステージ単位でリセット（Season 3 W2）
         }
 
         /// <summary>

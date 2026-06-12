@@ -42,6 +42,11 @@ public class GameEnum
         WaterTurret,
         DustBox,
         SentryGuard,
+
+        // 防災施策（Season 3 W2: 統計効果型インフラ）
+        Hydrant,   // 消火栓
+        Cistern,   // 防火水槽
+        Plaza,     // 避難広場
     }
 
     internal enum LayerType

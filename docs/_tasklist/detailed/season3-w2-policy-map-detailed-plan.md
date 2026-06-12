@@ -79,16 +79,19 @@ BuildingBreak のランダム化は必須ではなくなった（必要なら W3
 | 防火水槽 Cistern | 30 | 範囲内の延焼（FireCube 増殖）を抑制 | 中 |
 | 避難広場 Plaza | 100 | 範囲内の人的被害補正（W3 の結果計算で使用。W2 では記録のみ） | 大 |
 
-**実装内容**:
+**実装内容**（2026-06-12 実装完了・検証待ち）:
 
-- [ ] `GameEnum.ModelsType` に Hydrant / Cistern / Plaza を追加
-- [ ] `InfrastructureUnit`（Game/Units/Structures/）: 効果範囲・施策タイプを持つ配置物。
-  既存 Tower 系の配置フロー（TAB ビルドメニュー + ItemHolder）に乗せる
-- [ ] `InfrastructureSystem`（Game/Systems/Simulation/）: 周期チェックで
-  範囲内の FireCube に鎮火処理 / 延焼抑制フラグを適用
-- [ ] 効果範囲の可視化（半透明円。配置時 + 配置後常時表示の切り替えは後日調整）
-- [ ] `InvestmentLedger`（Game/Systems/Simulation/）: 年ごとの投資額を記録（W3 の ROI 計算の土台）
-- [ ] SpawnController に 3 種の生成分岐を追加、Prefab は既存ユニットの流用形状で仮作成
+- [x] `GameEnum.ModelsType` に Hydrant / Cistern / Plaza を追加
+- [x] `InfrastructureUnit`（Game/Units/Structures/）: 効果範囲・鎮火力を持つ配置物。
+  毎秒の効果 tick で範囲内 FireCube のスケールを減衰させ、しきい値以下で鎮火（消滅）
+  - [NOTE] 中央管理の InfrastructureSystem ではなく各ユニット自律駆動に変更（W2 規模では十分・実装が単純）
+  - [NOTE] Cistern の「延焼抑制」は W2 では弱い鎮火効果（広範囲・低出力）として単純化
+- [x] 効果範囲の可視化（LineRenderer の円リング・施策色で表示）
+- [x] `InvestmentLedger`（Game/Systems/Simulation/）: 年ごとの投資額・施策別配置数を記録。
+  ステージロード時に YearCycleSystem.ResetSimulation() からリセット
+- [x] SpawnController に 3 種の生成分岐を追加。Prefab は使わずプリミティブ（円柱 + リング）を
+  コード構築（Editor 作業ゼロ・見た目は UI 再調整フェーズで差し替え）
+- [x] タグは追加しない（TagManager 編集が必要になるため。識別はコンポーネントで行う）
 
 **スコープ外（W3 以降）**: 被害率の正式計算式、Plaza の人的被害モデル、施策の撤去/移設
 
