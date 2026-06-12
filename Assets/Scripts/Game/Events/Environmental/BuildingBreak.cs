@@ -11,12 +11,14 @@ public class BuildingBreak : MonoBehaviour
     {
         if (_buildingGameObject.Count == 0)
         {
+            Debug.LogWarning("[BuildingBreak] 対象建物が 0 棟のため building_break をスキップ（シーンに bldg_ オブジェクトが無い可能性）");
             return;
         }
         GameObject obj = GameObject.Find("Plateau");
         PlateauInfoManager component = obj.GetComponent<PlateauInfoManager>();
         if (obj == null || component == null)
         {
+            Debug.LogWarning("[BuildingBreak] Plateau / PlateauInfoManager が見つからないため building_break をスキップ");
             return;
         }
         if (event_value == "all")
@@ -45,6 +47,7 @@ public class BuildingBreak : MonoBehaviour
             component.SetBuildingToDoom(item2);
             num++;
         }
+        Debug.Log($"[BuildingBreak] {num} 棟を倒壊指定（対象候補 {_buildingGameObject.Count} 棟）");
     }
 
     private void Awake()

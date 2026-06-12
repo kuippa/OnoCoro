@@ -345,8 +345,14 @@ public class EventLoader : MonoBehaviour, IInitializable
                         Renderer component2 = doomedBuildings[index].GetComponent<Renderer>();
                         Vector3 center = component2.bounds.center;
                         Vector3 extents = component2.bounds.extents;
+                        Debug.Log($"[EventLoader] random_doom_building: 倒壊 {doomedBuildings.Count} 棟から {doomedBuildings[index].name} を選択 pos={center + extents}");
                         return center + extents;
                     }
+
+                    // 倒壊建物が 0 棟の場合のフォールバック
+                    // 従来は原点 (0,0,0) に湧いて「火災が見えない」状態になっていた（Season 3 W1 Task 5 で判明）
+                    Debug.LogWarning("[EventLoader] random_doom_building: 倒壊建物が 0 棟のため random_position にフォールバック");
+                    return DemController.GetDemRndAbovePosition(10f);
                 }
             }
         }
