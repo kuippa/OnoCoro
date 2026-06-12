@@ -74,6 +74,7 @@ namespace CommonsUtility
             CurrentYear = _FIRST_YEAR;
             OnPhaseChanged = null;  // 前ステージの購読者を破棄（破棄済み UI への通知を防ぐ）
             ChangePhase(YearCyclePhase.Placement);
+            HazardForecastSystem.ApplyForecast(_eventLoader, CurrentYear);  // 倒壊予測の強調表示（W2 Task 5）
             Debug.Log($"[YearCycleSystem] 年サイクル開始: 全 {eventLoader.GetYearCount()} 年");
         }
 
@@ -87,6 +88,7 @@ namespace CommonsUtility
             OnPhaseChanged = null;
             CurrentPhase = YearCyclePhase.Inactive;
             InvestmentLedger.Reset();  // 投資台帳もステージ単位でリセット（Season 3 W2）
+            HazardForecastSystem.ClearForecast();  // 強調表示の残留防止（W2 Task 5）
         }
 
         /// <summary>
@@ -106,6 +108,7 @@ namespace CommonsUtility
                 return 0f;
             }
 
+            HazardForecastSystem.ClearForecast();  // 年の開始で倒壊予測の強調を解除（W2 Task 5）
             ChangePhase(YearCyclePhase.YearRunning);
             Debug.Log($"[YearCycleSystem] Year {CurrentYear} 開始");
             return _eventLoader.GetYearDuration(CurrentYear);
@@ -133,6 +136,7 @@ namespace CommonsUtility
 
             CurrentYear = CurrentYear + 1;
             ChangePhase(YearCyclePhase.Placement);
+            HazardForecastSystem.ApplyForecast(_eventLoader, CurrentYear);  // 次年の倒壊予測を強調（W2 Task 5）
             Debug.Log($"[YearCycleSystem] Year {CurrentYear} 配置フェーズへ");
         }
 

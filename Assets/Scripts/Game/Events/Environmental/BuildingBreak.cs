@@ -7,6 +7,15 @@ public class BuildingBreak : MonoBehaviour
 {
     private List<GameObject> _buildingGameObject = new List<GameObject>();
 
+    /// <summary>
+    /// building_break の対象建物リストを取得（Season 3 W2: ヒートマップの倒壊予測に使用）
+    /// EventBreakBuilding と同じ順序（先頭 N 棟が倒壊対象になる）
+    /// </summary>
+    internal List<GameObject> GetBreakTargets()
+    {
+        return _buildingGameObject;
+    }
+
     internal void EventBreakBuilding(string event_value)
     {
         if (_buildingGameObject.Count == 0)
