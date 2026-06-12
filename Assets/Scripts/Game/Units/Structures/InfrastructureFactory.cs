@@ -48,10 +48,9 @@ namespace CommonsUtility
 
         /// <summary>
         /// 施策ユニットを生成して配置する
+        /// 配置点は DEM（Ground レイヤー）の高さに接地される
         /// </summary>
-        /// <param name="keepXZ">true: XZ を維持して DEM 高さに接地（プレイヤーのマーカー配置用）。
-        /// false: 周囲の最低点を探して接地（建物屋根角など不正確な座標用）</param>
-        internal static bool SpawnInfrastructure(GameEnum.ModelsType infraType, Vector3 spawnPoint, bool keepXZ = false)
+        internal static bool SpawnInfrastructure(GameEnum.ModelsType infraType, Vector3 spawnPoint)
         {
             if (!TryGetSpec(infraType, out int cost, out float radius, out float power, out Color color))
             {
@@ -62,14 +61,7 @@ namespace CommonsUtility
             GameObject unitObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             _spawnCounter = _spawnCounter + 1;
             unitObject.name = infraType.ToString() + _spawnCounter.ToString();
-            if (keepXZ)
-            {
-                unitObject.transform.position = SnapToDemHeight(spawnPoint);
-            }
-            else
-            {
-                unitObject.transform.position = SnapToGround(spawnPoint);
-            }
+            unitObject.transform.position = SnapToDemHeight(spawnPoint);
             unitObject.transform.localScale = new Vector3(1.5f, 1.2f, 1.5f);
             unitObject.transform.SetParent(GetParentContainer().transform, true);
 
@@ -165,20 +157,24 @@ namespace CommonsUtility
         }
 
         /// <summary>
-        /// 配置点を地面（DEM）に接地させる
-        /// random_doom_building 由来の配置点は建物屋根の角になるため（2026-06-13 テストで判明）、
-        /// 周囲 8 方向 + 中心の Raycast で最も低いヒット点（= 屋根ではなく地面の可能性が高い）を選ぶ
+        /// XZ を維持したまま DEM（Ground レイヤー）の高さに接地する
+        ///
+        /// [NOTE] 全コライダー対象の「周辺最低点」方式は、マップ下の奈落トラップの
+        /// コライダー（Y 約 -30）を拾って画面外に配置される事故があった（2026-06-13 テストで判明）。
+        /// 必ず Ground レイヤー限定で Raycast すること。
+        /// 中心で当たらない場合は周囲 8 方向を探査し、それでも当たらなければ
+        /// 既存の DEM 安全位置アルゴリズム（DemController）にフォールバックする
         /// </summary>
-        private static Vector3 SnapToGround(Vector3 point)
+        private static Vector3 SnapToDemHeight(Vector3 point)
         {
             const float _PROBE_OFFSET_DISTANCE = 6f;
             const int _PROBE_DIRECTION_COUNT = 8;
 
-            Vector3 bestPoint = point;
-            bool hasHit = TryRaycastDown(point.x, point.z, out Vector3 centerHit);
-            if (hasHit)
+            int groundLayerMask = 1 << LayerMask.NameToLayer(nameof(GameEnum.LayerType.Ground));
+
+            if (TryRaycastDown(point.x, point.z, groundLayerMask, out Vector3 centerHit))
             {
-                bestPoint = centerHit;
+                return new Vector3(point.x, centerHit.y, point.z);
             }
 
             for (int i = 0; i < _PROBE_DIRECTION_COUNT; i++)
@@ -187,27 +183,23 @@ namespace CommonsUtility
                 float probeX = point.x + Mathf.Cos(angle) * _PROBE_OFFSET_DISTANCE;
                 float probeZ = point.z + Mathf.Sin(angle) * _PROBE_OFFSET_DISTANCE;
 
-                if (!TryRaycastDown(probeX, probeZ, out Vector3 probeHit))
+                if (TryRaycastDown(probeX, probeZ, groundLayerMask, out Vector3 probeHit))
                 {
-                    continue;
-                }
-                if (!hasHit || probeHit.y < bestPoint.y)
-                {
-                    bestPoint = probeHit;
-                    hasHit = true;
+                    return probeHit;
                 }
             }
 
-            return bestPoint;
+            Debug.LogWarning($"[InfrastructureFactory] DEM（Ground レイヤー）に接地できないため安全位置にフォールバック: {point}");
+            return DemController.GetDemRndAbovePosition(0.5f);
         }
 
         /// <summary>
         /// 指定 XZ から下方向に Raycast し、ヒット点を返す（ヒット無しなら false）
         /// </summary>
-        private static bool TryRaycastDown(float x, float z, out Vector3 hitPoint)
+        private static bool TryRaycastDown(float x, float z, int layerMask, out Vector3 hitPoint)
         {
             Vector3 rayOrigin = new Vector3(x, _RAY_ORIGIN_HEIGHT, z);
-            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE))
+            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, layerMask))
             {
                 hitPoint = hit.point;
                 return true;
@@ -215,26 +207,6 @@ namespace CommonsUtility
 
             hitPoint = Vector3.zero;
             return false;
-        }
-
-        /// <summary>
-        /// XZ を維持したまま DEM（Ground レイヤー）の高さに接地する
-        /// プレイヤーのマーカー配置で位置がずれないようにするための接地方式
-        /// （2026-06-13 Task 4 フィードバック対応）
-        /// </summary>
-        private static Vector3 SnapToDemHeight(Vector3 point)
-        {
-            int groundLayerMask = 1 << LayerMask.NameToLayer(nameof(GameEnum.LayerType.Ground));
-            Vector3 rayOrigin = new Vector3(point.x, _RAY_ORIGIN_HEIGHT, point.z);
-
-            if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, groundLayerMask))
-            {
-                return new Vector3(point.x, hit.point.y, point.z);
-            }
-
-            // DEM レイヤーにヒットしない場合は周辺最低点方式にフォールバック
-            Debug.LogWarning($"[InfrastructureFactory] Ground レイヤーが見つからないため周辺接地にフォールバック: {point}");
-            return SnapToGround(point);
         }
 
         /// <summary>

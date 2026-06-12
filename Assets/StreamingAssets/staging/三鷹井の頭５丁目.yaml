@@ -1,13 +1,12 @@
 ---
 # 三鷹井の頭５丁目 - 防災投資シミュレーション ワークショップ用小マップ（Season 3 W2）
 #
-# W2 の一連の動作確認を 1 ステージで行えるイベント構成：
-#   Year 1: 地震カメラシェイク → 倒壊 → 出火 → 消火栓の自動配置で鎮火を観察
-#   Year 2: 規模拡大 + 防火水槽（広範囲・弱効果）の比較観察
-#   Year 3: 多重編成（本震+余震） + 避難広場（投資記録のみ）の台帳確認
-# 施策はまだ UI 配置（W2 Task 4）が無いため、動作確認用に spawn_unit イベントで
-# random_doom_building（倒壊建物のそば）へ自動配置している。
-# UI 実装後はこの自動配置イベントを削除してプレイヤー配置に置き換える。
+# Year 1: 地震カメラシェイク → 倒壊 3 棟 → 出火
+# Year 2: 規模拡大（倒壊 5 棟）
+# Year 3: 多重編成（本震 + 余震）
+# 施策（Hydrant / Cistern / Plaza）はプレイヤーが配置フェーズ中に
+# TAB ビルドメニューから配置する（2026-06-13 W2 Task 4/5 検証完了に伴い
+# 動作確認用の自動配置イベントを削除済み）。
 stagename: 三鷹井の頭５丁目
 stagenotice: "木密地域 防災投資シミュレーション（小マップ）"
 stageid: MitakaInokashira5
@@ -55,15 +54,6 @@ years:
       - time: 1
         event: telop
         value: "Year 1: 地震発生。倒壊建物から出火"
-      - time: 20
-        event: notice
-        value: "（動作確認）消火栓を倒壊建物のそばに自動配置します"
-      - time: 21
-        event: spawn_unit
-        value: Hydrant, random_doom_building
-      - time: 22
-        event: spawn_unit
-        value: Hydrant, random_doom_building
 
   - year: 2
     duration: 90
@@ -77,15 +67,6 @@ years:
       - time: 1
         event: telop
         value: "Year 2: 揺れが強くなった"
-      - time: 20
-        event: notice
-        value: "（動作確認）防火水槽を自動配置します"
-      - time: 21
-        event: spawn_unit
-        value: Cistern, random_doom_building
-      - time: 22
-        event: spawn_unit
-        value: Cistern, random_doom_building
 
   - year: 3
     duration: 90
@@ -103,9 +84,3 @@ years:
       - time: 1
         event: telop
         value: "Year 3: 大地震と余震の年"
-      - time: 25
-        event: spawn_unit
-        value: Plaza, random_doom_building
-      - time: 26
-        event: notice
-        value: "（動作確認）避難広場を配置。投資台帳ログを確認"
