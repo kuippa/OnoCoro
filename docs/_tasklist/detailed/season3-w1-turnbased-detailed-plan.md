@@ -148,7 +148,8 @@ years:
 **Task 1 で判明した制約（Task 5 への申し送り）**:
 
 - YAML ファイル名 = シーン名の束縛（`LoadStreamingAsset.GetYamlFileName()`）があるため、SimFireKenrokuen を起動するには Unity Editor で「石川県金沢市兼六園」シーンを複製して `SimFireKenrokuen.unity` を作成し、ビルドのシーンリストと `stagelist.csv` に登録する必要がある（Editor 作業、約 10-15 分）
-- stagelist.csv は Shift-JIS エンコーディング。編集時に注意
+- stagelist.csv は UTF-8（BOM なし）。PowerShell コンソールでは文字化けして見えるが
+  ファイル実体は UTF-8（2026-06-13 訂正。CP932 と誤診すると書き戻しで破損するので注意）
 
 ### Task 2: パターン読み込み + 年別イベント展開（1.5 時間）[実装完了 2026-06-10・検証待ち]
 
