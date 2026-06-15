@@ -201,6 +201,13 @@ namespace CommonsUtility
             label.fontSize = fontSize;
             label.alignment = TextAlignmentOptions.Center;
             label.color = Color.white;
+            // [BUG-S3-003/フォント初期値漏れ] UIFontManager が毎シーン fontSize を UIFont 値に
+            // 再スナップ・再スケールするため、DontDestroyOnLoad 常駐の本パネルはサイズがドリフトして崩れる。
+            // オートサイズで rect に収め、再スケールの影響を受けないようにする（ResultPanel と同方式）
+            label.enableAutoSizing = true;
+            label.fontSizeMin = 10f;
+            label.fontSizeMax = fontSize;
+            label.enableWordWrapping = true;
 
             RectTransform rect = labelObject.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.5f, 0.5f);

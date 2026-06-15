@@ -17,6 +17,9 @@ public class EventLoader : MonoBehaviour, IInitializable
 
     private const string _PLAYER_ARMATURE_NAME = "PlayerArmature";
 
+    // 倒壊建物からの出火 Y オフセット（PlateauCubeMaker のゴミ放出基準 center.y+0.5 に合わせる）
+    private const float _DOOM_FIRE_Y_OFFSET = 0.5f;
+
     // internal Dictionary<string, Dictionary<string, string>[]> _events = new Dictionary<string, Dictionary<string, string>[]>();
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
     // // イベント名,{イベントデータ配列}
@@ -372,8 +375,10 @@ public class EventLoader : MonoBehaviour, IInitializable
                         Renderer component2 = doomedBuildings[index].GetComponent<Renderer>();
                         Vector3 center = component2.bounds.center;
                         // [BUG-S3-013] 旧実装は bounds の角（center+extents）を返すため、FireCube が
-                        // 屋根角から場外/地中へ落ちることがあった。建物 footprint 中心を DEM（Ground）に接地させる
-                        Vector3 firePosition = SnapDoomFireToGround(center, component2.bounds.extents);
+                        // 屋根角から場外/地中へ落ちることがあった。倒壊時に放出されるゴミ
+                        // （PlateauCubeMaker は center.y+0.5 を基準に建物周囲へ散布）と同じ位置基準に
+                        // 揃えることで、火種がゴミの輪の中に落ち延焼が連鎖する（W3 Task 4）
+                        Vector3 firePosition = new Vector3(center.x, center.y + _DOOM_FIRE_Y_OFFSET, center.z);
                         Debug.Log($"[EventLoader] random_doom_building: 倒壊 {doomedBuildings.Count} 棟から {doomedBuildings[index].name} を選択 pos={firePosition}");
                         return firePosition;
                     }
@@ -387,28 +392,6 @@ public class EventLoader : MonoBehaviour, IInitializable
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// 倒壊建物の footprint 中心を DEM（Ground レイヤー）に接地させた出火位置を返す（BUG-S3-013）
-    /// Ground にヒットしない場合は従来挙動（bounds の角）にフォールバック
-    /// </summary>
-    private Vector3 SnapDoomFireToGround(Vector3 buildingCenter, Vector3 buildingExtents)
-    {
-        const float _RAY_ORIGIN_HEIGHT = 500f;
-        const float _RAY_MAX_DISTANCE = 1000f;
-        const float _FIRE_GROUND_OFFSET = 0.5f;
-
-        int groundLayerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
-        Vector3 rayOrigin = new Vector3(buildingCenter.x, _RAY_ORIGIN_HEIGHT, buildingCenter.z);
-
-        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, groundLayerMask))
-        {
-            return new Vector3(buildingCenter.x, hit.point.y + _FIRE_GROUND_OFFSET, buildingCenter.z);
-        }
-
-        Debug.LogWarning("[EventLoader] SnapDoomFireToGround: Ground レイヤーに接地できないため bounds 角にフォールバック");
-        return buildingCenter + buildingExtents;
     }
 
     private string TryGetCol0(string event_value)
