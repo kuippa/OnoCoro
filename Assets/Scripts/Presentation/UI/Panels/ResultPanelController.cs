@@ -51,6 +51,26 @@ namespace CommonsUtility
             SetPanelVisible(false);
         }
 
+        private void OnEnable()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        /// <summary>
+        /// シーン遷移時は必ずパネルを隠し進行停止を解除する
+        /// （DontDestroyOnLoad で常駐するため、タイトル復帰後に残留しないように）
+        /// </summary>
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            HidePanel();
+            _displayedPhase = YearCycleSystem.CurrentPhase;  // 再表示を防ぐため現フェーズに同期
+        }
+
         private void Update()
         {
             YearCyclePhase currentPhase = YearCycleSystem.CurrentPhase;
@@ -183,6 +203,7 @@ namespace CommonsUtility
         private void OnClickBackToTitle()
         {
             ResumeGame();
+            YearCycleSystem.ResetSimulation();  // 年サイクル状態を破棄（タイトルに残留させない）
             SceneLoaderManager.LoadScene(SceneLoaderManager.LoadSceneName.TitlteStart.ToString());
         }
 
@@ -228,11 +249,13 @@ namespace CommonsUtility
             _canvasRoot = BuildCanvasRoot();
             GameObject panel = BuildFullScreenBackground(_canvasRoot.transform);
 
-            _titleLabel = BuildLabel(panel.transform, "ResultTitle", 56f, new Vector2(0f, 260f), new Vector2(1200f, 90f), TextAlignmentOptions.Center);
-            _bodyLabel = BuildLabel(panel.transform, "ResultBody", 34f, new Vector2(0f, 0f), new Vector2(1100f, 380f), TextAlignmentOptions.Center);
+            _titleLabel = BuildLabel(panel.transform, "ResultTitle", 44f, new Vector2(0f, 320f), new Vector2(1400f, 80f), TextAlignmentOptions.Center);
+            EnableAutoSize(_titleLabel, 24f, 44f);
+            _bodyLabel = BuildLabel(panel.transform, "ResultBody", 28f, new Vector2(0f, 30f), new Vector2(1400f, 460f), TextAlignmentOptions.Center);
+            EnableAutoSize(_bodyLabel, 14f, 30f);
 
-            _nextButtonRoot = BuildButton(panel.transform, "NextButton", new Vector2(0f, -300f), _BUTTON_COLOR, OnClickNext, out _nextButtonLabel);
-            _titleButtonRoot = BuildButton(panel.transform, "TitleButton", new Vector2(0f, -380f), _SUBBUTTON_COLOR, OnClickBackToTitle, out TextMeshProUGUI titleButtonLabel);
+            _nextButtonRoot = BuildButton(panel.transform, "NextButton", new Vector2(0f, -320f), _BUTTON_COLOR, OnClickNext, out _nextButtonLabel);
+            _titleButtonRoot = BuildButton(panel.transform, "TitleButton", new Vector2(0f, -410f), _SUBBUTTON_COLOR, OnClickBackToTitle, out TextMeshProUGUI titleButtonLabel);
             titleButtonLabel.SetText("タイトルへ");
         }
 
@@ -285,6 +308,17 @@ namespace CommonsUtility
             rect.anchoredPosition = position;
             rect.sizeDelta = size;
             return label;
+        }
+
+        /// <summary>
+        /// TMP のオートサイズを有効化（rect に収まるよう自動縮小・フォント見切れ防止）
+        /// </summary>
+        private void EnableAutoSize(TextMeshProUGUI label, float minSize, float maxSize)
+        {
+            label.enableAutoSizing = true;
+            label.fontSizeMin = minSize;
+            label.fontSizeMax = maxSize;
+            label.enableWordWrapping = true;
         }
 
         private GameObject BuildButton(Transform parent, string objectName, Vector2 position, Color color, UnityEngine.Events.UnityAction onClick, out TextMeshProUGUI label)
