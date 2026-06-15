@@ -37,12 +37,31 @@ namespace CommonsUtility
         private bool _isPaused = false;
         private float _speedBeforePause = 1f;
 
+        /// <summary>
+        /// 各シーンのロード時に自己生成する（シーン配置不要・シーンと共に破棄）
+        /// [W3 Task4 take3] DontDestroyOnLoad 常駐をやめ、シーンスコープ化
+        /// （タイトル残留・フォントドリフトの根本対策）
+        /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
+            SceneManager.sceneLoaded += HandleSceneLoaded;
+            EnsureHostExists();
+        }
+
+        private static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            EnsureHostExists();
+        }
+
+        private static void EnsureHostExists()
+        {
+            if (FindFirstObjectByType<ResultPanelController>() != null)
+            {
+                return;
+            }
             GameObject host = new GameObject(_HOST_OBJECT_NAME);
             host.AddComponent<ResultPanelController>();
-            DontDestroyOnLoad(host);
         }
 
         private void Awake()
@@ -51,29 +70,22 @@ namespace CommonsUtility
             SetPanelVisible(false);
         }
 
-        private void OnEnable()
+        private void OnDestroy()
         {
-            SceneManager.sceneLoaded += OnSceneLoaded;
-        }
-
-        private void OnDisable()
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-        }
-
-        /// <summary>
-        /// シーン遷移時は必ずパネルを隠し進行停止を解除する
-        /// （DontDestroyOnLoad で常駐するため、タイトル復帰後に残留しないように）
-        /// </summary>
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            HidePanel();
-            _displayedPhase = YearCycleSystem.CurrentPhase;  // 再表示を防ぐため現フェーズに同期
+            ResumeGame();  // シーン破棄時に進行停止を残さない
         }
 
         private void Update()
         {
             YearCyclePhase currentPhase = YearCycleSystem.CurrentPhase;
+
+            // 年サイクル外（タイトル等・EventLoader 不在）では表示しない（フェーズ残留対策）
+            bool isSimContext = EventLoader.instance != null && EventLoader.instance.HasYearEvents();
+            if (!isSimContext)
+            {
+                currentPhase = YearCyclePhase.Inactive;
+            }
+
             if (currentPhase == _displayedPhase)
             {
                 return;

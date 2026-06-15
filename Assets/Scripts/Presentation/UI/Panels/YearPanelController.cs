@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 using CommonsUtility;
 using Debug = CommonsUtility.Debug;
@@ -10,8 +11,9 @@ namespace CommonsUtility
     /// 年サイクル操作パネル（Season 3 W1 Task 4）
     ///
     /// 画面上部に「Year N / M」表示と Start Year ボタンを表示する。
-    /// シーンへの手動配置は不要（起動時に自己構築し DontDestroyOnLoad で常駐、
-    /// YearCycleSystem が有効なステージでのみ表示される）。
+    /// シーンへの手動配置は不要（各シーンのロード時に自己構築し、シーンと共に破棄される）。
+    /// [W3 Task4 take3] 以前は DontDestroyOnLoad で常駐させていたが、シーンをまたぐ必要が
+    /// 無いうえ、タイトル残留やフォントの再スケールドリフトの原因になっていたためシーンスコープ化。
     /// フェーズ購読の初期化順序問題を避けるため、Update でのポーリングで状態を反映する。
     /// </summary>
     public class YearPanelController : MonoBehaviour
@@ -40,14 +42,30 @@ namespace CommonsUtility
         private int _displayedYear = -1;
 
         /// <summary>
-        /// 起動時に自動生成（シーン配置不要のブートストラップ）
+        /// 各シーンのロード時に自己生成する（シーン配置不要・シーンと共に破棄）
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
+            SceneManager.sceneLoaded += HandleSceneLoaded;
+            EnsureHostExists();
+        }
+
+        private static void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            EnsureHostExists();
+        }
+
+        private static void EnsureHostExists()
+        {
+            // 現在のシーンに既にホストがあれば作らない（破棄済みは検出されないので二重生成しない）
+            if (FindFirstObjectByType<YearPanelController>() != null)
+            {
+                return;
+            }
             GameObject host = new GameObject(_HOST_OBJECT_NAME);
             host.AddComponent<YearPanelController>();
-            DontDestroyOnLoad(host);
+            // DontDestroyOnLoad しない → シーンと共に破棄し、次シーンで作り直す
         }
 
         private void Awake()

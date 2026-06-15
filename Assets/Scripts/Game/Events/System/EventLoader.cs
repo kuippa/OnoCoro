@@ -373,12 +373,11 @@ public class EventLoader : MonoBehaviour, IInitializable
                     {
                         int index = Random.Range(0, doomedBuildings.Count);
                         Renderer component2 = doomedBuildings[index].GetComponent<Renderer>();
-                        Vector3 center = component2.bounds.center;
-                        // [BUG-S3-013] 旧実装は bounds の角（center+extents）を返すため、FireCube が
-                        // 屋根角から場外/地中へ落ちることがあった。倒壊時に放出されるゴミ
-                        // （PlateauCubeMaker は center.y+0.5 を基準に建物周囲へ散布）と同じ位置基準に
-                        // 揃えることで、火種がゴミの輪の中に落ち延焼が連鎖する（W3 Task 4）
-                        Vector3 firePosition = new Vector3(center.x, center.y + _DOOM_FIRE_Y_OFFSET, center.z);
+                        // [BUG-S3-013/take3] 破壊済み建物の屋根（center）に湧くと延焼しない。
+                        // 火種はゴミキューブのそば（＝建物周囲の perimeter・地面）か未破壊建物に隣接する必要がある。
+                        // PlateauCubeMaker はゴミを半径 sqrt(ex^2+ez^2) の輪状に散布するため、
+                        // 同じ perimeter 上の地面に火種を置き、ゴミ着火→アッシュ→延焼の連鎖を成立させる
+                        Vector3 firePosition = GetDoomFirePerimeterPosition(component2.bounds.center, component2.bounds.extents);
                         Debug.Log($"[EventLoader] random_doom_building: 倒壊 {doomedBuildings.Count} 棟から {doomedBuildings[index].name} を選択 pos={firePosition}");
                         return firePosition;
                     }
@@ -392,6 +391,34 @@ public class EventLoader : MonoBehaviour, IInitializable
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 倒壊建物の周囲（ゴミが散布される perimeter リング）の地面に出火位置を返す（W3 Task 4 take3）
+    /// 屋根の上ではなく、ゴミキューブのそば・未破壊の隣接建物の近くに火種を置くことで延焼を連鎖させる。
+    /// 角度は建物座標から決定的に導出（出火位置の再現性を維持）、Y は Ground レイヤーに接地
+    /// </summary>
+    private Vector3 GetDoomFirePerimeterPosition(Vector3 center, Vector3 extents)
+    {
+        const float _RAY_ORIGIN_HEIGHT = 500f;
+        const float _RAY_MAX_DISTANCE = 1000f;
+
+        float radius = Mathf.Sqrt(extents.x * extents.x + extents.z * extents.z);
+        // 建物中心座標から決定的に角度を導出（同じ建物 → 同じ火種位置 = 再現性）
+        float angleDegrees = Mathf.Repeat(Mathf.Abs(center.x) * 7f + Mathf.Abs(center.z) * 13f, 360f);
+        float angle = angleDegrees * Mathf.Deg2Rad;
+        float px = center.x + radius * Mathf.Cos(angle);
+        float pz = center.z + radius * Mathf.Sin(angle);
+
+        int groundLayerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
+        Vector3 rayOrigin = new Vector3(px, _RAY_ORIGIN_HEIGHT, pz);
+        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, groundLayerMask))
+        {
+            return new Vector3(px, hit.point.y + _DOOM_FIRE_Y_OFFSET, pz);
+        }
+
+        // Ground 未ヒット時はゴミ放出と同じ height 基準でフォールバック
+        return new Vector3(px, center.y + _DOOM_FIRE_Y_OFFSET, pz);
     }
 
     private string TryGetCol0(string event_value)
