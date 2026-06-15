@@ -247,7 +247,10 @@ namespace CommonsUtility
         schedule,
 
         /// <summary>events - 年内の単発イベントリスト（任意）</summary>
-        events
+        events,
+
+        /// <summary>baseline - 消火なし時の想定火災延焼棟数（任意・W3 Task 4。未指定なら K×N）</summary>
+        baseline
     }
 
     /// <summary>

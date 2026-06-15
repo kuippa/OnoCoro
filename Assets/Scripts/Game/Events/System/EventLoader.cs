@@ -38,6 +38,12 @@ public class EventLoader : MonoBehaviour, IInitializable
     /// </summary>
     internal Dictionary<int, float> _year_durations = new Dictionary<int, float>();
 
+    /// <summary>
+    /// 年別の想定火災延焼棟数（消火なしベースライン・W3 Task 4）。年番号 → 棟数。
+    /// YAML の baseline 未指定の年は登録されず、GetYearBaseline が -1 を返す
+    /// </summary>
+    internal Dictionary<int, int> _year_baselines = new Dictionary<int, int>();
+
     internal Dictionary<string, string> _board_data = new Dictionary<string, string>();
     
     /// <summary>
@@ -169,12 +175,33 @@ public class EventLoader : MonoBehaviour, IInitializable
     }
 
     /// <summary>
+    /// 年別の想定火災延焼棟数（ベースライン）を登録（W3 Task 4）
+    /// </summary>
+    internal void SetYearBaseline(int year, int baseline)
+    {
+        _year_baselines[year] = baseline;
+    }
+
+    /// <summary>
+    /// 年別の想定火災延焼棟数を取得（未登録なら -1）
+    /// </summary>
+    internal int GetYearBaseline(int year)
+    {
+        if (_year_baselines.TryGetValue(year, out int baseline))
+        {
+            return baseline;
+        }
+        return -1;
+    }
+
+    /// <summary>
     /// 年別イベントをすべて破棄（ステージロード時のリセット用）
     /// </summary>
     internal void ClearYearEvents()
     {
         _year_events.Clear();
         _year_durations.Clear();
+        _year_baselines.Clear();
     }
 
     /// <summary>
@@ -344,9 +371,11 @@ public class EventLoader : MonoBehaviour, IInitializable
                         int index = Random.Range(0, doomedBuildings.Count);
                         Renderer component2 = doomedBuildings[index].GetComponent<Renderer>();
                         Vector3 center = component2.bounds.center;
-                        Vector3 extents = component2.bounds.extents;
-                        Debug.Log($"[EventLoader] random_doom_building: 倒壊 {doomedBuildings.Count} 棟から {doomedBuildings[index].name} を選択 pos={center + extents}");
-                        return center + extents;
+                        // [BUG-S3-013] 旧実装は bounds の角（center+extents）を返すため、FireCube が
+                        // 屋根角から場外/地中へ落ちることがあった。建物 footprint 中心を DEM（Ground）に接地させる
+                        Vector3 firePosition = SnapDoomFireToGround(center, component2.bounds.extents);
+                        Debug.Log($"[EventLoader] random_doom_building: 倒壊 {doomedBuildings.Count} 棟から {doomedBuildings[index].name} を選択 pos={firePosition}");
+                        return firePosition;
                     }
 
                     // 倒壊建物が 0 棟の場合のフォールバック
@@ -356,8 +385,30 @@ public class EventLoader : MonoBehaviour, IInitializable
                 }
             }
         }
-        
+
         return result;
+    }
+
+    /// <summary>
+    /// 倒壊建物の footprint 中心を DEM（Ground レイヤー）に接地させた出火位置を返す（BUG-S3-013）
+    /// Ground にヒットしない場合は従来挙動（bounds の角）にフォールバック
+    /// </summary>
+    private Vector3 SnapDoomFireToGround(Vector3 buildingCenter, Vector3 buildingExtents)
+    {
+        const float _RAY_ORIGIN_HEIGHT = 500f;
+        const float _RAY_MAX_DISTANCE = 1000f;
+        const float _FIRE_GROUND_OFFSET = 0.5f;
+
+        int groundLayerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
+        Vector3 rayOrigin = new Vector3(buildingCenter.x, _RAY_ORIGIN_HEIGHT, buildingCenter.z);
+
+        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, groundLayerMask))
+        {
+            return new Vector3(buildingCenter.x, hit.point.y + _FIRE_GROUND_OFFSET, buildingCenter.z);
+        }
+
+        Debug.LogWarning("[EventLoader] SnapDoomFireToGround: Ground レイヤーに接地できないため bounds 角にフォールバック");
+        return buildingCenter + buildingExtents;
     }
 
     private string TryGetCol0(string event_value)

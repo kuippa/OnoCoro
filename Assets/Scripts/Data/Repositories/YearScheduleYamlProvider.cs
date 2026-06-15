@@ -78,6 +78,13 @@ namespace CommonsUtility
             Dictionary<float, List<Dictionary<string, string>>> timerEvents = BuildTimerEventDictionary(commandsByTime);
 
             eventLoader.SetYearEvents(yearNumber, timerEvents, duration);
+
+            // 任意: 消火なし想定火災延焼棟数（ベースライン・W3 Task 4）
+            string baselineText = YamlParserHelper.GetChildScalar(yearMapping, YearCommandFields.baseline.ToString());
+            if (int.TryParse(baselineText, out int baseline) && baseline >= 0)
+            {
+                eventLoader.SetYearBaseline(yearNumber, baseline);
+            }
         }
 
         /// <summary>

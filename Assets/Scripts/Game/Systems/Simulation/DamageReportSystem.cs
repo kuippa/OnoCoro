@@ -77,7 +77,8 @@ namespace CommonsUtility
             int quakeCollapse = Mathf.Clamp(_quakeCollapseThisYear, 0, totalNewDamage);
             int fireSpread = totalNewDamage - quakeCollapse;
 
-            int assumedSpread = quakeCollapse * _FIRE_SPREAD_COEFFICIENT;
+            // 想定延焼: YAML の baseline（消火なし実測）を優先、未指定なら K×N（W3 Task 4）
+            int assumedSpread = GetBaselineSpread(year, quakeCollapse);
             int savedBuildings = Mathf.Max(0, assumedSpread - fireSpread);
 
             int investment = InvestmentLedger.GetYearTotal(year);
@@ -146,6 +147,23 @@ namespace CommonsUtility
             _results.Clear();
             _doomedCountAtYearStart = 0;
             _quakeCollapseThisYear = 0;
+        }
+
+        /// <summary>
+        /// 想定火災延焼棟数（ベースライン）を取得
+        /// YAML に baseline が指定されていればそれを使い、無ければ K×地震倒壊数
+        /// </summary>
+        private static int GetBaselineSpread(int year, int quakeCollapse)
+        {
+            if (EventLoader.instance != null)
+            {
+                int yamlBaseline = EventLoader.instance.GetYearBaseline(year);
+                if (yamlBaseline >= 0)
+                {
+                    return yamlBaseline;
+                }
+            }
+            return quakeCollapse * _FIRE_SPREAD_COEFFICIENT;
         }
 
         private static float CalcRoi(int savedBuildings, int investment)

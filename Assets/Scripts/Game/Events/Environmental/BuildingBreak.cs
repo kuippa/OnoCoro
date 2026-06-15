@@ -56,6 +56,10 @@ public class BuildingBreak : MonoBehaviour
             Debug.Log("event_value is not number");
             return;
         }
+        // [Season 3 W3 Task 4] 未倒壊建物を優先選択する。
+        // 旧実装は先頭 N 棟を決定的に選び倒壊済みをスキップしないため、年々「新規倒壊」が
+        // 減衰していた（同じ建物を再選択）。未倒壊だけを N 棟選ぶことで毎年新しい地域が被災する。
+        // 出火位置の再現性は維持される（リスト順で先頭の未倒壊 N 棟）。
         int num = 0;
         foreach (GameObject item2 in _buildingGameObject)
         {
@@ -63,11 +67,16 @@ public class BuildingBreak : MonoBehaviour
             {
                 break;
             }
-            if (interactor != null && !interactor.IsBuildingDoomed(item2))
+            if (item2 == null || !item2.activeSelf)
             {
-                newlyCollapsed++;
+                continue;
+            }
+            if (interactor != null && interactor.IsBuildingDoomed(item2))
+            {
+                continue;  // 既に倒壊済み（地震/火災）はスキップして未倒壊を優先
             }
             component.SetBuildingToDoom(item2);
+            newlyCollapsed++;
             num++;
         }
         CommonsUtility.DamageReportSystem.AddQuakeCollapse(newlyCollapsed);

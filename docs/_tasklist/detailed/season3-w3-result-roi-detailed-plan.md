@@ -143,10 +143,17 @@ Q1 は建物被害の話。Plaza は人的被害の軽減施策だが、人口�
      (b) 延焼を時間・建物密度で頭打ちさせる上限を入れて K モデルを維持
 3. **BUG-S3-013（炎の場外落下）が延焼数の信頼性に影響** → Task 4 で先に修正すべき
 
-- [ ] BUG-S3-013 修正（random_doom_building の接地）
-- [ ] ベースライン方式の決定（実測置換 vs K モデル維持）→ ユーザー判断
-- [ ] 延焼係数/施策効果を「施策を置くと救った棟数が目に見えて増える」よう調整
-- [ ] 三鷹井の頭５丁目で 3 年通しのハッピーパスが破綻なく流れることを確認
+**2026-06-16 ヒアリング決定**: ベースライン = 消火なし実測値 / building_break = 未倒壊優先選択
+
+- [x] BUG-S3-013 修正（random_doom_building を建物 footprint 中心で Ground レイヤーに接地）
+- [x] building_break を未倒壊建物優先選択に変更（地震倒壊の年々減衰を解消・出火位置の再現性は維持）
+- [x] YAML 年定義に任意の `baseline` フィールドを追加（未指定なら K×N にフォールバック）
+  - EventLoader に _year_baselines + Get/SetYearBaseline、YearScheduleYamlProvider でパース、
+    DamageReportSystem.GetBaselineSpread で YAML 優先
+- [ ] **ユーザー作業**: 上記修正後の三鷹井の頭５丁目を消火なしで 1 回走らせ、
+  ログ `[DamageReportSystem] Year N 結果: ... 火災延焼 X` の X を各年の baseline として採取
+- [ ] 採取値を YAML の各年 `baseline:` に記入（エージェント）
+- [ ] 施策効果（半径/鎮火力）を「施策を置くと救った棟数が目に見えて増える」よう調整
 
 ### Task 5: PlayMode 検証（ユーザー + エージェント・30分）
 

@@ -41,10 +41,14 @@ events:
     event: subtelop
     value: "3年間の投資で被害を最小化しよう"
 
+# [W3 Task 4] baseline = 消火なし時の想定火災延焼棟数（救った棟数=baseline-実延焼）。
+# building_break 未倒壊優先化 + 炎の接地修正の後に再計測して各年へ記入する。
+# 未指定の年は K×地震倒壊数（K=3）にフォールバックする。
 years:
   - year: 1
     duration: 75
     note: "中規模地震と出火。消火栓の鎮火効果を観察する"
+    # baseline: <消火なし再計測値を記入>
     schedule:
       - pattern: quake_fire
         at: 3              # 地震 t=4, 倒壊 t=10, 出火 t=11/12
