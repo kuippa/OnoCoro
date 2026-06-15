@@ -101,7 +101,10 @@ namespace CommonsUtility
         /// </summary>
         private void RefreshPanel(YearCyclePhase phase, int year)
         {
-            if (phase == YearCyclePhase.Inactive)
+            // Inactive / 結果表示中 / 完走後は YearPanel を隠す（結果パネルが全画面で担う・W3）
+            if (phase == YearCyclePhase.Inactive
+                || phase == YearCyclePhase.YearResult
+                || phase == YearCyclePhase.Finished)
             {
                 SetPanelVisible(false);
                 return;
@@ -109,14 +112,6 @@ namespace CommonsUtility
 
             SetPanelVisible(true);
             int totalYears = GetTotalYears();
-
-            if (phase == YearCyclePhase.Finished)
-            {
-                _yearLabel.SetText(_LABEL_FINISHED);
-                _noteLabel.SetText("");
-                _startButtonRoot.SetActive(false);
-                return;
-            }
 
             _yearLabel.SetText(string.Format(_LABEL_FORMAT_YEAR, year, totalYears));
 

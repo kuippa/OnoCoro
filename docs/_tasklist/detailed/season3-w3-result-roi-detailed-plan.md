@@ -14,6 +14,8 @@
 | 被害率の計算基準 | 地震倒壊と火災延焼を分離 | 地震倒壊は「避けられない初期被害」、火災延焼は「施策で減らせる被害」。防災投資の効果が延焼分にハッキリ出る。教育ツールとして筋が良い |
 | ROI のベースライン | 倒壊予定棟数を想定被害とする | 出火点（地震倒壊建物）から延焼しうる想定被害を基準に、実際に焼け残った差分を「救った棟数」とする。追加シミュレーション不要で軽い |
 | 結果パネルのタイミング | 毎年終了時 + 最終総括 | 年ごとに振り返りつつ、3年完走後に累計サマリーを出す。ワークショップの進行に合う |
+| 結果パネルの形式 | 全画面独立UI + 表示中はゲーム進行停止 | 結果表示はいずれにせよ必要なUIなので独立実装。テロップ（TelopCtrl）の全画面オーバーレイ方式を参考にし、表示中は GameSpeedManager.SetGameSpeed(0) で進行停止（2026-06-13 ユーザー指示） |
+| 延焼係数 K | K=3 で実装し後で調整 | 当初「数回の実走から逆算」を検討したが、出火位置固定（再現性のため）の現アルゴリズム前提でしか成立しない。固定値 K=3 で開始し Task 4 で実測調整する（2026-06-13 ユーザー判断） |
 | W3 エージェント範囲 | 結果パネル + 計算ロジックまで | 動画撮影・YouTube投稿・首長向けスライドはユーザー作業（Mac実行・OBS録画）。エージェントは撮影しやすいデモフロー（ハッピーパス）を整える |
 
 ---
@@ -46,13 +48,19 @@ BuildingBreak.EventBreakBuilding に DamageReportSystem への通知を追加す
 ### 想定被害とROI（ベースライン）
 
 ```
-延焼係数 K     = 施策ゼロ時に 1 出火点あたり延焼する想定棟数（定数・バランス調整対象）
+延焼係数 K     = 施策ゼロ時に 1 出火点あたり延焼する想定棟数（定数 K=3 で開始・調整対象）
 想定延焼被害   = 地震倒壊（出火点数）× K
 救った棟数     = max(0, 想定延焼被害 - 火災延焼（実測））
 ROI           = 救った棟数 ÷ (投資額 / 投資単位)   ※ ゼロ除算ガード
 ```
 
 施策（消火栓・防火水槽）が範囲内の火災を鎮火 → 実測の火災延焼が減る → 救った棟数が増える、という因果がそのまま数値に出る。
+
+[NOTE] ベースラインの厳密化について（2026-06-13 検討の記録）: 三鷹井の頭５丁目は
+建物が密なため、消火が無ければ時間切れまでにほぼ全建物へ延焼しうる。本来は「同一マップを
+施策なしで数回走らせ、実際の焼失棟数からベースラインを逆算」する方が実マップに沿う。
+ただしこれは出火位置を固定している現アルゴリズム（再現性確保のため）でのみ成立する。
+W3 では固定値 K=3 で実装し、Task 4 で小マップの実測に合わせて調整する方針とした。
 
 ### 避難広場（Plaza）の扱い
 
@@ -64,21 +72,25 @@ Q1 は建物被害の話。Plaza は人的被害の軽減施策だが、人口�
 
 ## 実装タスク
 
-### Task 1: DamageReportSystem（被害・ROI 計算）（エージェント・1.5h）
+### Task 1: DamageReportSystem（被害・ROI 計算）（エージェント・1.5h）[実装完了 2026-06-13・検証待ち]
 
-- [ ] 新規 `DamageReportSystem`（Game/Systems/Simulation/、internal static）
-  - 年別結果 `YearResult` を保持（year, 地震倒壊, 火災延焼, 想定延焼, 救った棟数, 投資額, ROI, 避難カバー率）
-  - `OnYearStart(year)`: D_prev を記録
-  - `OnQuakeDone(actualBrokenCount)`: D_afterQuake を記録（BuildingBreak から通知）
-  - `OnYearEnd(year)`: D_end を測定し YearResult を確定、リストに追加
-  - `GetYearResult(year)` / `GetSummary()`（累計）/ `Reset()`
-- [ ] BuildingBreak.EventBreakBuilding に DamageReportSystem.OnQuakeDone 通知を追加
-- [ ] YearCycleSystem のフェーズ遷移にフック（StartYear で OnYearStart、OnYearTimeUp で OnYearEnd）
-- [ ] 延焼係数 K・投資単位は定数化（バランス調整は Task 4 で）
+- [x] 新規 `DamageReportSystem`（Game/Systems/Simulation/、internal static）+ `YearResult` 構造体
+  - `OnYearStart()`: 年初の倒壊数を記録、当年集計をリセット
+  - `AddQuakeCollapse(newlyCollapsed)`: building_break の実新規倒壊数を積算（多重地震対応）
+  - `OnYearEnd(year)`: 年末倒壊数を測定 → 火災延焼=総増分−地震倒壊 → 想定=N×K → 救った棟数・ROI を確定
+  - `TryGetYearResult(year)` / `GetSummary()`（累計）/ `Reset()`
+  - [NOTE] 計画の「D_afterQuake スナップショット」案は、Year3 の本震+余震で地震の間に延焼が
+    進み混ざる問題があるため、BuildingBreak が各発火の実倒壊数を積算報告する方式に変更
+- [x] BuildingBreak.EventBreakBuilding に新規倒壊数カウント + DamageReportSystem.AddQuakeCollapse 通知を追加
+- [x] YearCycleSystem のフェーズ遷移にフック（StartYear で OnYearStart、OnYearTimeUp で OnYearEnd、ResetSimulation で Reset）
+- [x] 延焼係数 K=3・ROI 投資単位 100 を定数化（バランス調整は Task 4 で）
 
-### Task 2: 結果パネル UI（毎年）（エージェント・1h）
+### Task 2: 結果パネル UI（全画面・毎年）（エージェント・1.5h）[実装完了 2026-06-13・検証待ち]
 
-- [ ] 新規 `ResultPanelController`（Presentation/UI/Panels/、自己構築型・YearPanel と同方式）
+- [x] 新規 `ResultPanelController`（Presentation/UI/Panels/、自己構築型・YearPanel と同方式）
+  - **全画面オーバーレイ**（不透明背景 + GraphicRaycaster で入力ブロック）。
+    TelopCtrl の全画面表示パターンを参考にする
+  - 表示時に `GameSpeedManager.SetGameSpeed(0)` で進行停止、閉じる時に元の速度へ復帰
   - 年末（OnYearEnd 後）に「Year N 結果」を表示:
     ```
     【Year N 結果】
@@ -87,13 +99,18 @@ Q1 は建物被害の話。Plaza は人的被害の軽減施策だが、人口�
     今年の投資: ◯ゴールド
     ROI: ◯.◯
     ```
-  - 「次の年へ」ボタンで閉じる → 次年の配置フェーズへ
-  - [NOTE] YearCycleSystem の年末→次年配置の遷移に「結果確認待ち」を挟む必要あり。
-    現状は OnYearTimeUp で即 Placement へ進むため、結果パネルを挟む状態を追加する
+  - 「次の年へ」ボタンで閉じる → 進行速度復帰 → 次年の配置フェーズへ
+- [ ] YearCycleSystem に新フェーズ `YearResult` を追加（YearRunning → 年末処理 → **YearResult** → Placement(翌年)）
+  - 現状は OnYearTimeUp で即 Placement へ進むため、結果確認待ちの状態を挟む
+  - YearResult 中は HazardForecastSystem の次年強調をまだ出さない（次年配置に入る時に出す）
+  - [NOTE] 進行停止中も BUG-S3-010 のフォローアップ掃除が動くよう、
+    FollowUpCleanup の WaitForSeconds を WaitForSecondsRealtime に変更する
 
-### Task 3: 最終総括パネル（エージェント・0.5-1h）
+### Task 3: 最終総括パネル（全画面）（エージェント・0.5-1h）[実装完了 2026-06-13・検証待ち]
 
-- [ ] Finished フェーズで総括サマリーを表示:
+実装は ResultPanelController に統合（Finished フェーズで総括を全画面表示、もう一度/タイトルへ）。
+
+- [x] Finished フェーズで総括サマリーを全画面表示（ResultPanelController を流用）:
     ```
     【3年間の総括】
     累計投資: ◯ゴールド

@@ -20,7 +20,10 @@ namespace CommonsUtility
         /// <summary>年進行中（タイマー進行・イベント発火）</summary>
         YearRunning,
 
-        /// <summary>全年完走（最終結果表示は W3 で実装）</summary>
+        /// <summary>年末の結果表示中（全画面・進行停止。次の年へボタン待ち。Season 3 W3）</summary>
+        YearResult,
+
+        /// <summary>全年完走（最終総括表示）</summary>
         Finished
     }
 
@@ -89,6 +92,7 @@ namespace CommonsUtility
             OnPhaseChanged = null;
             CurrentPhase = YearCyclePhase.Inactive;
             InvestmentLedger.Reset();  // 投資台帳もステージ単位でリセット（Season 3 W2）
+            DamageReportSystem.Reset();  // 被害結果もステージ単位でリセット（Season 3 W3）
             HazardForecastSystem.ClearForecast();  // 強調表示の残留防止（W2 Task 5）
         }
 
@@ -110,6 +114,7 @@ namespace CommonsUtility
             }
 
             HazardForecastSystem.ClearForecast();  // 年の開始で倒壊予測の強調を解除（W2 Task 5）
+            DamageReportSystem.OnYearStart();      // 被害集計の開始（W3 Task 1）
             ChangePhase(YearCyclePhase.YearRunning);
             Debug.Log($"[YearCycleSystem] Year {CurrentYear} 開始");
             return _eventLoader.GetYearDuration(CurrentYear);
@@ -117,7 +122,8 @@ namespace CommonsUtility
 
         /// <summary>
         /// 年の duration 経過時に呼ばれる（GameTimerCtrl から）
-        /// 年末処理を行い、翌年の配置フェーズ or 全年完走へ遷移する
+        /// 年末処理 + 被害集計を行い、結果表示フェーズ（YearResult）へ遷移する。
+        /// 次年/完走への進行は結果パネルの「次の年へ」ボタン（AdvanceFromResult）で行う
         /// </summary>
         internal static void OnYearTimeUp()
         {
@@ -126,7 +132,23 @@ namespace CommonsUtility
                 return;
             }
 
+            DamageReportSystem.OnYearEnd(CurrentYear);  // 被害・ROI 確定（火災掃除より前に測定）
             CleanupYearEndUnits();
+
+            ChangePhase(YearCyclePhase.YearResult);  // 全画面結果表示へ（進行停止は ResultPanelController が担う）
+            Debug.Log($"[YearCycleSystem] Year {CurrentYear} 結果表示へ");
+        }
+
+        /// <summary>
+        /// 結果パネルの「次の年へ」ボタンから呼ばれる（W3）
+        /// 翌年の配置フェーズ、または全年完走（総括）へ進む
+        /// </summary>
+        internal static void AdvanceFromResult()
+        {
+            if (CurrentPhase != YearCyclePhase.YearResult)
+            {
+                return;
+            }
 
             if (_eventLoader != null && CurrentYear >= _eventLoader.GetYearCount())
             {
@@ -168,19 +190,24 @@ namespace CommonsUtility
             const float _FIRST_SWEEP_DELAY = 0.5f;
             const float _SECOND_SWEEP_DELAY = 2.5f;
 
-            yield return new WaitForSeconds(_FIRST_SWEEP_DELAY);
+            // [W3] 結果表示中は timeScale≈0 で進行停止するため、実時間待ち（Realtime）にして
+            // BUG-S3-010 のフォローアップ掃除がフリーズ中でも動くようにする
+            yield return new WaitForSecondsRealtime(_FIRST_SWEEP_DELAY);
             SweepLeakedUnits();
-            yield return new WaitForSeconds(_SECOND_SWEEP_DELAY);
+            yield return new WaitForSecondsRealtime(_SECOND_SWEEP_DELAY);
             SweepLeakedUnits();
         }
 
         /// <summary>
-        /// 配置フェーズ中に漏れて発生した火災を追加除去する
+        /// 年末以降（結果表示・配置・完走中）に漏れて発生した火災を追加除去する
         /// （年が再開・リセットされていたら何もしない）
         /// </summary>
         private static void SweepLeakedUnits()
         {
-            if (CurrentPhase != YearCyclePhase.Placement && CurrentPhase != YearCyclePhase.Finished)
+            bool isPostYearPhase = CurrentPhase == YearCyclePhase.YearResult
+                || CurrentPhase == YearCyclePhase.Placement
+                || CurrentPhase == YearCyclePhase.Finished;
+            if (!isPostYearPhase)
             {
                 return;
             }

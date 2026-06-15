@@ -30,15 +30,25 @@ public class BuildingBreak : MonoBehaviour
             Debug.LogWarning("[BuildingBreak] Plateau / PlateauInfoManager が見つからないため building_break をスキップ");
             return;
         }
+
+        // 倒壊判定用（被害集計で「実際に新規倒壊させた棟数」を数えるため）
+        PlateauBuildingInteractor interactor = obj.GetComponent<PlateauBuildingInteractor>();
+
+        int newlyCollapsed = 0;
         if (event_value == "all")
         {
             foreach (GameObject item in _buildingGameObject)
             {
                 if (!(item == null) && item.activeSelf)
                 {
+                    if (interactor != null && !interactor.IsBuildingDoomed(item))
+                    {
+                        newlyCollapsed++;
+                    }
                     component.SetBuildingToDoom(item);
                 }
             }
+            CommonsUtility.DamageReportSystem.AddQuakeCollapse(newlyCollapsed);
             return;
         }
         if (!int.TryParse(event_value, out var result))
@@ -53,10 +63,15 @@ public class BuildingBreak : MonoBehaviour
             {
                 break;
             }
+            if (interactor != null && !interactor.IsBuildingDoomed(item2))
+            {
+                newlyCollapsed++;
+            }
             component.SetBuildingToDoom(item2);
             num++;
         }
-        Debug.Log($"[BuildingBreak] {num} 棟を倒壊指定（対象候補 {_buildingGameObject.Count} 棟）");
+        CommonsUtility.DamageReportSystem.AddQuakeCollapse(newlyCollapsed);
+        Debug.Log($"[BuildingBreak] {num} 棟を倒壊指定（うち新規 {newlyCollapsed} 棟・対象候補 {_buildingGameObject.Count} 棟）");
     }
 
     private void Awake()
