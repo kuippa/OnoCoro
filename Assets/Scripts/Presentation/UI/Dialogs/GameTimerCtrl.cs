@@ -204,6 +204,7 @@ public class GameTimerCtrl : UIControllerBase
             }
 
             CheckYearTimeUp();
+            CheckYearSettled();
         }
     }
 
@@ -289,5 +290,63 @@ public class GameTimerCtrl : UIControllerBase
 
         _isPaused = true;
         YearCycleSystem.OnYearTimeUp();
+    }
+
+    // 鎮火が落ち着いたと判断するまでの継続秒数（延焼の遅延スポーンを待つ）
+    private const float _SETTLE_HOLD_SECONDS = 4f;
+    // 年序盤に「まだ発火していない」状態で誤って早期終了しないための最低経過秒数
+    private const float _SETTLE_MIN_ELAPSED = 12f;
+    private float _settleTimer = 0f;
+
+    /// <summary>
+    /// その年のイベントが出尽くし、火災が完全に鎮火して数秒安定したら年を自動終了する（W3 Task4）
+    /// 「初期消火に成功すると以後退屈」への対策。duration は上限タイマーとして残る
+    /// </summary>
+    private void CheckYearSettled()
+    {
+        if (YearCycleSystem.CurrentPhase != YearCyclePhase.YearRunning)
+        {
+            _settleTimer = 0f;
+            return;
+        }
+
+        // 年序盤（出火前）や未発火イベントが残る間は対象外
+        if (_time < _SETTLE_MIN_ELAPSED || _eventTimeList.Count > 0 || !IsFireFullyExtinguished())
+        {
+            _settleTimer = 0f;
+            return;
+        }
+
+        _settleTimer += Time.deltaTime;
+        if (_settleTimer >= _SETTLE_HOLD_SECONDS)
+        {
+            _settleTimer = 0f;
+            _isPaused = true;
+            Debug.Log("[GameTimerCtrl] 火災鎮火を検出したため年を自動終了");
+            YearCycleSystem.OnYearTimeUp();
+        }
+    }
+
+    /// <summary>
+    /// シーン上に FireCube が無く、発火予約も無い（完全鎮火）かを判定
+    /// </summary>
+    private bool IsFireFullyExtinguished()
+    {
+        GameObject[] fireCubes = GameObject.FindGameObjectsWithTag(GameEnum.TagType.FireCube.ToString());
+        if (fireCubes.Length > 0)
+        {
+            return false;
+        }
+
+        GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
+        if (gameManagerObject != null)
+        {
+            FireCubeSpawner fireCubeSpawner = gameManagerObject.GetComponent<FireCubeSpawner>();
+            if (fireCubeSpawner != null && !fireCubeSpawner.IsQueueEmpty())
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }

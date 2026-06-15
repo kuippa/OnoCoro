@@ -22,7 +22,7 @@ itemlists:
   - item: Sweeper       # お掃除ロボット
   - item: Hydrant       # 消火栓（施策・統計効果型）
   - item: Cistern       # 防火水槽（施策・統計効果型）
-  - item: Plaza         # 避難広場（施策・記録のみ）
+  # - item: Plaza       # 避難広場: ゲーム上の意味が未確定のため一旦外す（W3 Task4・後で再検討）
 
 # goals / gameovers は定義しない（3年完走がシミュレーション終了条件）
 

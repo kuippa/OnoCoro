@@ -74,6 +74,14 @@ public class FireCubeSpawner : MonoBehaviour
     }
 
     /// <summary>
+    /// 未処理のスポーン予約が無い（キューが空）かを返します（年の自動終了判定用・W3 Task4）
+    /// </summary>
+    internal bool IsQueueEmpty()
+    {
+        return _spawnQueue.Count == 0;
+    }
+
+    /// <summary>
     /// 未処理のスポーン予約をすべて破棄します
     /// 年末処理（YearCycleSystem）が呼ぶ。延焼（灰→発火）の遅延スポーン予約が
     /// 年をまたいで発火するのを防ぐ（BUG-S3-010）
