@@ -17,9 +17,9 @@ public class FireCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
 
-        // Y軸回転を初期値で固定
-        Vector3 currentRotation = transform.eulerAngles;
-        transform.eulerAngles = new Vector3(currentRotation.x, 0f, currentRotation.z);
+        // [BUG-S3-016] スポーン時から直立させる（X/Z の傾きも 0 に）。
+        // 以前は Y のみ 0 にして X/Z の傾きを残していた
+        transform.eulerAngles = Vector3.zero;
         
         // 炎キューブの初期化
         _item_struct = new ItemStruct(

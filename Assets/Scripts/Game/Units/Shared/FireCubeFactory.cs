@@ -146,6 +146,8 @@ public static class FireCubeFactory
         }
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         rb.useGravity = true;
-        rb.constraints = RigidbodyConstraints.FreezeRotationY;  // Y軸方向回転を無効にする
+        // [BUG-S3-016] Y軸のみ固定だと物理衝突で X/Z 方向に傾いていた。
+        // 全軸の回転を固定して常に直立を保つ（落下=位置移動は維持される）
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
     }
 }
