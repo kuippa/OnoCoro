@@ -33,7 +33,7 @@ tasklist/ フォルダは、**ドキュメント層（docs/）** とは異なる
 | ドキュメント | 対象 | 状態 |
 |------------|----------|------|
 | [season3-w1-turnbased-detailed-plan.md](./detailed/season3-w1-turnbased-detailed-plan.md) | W1 ターンベース化 | 完了（2026-06-12） |
-| [season3-w2-policy-map-detailed-plan.md](./detailed/season3-w2-policy-map-detailed-plan.md) | W2 小マップ + 施策 + カメラシェイク | 計画確定 |
+| [season3-w2-policy-map-detailed-plan.md](./detailed/season3-w2-policy-map-detailed-plan.md) | W2 小マップ + 施策 + カメラシェイク | 完了（2026-06-13） |
 
 **Season 2 の計画（アーカイブ）**:
 - [../season2_archive/](../season2_archive/) - roadmap-phase-2/3、phase-2/3 詳細計画、bugs/fixme の Season 2 分
