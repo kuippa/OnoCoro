@@ -160,26 +160,28 @@ namespace CommonsUtility
 
         private string BuildYearResultText(YearResult result)
         {
-            string savedNote = result.SavedBuildings > 0
-                ? $"  → 施策で {result.SavedBuildings} 棟を延焼から救いました"
-                : "  → 施策の効果はまだ出ていません";
+            string preventedNote = result.SavedBuildings > 0
+                ? $"  → 施策により延焼を {result.SavedBuildings} 棟ぶん抑えました"
+                : "  → 施策による延焼の抑制はありませんでした";
 
             return
-                $"地震倒壊: {result.QuakeCollapse} 棟（避けられない初期被害）\n" +
-                $"火災延焼: {result.FireSpread} 棟\n" +
-                savedNote + "\n\n" +
+                $"地震による倒壊: {result.QuakeCollapse} 棟（地震の初期被害）\n\n" +
+                $"火災による延焼: {result.FireSpread} 棟\n" +
+                $"無施策時の予想延焼: {result.AssumedSpread} 棟\n" +
+                preventedNote + "\n\n" +
                 $"今年の投資: {result.Investment} ゴールド\n" +
-                $"ROI: {result.Roi:F1}（投資100あたり救った棟数）";
+                $"投資効果(ROI): {result.Roi:F1}（投資100あたり抑えた延焼棟数）";
         }
 
         private string BuildSummaryText(YearResult summary)
         {
             return
                 $"累計投資: {summary.Investment} ゴールド\n" +
-                $"地震倒壊（累計）: {summary.QuakeCollapse} 棟\n" +
-                $"火災延焼（累計）: {summary.FireSpread} 棟\n" +
-                $"救った建物（累計）: {summary.SavedBuildings} 棟\n" +
-                $"総合 ROI: {summary.Roi:F1}\n" +
+                $"地震による倒壊（累計）: {summary.QuakeCollapse} 棟\n" +
+                $"火災による延焼（累計）: {summary.FireSpread} 棟\n" +
+                $"無施策時の予想延焼（累計）: {summary.AssumedSpread} 棟\n" +
+                $"抑えた延焼（累計）: {summary.SavedBuildings} 棟\n" +
+                $"総合 投資効果(ROI): {summary.Roi:F1}\n" +
                 $"避難カバー率: {summary.EvacuationCoverage:F0}%\n\n" +
                 BuildSummaryMessage(summary);
         }

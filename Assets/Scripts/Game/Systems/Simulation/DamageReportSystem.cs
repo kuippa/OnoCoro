@@ -98,7 +98,7 @@ namespace CommonsUtility
             };
             _results.Add(result);
 
-            Debug.Log($"[DamageReportSystem] Year {year} 結果: 地震倒壊 {quakeCollapse} / 火災延焼 {fireSpread} / 想定 {assumedSpread} / 救った {savedBuildings} / 投資 {investment} / ROI {roi:F1}");
+            Debug.Log($"[DamageReportSystem] Year {year} 結果: 地震倒壊 {quakeCollapse} / 火災延焼 {fireSpread} / 無施策時予想 {assumedSpread} / 抑えた延焼 {savedBuildings} / 投資 {investment} / ROI {roi:F1}");
         }
 
         /// <summary>
