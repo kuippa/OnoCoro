@@ -165,11 +165,12 @@ Q1 は建物被害の話。Plaza は人的被害の軽減施策だが、人口�
   「初期消火成功後の空白が退屈」への対策。GameTimerCtrl.CheckYearSettled + FireCubeSpawner.IsQueueEmpty
 - [x] 避難広場(Plaza)を一旦外す（ゲーム上の意味が未確定）。itemlists からコメントアウト、
   結果パネルの避難カバー率表示を削除（コードは残置）
-- [ ] 消火栓/防火水槽: 役割差別化は見送り、半径・コスト調整のみ（後で再検討）。現状 Hydrant 50m/cost50、Cistern 70m/cost30
+- [x] 消火栓/防火水槽の調整（take6）: Hydrant 30m/cost50（狭く安い・点）、Cistern 70m/cost120（広く高い・面）に差別化
+- [x] Year 1 duration を 75→60 に短縮（残時間 min:秒 表示のわかりやすさ・ユーザー調整）
+- [x] BUG-S3-004 修正試行（take6・ユーザー提案方式）: CameraController.CacheCamera で初回取得時に
+  CalibrateCameraHeights を実行し、LongShot/BirdView の初期 Y がプレイヤー（Y=83）より低い分を足して補正
 - [ ] 初期所有ポイント・配置可能ユニットの絞り込み（ユーザー「後ほど」）
-- BUG-S3-004（カメラ上方パン）: 原因確定（player Y=83 vs LongShotCamera Y=38）。Editor で
-  カメラ基準 Y をプレイヤー/地面相対にする修正を一緒に行う
-- 地震タイミング: Start Year から約4秒後に地震（設計どおり）。30秒は配置時間か duration の空白の体感
+- 地震タイミング: Start Year から約4秒後に地震（設計どおり）。30秒の体感は duration の min:秒表示によるもので解決
 
 ### Task 5: PlayMode 検証（ユーザー + エージェント・30分）
 

@@ -47,7 +47,7 @@ events:
 # 未指定の年は K×地震倒壊数（K=3）にフォールバックする。
 years:
   - year: 1
-    duration: 75
+    duration: 60
     note: "中規模地震と出火。消火栓の鎮火効果を観察する"
     baseline: 3
     schedule:

@@ -121,16 +121,57 @@ namespace CommonsUtility
                 _birdCamera = birdCameraObj?.GetComponent<CinemachineCamera>();
             }
             
+            bool longCameraNewlyFound = false;
             if (_longCamera == null)
             {
                 GameObject longCameraObj = GameObject.Find("LongShotCamera");
                 _longCamera = longCameraObj?.GetComponent<CinemachineCamera>();
+                longCameraNewlyFound = (_longCamera != null);
             }
-            
+
             if (_birdCameraRoot == null)
             {
                 GameObject birdCameraRootObj = GameObject.Find("BirdCameraRoot");
                 _birdCameraRoot = birdCameraRootObj?.transform;
+            }
+
+            // カメラを新規取得したシーンで初期高さを補正（BUG-S3-004）
+            if (longCameraNewlyFound)
+            {
+                CalibrateCameraHeights();
+            }
+        }
+
+        /// <summary>
+        /// LongShot / BirdView カメラの初期 Y がプレイヤーより下の場合に補正する（BUG-S3-004）
+        /// PlayerArmature のスポーン位置を高所（Y=83 等）に変更したため、シーン上の固定 Y（38 等）
+        /// だとカメラがプレイヤーより下になり、ApplyLongShotMode が走るまで下から見上げてしまう。
+        /// プレイヤー Y より低い分を初期位置に足して、最初の切替から正しい俯瞰になるようにする
+        /// </summary>
+        private static void CalibrateCameraHeights()
+        {
+            GameObject player = GameObject.Find("PlayerArmature");
+            if (player == null)
+            {
+                return;
+            }
+            float playerY = player.transform.position.y;
+
+            RaiseCameraToPlayerHeight(_longCamera != null ? _longCamera.transform : null, playerY);
+            RaiseCameraToPlayerHeight(_birdCamera != null ? _birdCamera.transform : null, playerY);
+        }
+
+        private static void RaiseCameraToPlayerHeight(Transform cameraTransform, float playerY)
+        {
+            if (cameraTransform == null)
+            {
+                return;
+            }
+            float deficit = playerY - cameraTransform.position.y;
+            if (deficit > 0f)
+            {
+                cameraTransform.position += new Vector3(0f, deficit, 0f);
+                Debug.Log($"[CameraCtrl] {cameraTransform.name} の初期高さをプレイヤー基準に補正: +{deficit:F1}");
             }
         }
 

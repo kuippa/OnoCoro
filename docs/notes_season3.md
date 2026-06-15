@@ -141,4 +141,13 @@ Plazaなどのユニットの意味、いまのところない？
 
 year1年目、テロップの表示から地震までの時間が違和感あり。最初の地震がおきるまで30秒かかっているがあっている？
 
+## w3 task4 - take6 所管
+[OK] 自動年終了の挙動
+地震発生時に30秒経過しているのかと勘違いしたが、durationがyear1は75で、year2,3の90と違うだけだった。
+画面表示される残時間でみていた。分：秒 表示上わかりにくいのでyear1は60にした。
+Hydrant 30m/コスト50、Cistern 70m/コスト120にしてほしい。これで試す。
+
+カメラについては、CameraControllerの ApplyLongShotMode();までいけば正常にうごくようだが、初期値を直す必要がある。Initialize() のタイミングで、PlayerFollowCamera あるいは PlayerArmature のY位置などをみるなどして、マイナスであればキャリブレーションしてやる必要があり。マイナスであればのY位置をLongShotCamera、BirdViewCameraに足す。
+
+
 

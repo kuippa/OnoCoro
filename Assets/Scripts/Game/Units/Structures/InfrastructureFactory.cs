@@ -24,11 +24,12 @@ namespace CommonsUtility
         // 半径は 2026-06-13 テストプレイのフィードバックで拡大（建物 1 棟分では狭すぎる）。
         // 「何個置けばマップをカバーできるか」起点の正式バランスは W3 デモ準備時に調整
         // コストはエンティティクラス（Hydrant/Cistern/Plaza）の ItemStruct からも参照される
+        // 2026-06-16 take6: 消火栓=狭くて安い（点）、防火水槽=広くて高い（面）に差別化
         internal const int HYDRANT_COST = 50;
-        private const float _HYDRANT_RADIUS = 50f;
+        private const float _HYDRANT_RADIUS = 30f;
         private const float _HYDRANT_POWER = 0.25f;
 
-        internal const int CISTERN_COST = 30;
+        internal const int CISTERN_COST = 120;
         private const float _CISTERN_RADIUS = 70f;
         private const float _CISTERN_POWER = 0.06f;
 
