@@ -78,6 +78,7 @@ namespace CommonsUtility
             _birdCamera = null;
             _longCamera = null;
             _birdCameraRoot = null;
+            _brain = null;
         }
         private static Vector3 _camera_offset = new Vector3(1f, 1f, 0f);
         private static bool _isJumpEasing = false;
@@ -97,6 +98,7 @@ namespace CommonsUtility
         private static CinemachineCamera _birdCamera;
         private static CinemachineCamera _longCamera;
         private static Transform _birdCameraRoot;
+        private static CinemachineBrain _brain;   // ブレンド進行状態の参照用（BUG-S3-015）
 
         /// <summary>
         /// カメラシステムを初期化（初回のみ実行）
@@ -165,6 +167,15 @@ namespace CommonsUtility
             {
                 GameObject birdCameraRootObj = GameObject.Find("BirdCameraRoot");
                 _birdCameraRoot = birdCameraRootObj?.transform;
+            }
+
+            if (_brain == null)
+            {
+                Camera mainCamera = Camera.main;
+                if (mainCamera != null)
+                {
+                    _brain = mainCamera.GetComponent<CinemachineBrain>();
+                }
             }
 
             // カメラを新規取得したシーンで初期高さを補正（BUG-S3-004）
@@ -294,8 +305,16 @@ namespace CommonsUtility
         {
             Initialize();
             CacheCamera();
-            
+
             if (_playerCamera == null) return;
+
+            // [BUG-S3-015] Cinemachine のブレンド（モード切替のイージング）が完了する前に
+            // ズームが進むと、ブレンド中にカメラ Y が動いて見上げてしまう（特に BirdView）。
+            // ブレンドが 100% 完了するまでズーム入力を無視し、収束してから次の操作を受け付ける
+            if (_brain != null && _brain.IsBlending)
+            {
+                return;
+            }
 
             // ズームレベルを更新
             _zoom_lv = UpdateZoomLevel(_zoom_lv, moveVec);
@@ -317,9 +336,6 @@ namespace CommonsUtility
             // カメラ距離とパラメータを設定
             ApplyCameraMode(_currentMode, _playerCamera);
 
-            // 優先度を設定
-            SetCameraPriorities(_currentMode);
-
             // [BUG-S3-007] ズームアウト系（LongShot/BirdView）では配置マーカーを隠す。
             // 高所からはマウスレイが地面/NavMesh 条件を満たせず、マーカー座標が前回位置で固定される。
             // 配置は TPS/FPS でのみ行う想定なので、ズームアウト時はマーカーを消す
@@ -328,42 +344,8 @@ namespace CommonsUtility
                 SpawnMarkerPointerCtrl.SetMarkerActive(false);
             }
 
-            // [BUG-S3-015] バードビューのノースアップ安定化を、視点が動いたこの瞬間だけ実行する
-            // （毎フレーム Update ではなくイベントドリブン）
-            RequestBirdViewStabilize();
-        }
-
-        // 真下を向き、画面の上を北（world forward）に固定したノースアップ姿勢（特異点なし）
-        private static readonly Quaternion _NORTH_UP_TOP_DOWN = Quaternion.LookRotation(Vector3.down, Vector3.forward);
-        private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
-
-        /// <summary>
-        /// バードビュー時に、特異点による反転を防ぐためカメラ姿勢を安定ノースアップへ補正する。
-        /// マウスホイールで視点が動いた時（ChangeCameraMode）にのみ要求される。
-        /// CinemachineBrain がカメラを更新した後（フレーム終端）に 1 回だけ上書きする
-        /// </summary>
-        private static void RequestBirdViewStabilize()
-        {
-            if (_currentMode != CameraMode.BirdView)
-            {
-                return;
-            }
-            CoroutineManager.Instance.StartCoroutine(ApplyBirdViewOrientationAtEndOfFrame());
-        }
-
-        private static IEnumerator ApplyBirdViewOrientationAtEndOfFrame()
-        {
-            yield return _waitForEndOfFrame;  // CinemachineBrain(LateUpdate) の後に上書きする
-
-            if (_currentMode != CameraMode.BirdView)
-            {
-                yield break;
-            }
-            Camera mainCamera = Camera.main;
-            if (mainCamera != null)
-            {
-                mainCamera.transform.rotation = _NORTH_UP_TOP_DOWN;
-            }
+            // 優先度を設定
+            SetCameraPriorities(_currentMode);
         }
 
         /// <summary>
