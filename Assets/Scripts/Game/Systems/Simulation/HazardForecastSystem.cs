@@ -119,8 +119,9 @@ namespace CommonsUtility
         }
 
         /// <summary>
-        /// 指定年のイベントから building_break の最大棟数を取得（"all" は int.MaxValue）
-        /// 同一年に複数の break がある場合、先頭 N 棟方式のため実効値は最大値になる
+        /// 指定年のイベントから building_break の合計棟数を取得（"all" は int.MaxValue）
+        /// その年に倒壊する建物は本震＋余震など複数 break の合計なので、合計で予測する
+        /// （未倒壊優先で各 break が新規 N 棟を倒すため、合計＝その年の地震倒壊予定数）
         /// </summary>
         private static int GetForecastBreakCount(EventLoader eventLoader, int year)
         {
@@ -129,7 +130,7 @@ namespace CommonsUtility
                 return 0;
             }
 
-            int maxCount = 0;
+            int totalCount = 0;
             string eventField = TimedEventCommandFields.@event.ToString();
             foreach (List<Dictionary<string, string>> eventList in yearEvents.Values)
             {
@@ -148,14 +149,14 @@ namespace CommonsUtility
                     {
                         return int.MaxValue;
                     }
-                    if (int.TryParse(breakValue, out int count) && count > maxCount)
+                    if (int.TryParse(breakValue, out int count))
                     {
-                        maxCount = count;
+                        totalCount = totalCount + count;
                     }
                 }
             }
 
-            return maxCount;
+            return totalCount;
         }
 
         private static List<GameObject> GetBreakTargets()

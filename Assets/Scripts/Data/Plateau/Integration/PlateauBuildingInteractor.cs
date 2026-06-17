@@ -89,9 +89,15 @@ public class PlateauBuildingInteractor : MonoBehaviour
             for (int i = 0; i < array.Length; i++)
             {
                 array[i] = new Material(source);
-                // 火災倒壊は焦げ色にして地震倒壊（木材色）と視覚的に区別する
+                // 火災倒壊は焦げ色にして地震倒壊（木材色）と視覚的に区別する。
+                // PlateauGenericWood は HDRP マテリアルのため .color では変わらない →
+                // _BaseColor（HDRP のベースカラー）を設定する（標準シェーダ用に .color も併設）
                 if (isFire)
                 {
+                    if (array[i].HasProperty("_BaseColor"))
+                    {
+                        array[i].SetColor("_BaseColor", _FIRE_DOOM_COLOR);
+                    }
                     array[i].color = _FIRE_DOOM_COLOR;
                 }
             }
