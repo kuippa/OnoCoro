@@ -47,6 +47,9 @@ namespace CommonsUtility
         // 状態変数
         private static float _zoom_lv = 5f;
         private static CameraMode _currentMode = CameraMode.TPS;
+
+        /// <summary>現在のカメラモード（CameraOrientationStabilizer 等から参照）</summary>
+        internal static CameraMode CurrentMode => _currentMode;
         private static Vector3 _camera_offset = new Vector3(1f, 1f, 0f);
         private static bool _isJumpEasing = false;
         private static bool _isInitialized = false;
