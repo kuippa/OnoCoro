@@ -16,7 +16,7 @@
 | BUG-S3-004 | ズームアウト/バードビュー切替時に一瞬カメラが真上を向く | 中 | 改善（一部残） | 2026-06-13 | 2026-06-16 | CalibrateCameraHeights で初期 Y を補正し大幅改善。残: 勢いよくパンすると数割で反転する（CinemachineCamera の Aim/Tracking Target 反映遅延か慣性疑い）→ BUG-S3-015 |
 | BUG-S3-015 | 高速ズームパン時にカメラが数割の頻度で反転する | 低 | 未修正 | 2026-06-16 | W4 以降 | ゆっくりズームは正常。勢いよくパンすると切替時に Cinemachine の Aim が間に合わず反転することがある。Tracking Target 反映遅延 or カメラ慣性が疑い。優先度低 |
 | BUG-S3-016 | FireCube が斜めに傾く（上空マーカーも傾く） | 中 | 修正済み | 2026-06-16 | 2026-06-16 | Rigidbody が FreezeRotationY のみで X/Z は物理衝突で傾いていた。FreezeRotation（全軸）に変更 + FireCube.Awake でスポーン時に eulerAngles=zero（直立）に |
-| BUG-S3-005 | 奈落リスポーンがマップ端でループ落下する | 中 | 未修正 | 2026-06-13 | W3 以降 | 再スポーン位置をより内側へ。建物が端に立つ場合の別ロジック（ループ落下禁止）要検討 |
+| BUG-S3-005 | 奈落リスポーンがマップ端でループ落下する | 中 | 修正済み | 2026-06-13 | 2026-06-16 | 原因: DemController.GetClosestPointOnBounds が ClosestPointOnBounds でマップ縁の点を返し、そこに地面があると縁に戻して再落下していた（内側寄せはメッシュ穴時のみ）。修正: 接地判定の前に MoveToDemCenter で内側へ 15 寄せてから判定（縁に戻さない）。速度リセットは既存処理で実施済み |
 | BUG-S3-006 | 施策が建物屋根の高さにスポーンする | 中 | 修正済み | 2026-06-13 | 2026-06-13 | InfrastructureFactory に接地ロジック（周囲8方向Raycastで最低点選択）を追加 |
 | BUG-S3-007 | スポーンマーカー表示中にバードビュー等へ切り替えるとマーカー座標が固定される | 中 | 修正済み | 2026-06-13 | 2026-06-16 | 原因: 高所からはマウスレイが Ground/NavMesh 条件を満たせず transform.position が更新されず前回位置で固定。修正: CameraController.ChangeCameraMode で LongShot/BirdView になったら SpawnMarkerPointerCtrl.SetMarkerActive(false) でマーカーを隠す。配置は TPS/FPS のみの想定 |
 | BUG-S3-008 | プレイヤー配置の施策位置がマーカーからずれる | 中 | 修正済み | 2026-06-13 | 2026-06-13 | プレイヤー配置は XZ 維持 + DEM（Ground レイヤー）高さ接地方式に変更 |

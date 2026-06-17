@@ -15,6 +15,7 @@ public static class DemController
 
     private const float _POPUP_DISTANCE = 1f;   // 落ちたオブジェクトを上に持ち上げる距離
     private const float _MARGIN_DISTANCE = 3f;   // 内側によせる距離
+    private const float _EDGE_INSET_DISTANCE = 15f;   // マップ縁に戻さないよう、接地判定前に内側へ寄せる距離（BUG-S3-005）
     private const float _RAYCAST_DISTANCE = 200f;   // Raycast の距離
     private const int _MAX_ITERATION = 20;   // 穴回避の最大試行回数
     internal static int MaxIteration => _MAX_ITERATION;
@@ -48,6 +49,9 @@ public static class DemController
         }
 
         Vector3 closestPoint = demcol.ClosestPointOnBounds(position);
+        // [BUG-S3-005] 縁ギリギリに戻すと、そこに地面があってもすぐ再落下してループになる。
+        // 接地判定の前に DEM 中心方向へ寄せて、マップの内側に着地させる
+        closestPoint = MoveToDemCenter(closestPoint, _EDGE_INSET_DISTANCE);
         float objectHeight = other.bounds.size.y;
         for (int i = 0; i < _MAX_ITERATION; i++)
         {
