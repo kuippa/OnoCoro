@@ -43,14 +43,16 @@ events:
     value: "オレンジ＝地震で倒壊し出火点に。延焼を消火栓・防火水槽で防ごう"
 
 # [W3 Task 4] baseline = 消火なし時の想定火災延焼棟数（防いだ延焼=baseline-実延焼）。
-# 2026-06-16 消火なし実走の火災延焼を採取して記入（3/8/26）。
+# 2026-06-18 各種修正後の消火なし実走で再採取して更新（4/3/6）。
+#   ※ 出火位置の perimeter 化・未倒壊優先などの修正で延焼ダイナミクスが変わり、
+#     特に Year3 が旧26→6 に激減。旧値(3/8/26)は過大だったため差し替え。
 # 出火位置・延焼には乱数/物理が絡むため run ごとに多少ぶれる。必要なら複数走の平均で更新。
 # 未指定の年は K×地震倒壊数（K=3）にフォールバックする。
 years:
   - year: 1
     duration: 60
     note: "中規模地震と出火。消火栓の鎮火効果を観察する"
-    baseline: 3
+    baseline: 4
     schedule:
       - pattern: quake_fire
         at: 3              # 地震 t=4, 倒壊 t=10, 出火 t=11/12
@@ -64,7 +66,7 @@ years:
   - year: 2
     duration: 90
     note: "規模拡大。防火水槽（広範囲・弱効果）と比較する"
-    baseline: 8
+    baseline: 3
     schedule:
       - pattern: quake_fire
         at: 3
@@ -78,7 +80,7 @@ years:
   - year: 3
     duration: 90
     note: "本震+余震の多重編成。避難広場の投資記録を確認する"
-    baseline: 26
+    baseline: 6
     schedule:
       - pattern: quake_fire
         at: 3
