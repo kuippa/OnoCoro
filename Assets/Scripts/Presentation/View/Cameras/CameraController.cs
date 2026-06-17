@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Cinemachine;
+using System.Collections;
 using System.Diagnostics;
 using Debug = CommonsUtility.Debug;
 
@@ -48,9 +49,6 @@ namespace CommonsUtility
         // 状態変数
         private static float _zoom_lv = 5f;
         private static CameraMode _currentMode = CameraMode.TPS;
-
-        /// <summary>現在のカメラモード（CameraOrientationStabilizer 等から参照）</summary>
-        internal static CameraMode CurrentMode => _currentMode;
 
         /// <summary>
         /// シーン読込時に static 状態をリセットするフックを登録する（BUG-S3-015 デグレ対策）。
@@ -328,6 +326,43 @@ namespace CommonsUtility
             if (_currentMode == CameraMode.LongShot || _currentMode == CameraMode.BirdView)
             {
                 SpawnMarkerPointerCtrl.SetMarkerActive(false);
+            }
+
+            // [BUG-S3-015] バードビューのノースアップ安定化を、視点が動いたこの瞬間だけ実行する
+            // （毎フレーム Update ではなくイベントドリブン）
+            RequestBirdViewStabilize();
+        }
+
+        // 真下を向き、画面の上を北（world forward）に固定したノースアップ姿勢（特異点なし）
+        private static readonly Quaternion _NORTH_UP_TOP_DOWN = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+        private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+
+        /// <summary>
+        /// バードビュー時に、特異点による反転を防ぐためカメラ姿勢を安定ノースアップへ補正する。
+        /// マウスホイールで視点が動いた時（ChangeCameraMode）にのみ要求される。
+        /// CinemachineBrain がカメラを更新した後（フレーム終端）に 1 回だけ上書きする
+        /// </summary>
+        private static void RequestBirdViewStabilize()
+        {
+            if (_currentMode != CameraMode.BirdView)
+            {
+                return;
+            }
+            CoroutineManager.Instance.StartCoroutine(ApplyBirdViewOrientationAtEndOfFrame());
+        }
+
+        private static IEnumerator ApplyBirdViewOrientationAtEndOfFrame()
+        {
+            yield return _waitForEndOfFrame;  // CinemachineBrain(LateUpdate) の後に上書きする
+
+            if (_currentMode != CameraMode.BirdView)
+            {
+                yield break;
+            }
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null)
+            {
+                mainCamera.transform.rotation = _NORTH_UP_TOP_DOWN;
             }
         }
 
