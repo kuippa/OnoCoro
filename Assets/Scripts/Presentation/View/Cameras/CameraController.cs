@@ -51,13 +51,17 @@ namespace CommonsUtility
         private static CameraMode _currentMode = CameraMode.TPS;
 
         /// <summary>
-        /// シーン読込時に static 状態をリセットするフックを登録する（BUG-S3-015 デグレ対策）。
-        /// CameraController は static のため _currentMode 等がシーンをまたいで残り、
-        /// バードビューで終了→再開すると開始時からバードビューになっていた
+        /// Play 開始時に static 状態をリセットし、シーン読込フックを登録する（BUG-S3-015 デグレ対策）。
+        /// CameraController は static のため _currentMode / _zoom_lv / _isInitialized 等が
+        /// 残り、特にドメインリロード無効環境では Play 再起動をまたいで前回のバードビュー状態が残る。
+        /// SubsystemRegistration はドメインリロード無効でも Play 開始ごと・最初のシーン読込前に走るため、
+        /// 必ず初期化される（AfterSceneLoad だと最初のシーン読込に間に合わない）
         /// </summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void RegisterSceneResetHook()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticsOnPlayStart()
         {
+            ResetState();
+            SceneManager.sceneLoaded -= OnSceneLoadedResetState;  // 二重登録防止
             SceneManager.sceneLoaded += OnSceneLoadedResetState;
         }
 
