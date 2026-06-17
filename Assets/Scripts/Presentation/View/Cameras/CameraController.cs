@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Unity.Cinemachine;
 using System.Diagnostics;
 using Debug = CommonsUtility.Debug;
@@ -50,6 +51,36 @@ namespace CommonsUtility
 
         /// <summary>現在のカメラモード（CameraOrientationStabilizer 等から参照）</summary>
         internal static CameraMode CurrentMode => _currentMode;
+
+        /// <summary>
+        /// シーン読込時に static 状態をリセットするフックを登録する（BUG-S3-015 デグレ対策）。
+        /// CameraController は static のため _currentMode 等がシーンをまたいで残り、
+        /// バードビューで終了→再開すると開始時からバードビューになっていた
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void RegisterSceneResetHook()
+        {
+            SceneManager.sceneLoaded += OnSceneLoadedResetState;
+        }
+
+        private static void OnSceneLoadedResetState(Scene scene, LoadSceneMode mode)
+        {
+            ResetState();
+        }
+
+        /// <summary>
+        /// カメラの static 状態を初期化（TPS・既定ズーム）し、キャッシュを破棄して再取得させる
+        /// </summary>
+        internal static void ResetState()
+        {
+            _currentMode = CameraMode.TPS;
+            _zoom_lv = 5f;
+            _isInitialized = false;
+            _playerCamera = null;
+            _birdCamera = null;
+            _longCamera = null;
+            _birdCameraRoot = null;
+        }
         private static Vector3 _camera_offset = new Vector3(1f, 1f, 0f);
         private static bool _isJumpEasing = false;
         private static bool _isInitialized = false;
