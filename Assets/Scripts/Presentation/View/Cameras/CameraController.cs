@@ -284,9 +284,17 @@ namespace CommonsUtility
             
             // カメラ距離とパラメータを設定
             ApplyCameraMode(_currentMode, _playerCamera);
-            
+
             // 優先度を設定
             SetCameraPriorities(_currentMode);
+
+            // [BUG-S3-007] ズームアウト系（LongShot/BirdView）では配置マーカーを隠す。
+            // 高所からはマウスレイが地面/NavMesh 条件を満たせず、マーカー座標が前回位置で固定される。
+            // 配置は TPS/FPS でのみ行う想定なので、ズームアウト時はマーカーを消す
+            if (_currentMode == CameraMode.LongShot || _currentMode == CameraMode.BirdView)
+            {
+                SpawnMarkerPointerCtrl.SetMarkerActive(false);
+            }
         }
 
         /// <summary>
