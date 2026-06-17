@@ -200,6 +200,18 @@ Task 1-5 完了。**スケジュール上の W3 期限（6/28）を 12 日前倒
 
 **成果**: 三鷹井の頭５丁目で「ヒートマップ→施策投資→地震・延焼→鎮火で年自動終了→結果パネル（被害分離・無施策時予想・抑えた延焼・ROI）→3年総括」の一連の体験が成立。施策の効果が数値（抑えた延焼・ROI）に反映されることを実プレイで確認。
 
+## バランス調整（W3 後半・2026-06-16 開始）
+
+**方針（ヒアリング）**: 目標体験 = 教育重視（気づき優先・難しくない） / 施策パラメータを YAML 外部化。
+
+- [x] 施策のコスト・効果半径・鎮火力を `staging/infrastructures.yaml` に外部化
+  - `InfrastructureConfig`（既定値保持）+ `InfrastructureYamlProvider`（読込）。
+    InfrastructureFactory と Hydrant/Cistern/Plaza がここを参照。再コンパイル不要で調整可能
+  - StageYamlRepository.LoadYamlData で読み込み（ファイル欠如時は既定値）
+- [ ] 反復調整: 1レバーずつ変更 → プレイ → ログ（DamageReportSystem）+ 体感で確認
+  - 主要レバー: infrastructures.yaml（コスト/半径/鎮火力）、初期予算、baseline、year duration/倒壊数
+  - 教育重視の合格ライン: 「考えて投資すれば被害が目に見えて減る／適当だと足りない」
+
 **W4 / 今後への持ち越し**:
 - ベースラインの run ぶれ・ROI スコアの精度（多人数運用で改善見込み）
 - BUG-S3-015（高速ズームパンでカメラ反転・低優先）

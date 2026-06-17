@@ -23,7 +23,7 @@ public class Cistern : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             "cisternID",       // ID
             "Tips Cistern",
             "防火水槽: 広い範囲の延焼をゆるやかに抑える防災施策（範囲: 大・効果: 中）",
-            InfrastructureFactory.CISTERN_COST,  // CreateCost
+            InfrastructureConfig.GetCost(GameEnum.ModelsType.Cistern),  // CreateCost（YAML 外部化）
             GlobalConst.SHORT_SCORE1_SCALE,      // CostType - "BIT"
             2f,                // CostTime
             1,                 // Stack

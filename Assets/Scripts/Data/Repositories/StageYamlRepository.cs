@@ -42,6 +42,9 @@ public class StageYamlRepository : MonoBehaviour
         // 年サイクルセットアップ（Season 3: years セクションが無ければ何もしない）
         YearScheduleYamlProvider.LoadYears(yaml, _eventLoader);
 
+        // 防災施策のバランス値を共通ファイルから読み込む（Season 3 W3: 外部化）
+        InfrastructureYamlProvider.LoadSharedConfig();
+
         // パス・ナビゲーションセットアップ
         RouteYamlProvider.LoadPathMakers(yaml);
         RouteYamlProvider.LoadRouteNames(yaml, _eventLoader);

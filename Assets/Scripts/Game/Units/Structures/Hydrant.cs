@@ -24,7 +24,7 @@ public class Hydrant : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             "hydrantID",       // ID
             "Tips Hydrant",
             "消火栓: 周囲の火災を強力に鎮火する防災施策（範囲: 小・効果: 高）",
-            InfrastructureFactory.HYDRANT_COST,  // CreateCost
+            InfrastructureConfig.GetCost(GameEnum.ModelsType.Hydrant),  // CreateCost（YAML 外部化）
             GlobalConst.SHORT_SCORE1_SCALE,      // CostType - "BIT"
             2f,                // CostTime
             1,                 // Stack

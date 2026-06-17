@@ -23,7 +23,7 @@ public class Plaza : MonoBehaviour, IItemStructProvider, IUnitStructProvider
             "plazaID",         // ID
             "Tips Plaza",
             "避難広場: 周辺住民の避難先となり人的被害を軽減する防災施策（効果は年度結果に反映）",
-            InfrastructureFactory.PLAZA_COST,    // CreateCost
+            InfrastructureConfig.GetCost(GameEnum.ModelsType.Plaza),    // CreateCost（YAML 外部化）
             GlobalConst.SHORT_SCORE1_SCALE,      // CostType - "BIT"
             3f,                // CostTime
             1,                 // Stack

@@ -24,19 +24,8 @@ namespace CommonsUtility
         // 半径は 2026-06-13 テストプレイのフィードバックで拡大（建物 1 棟分では狭すぎる）。
         // 「何個置けばマップをカバーできるか」起点の正式バランスは W3 デモ準備時に調整
         // コストはエンティティクラス（Hydrant/Cistern/Plaza）の ItemStruct からも参照される
-        // 2026-06-16 take6: 消火栓=狭くて安い（点）、防火水槽=広くて高い（面）に差別化
-        internal const int HYDRANT_COST = 50;
-        private const float _HYDRANT_RADIUS = 30f;
-        private const float _HYDRANT_POWER = 0.25f;
-
-        internal const int CISTERN_COST = 120;
-        private const float _CISTERN_RADIUS = 70f;
-        private const float _CISTERN_POWER = 0.06f;
-
-        internal const int PLAZA_COST = 100;
-        private const float _PLAZA_RADIUS = 50f;
-        private const float _PLAZA_POWER = 0f;  // W2 では記録のみ（人的被害補正は W3 の結果計算で使用）
-
+        // 施策のコスト・半径・鎮火力は InfrastructureConfig（staging/infrastructures.yaml）に外部化（W3 Task4）。
+        // 色だけは演出用に固定で持つ
         private static readonly Color _HYDRANT_COLOR = new Color(0.9f, 0.2f, 0.15f);
         private static readonly Color _CISTERN_COLOR = new Color(0.15f, 0.4f, 0.9f);
         private static readonly Color _PLAZA_COLOR = new Color(0.2f, 0.8f, 0.3f);
@@ -87,6 +76,7 @@ namespace CommonsUtility
 
         /// <summary>
         /// 施策タイプごとのパラメータを取得
+        /// コスト・半径・鎮火力は InfrastructureConfig（YAML 外部化）から、色は固定（演出）
         /// </summary>
         private static bool TryGetSpec(GameEnum.ModelsType infraType, out int cost, out float radius, out float power, out Color color)
         {
@@ -95,27 +85,26 @@ namespace CommonsUtility
             power = 0f;
             color = Color.white;
 
+            if (!InfrastructureConfig.TryGet(infraType, out InfrastructureSpec spec))
+            {
+                return false;
+            }
+            cost = spec.Cost;
+            radius = spec.Radius;
+            power = spec.Power;
+
             if (infraType == GameEnum.ModelsType.Hydrant)
             {
-                cost = HYDRANT_COST;
-                radius = _HYDRANT_RADIUS;
-                power = _HYDRANT_POWER;
                 color = _HYDRANT_COLOR;
                 return true;
             }
             if (infraType == GameEnum.ModelsType.Cistern)
             {
-                cost = CISTERN_COST;
-                radius = _CISTERN_RADIUS;
-                power = _CISTERN_POWER;
                 color = _CISTERN_COLOR;
                 return true;
             }
             if (infraType == GameEnum.ModelsType.Plaza)
             {
-                cost = PLAZA_COST;
-                radius = _PLAZA_RADIUS;
-                power = _PLAZA_POWER;
                 color = _PLAZA_COLOR;
                 return true;
             }
