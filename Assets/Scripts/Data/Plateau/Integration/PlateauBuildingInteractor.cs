@@ -72,6 +72,31 @@ public class PlateauBuildingInteractor : MonoBehaviour
 
     // 火災で倒壊した建物の焦げ色（地震倒壊の木材色と区別する・教育表示）
     private static readonly Color _FIRE_DOOM_COLOR = new Color(0.18f, 0.10f, 0.08f);
+    private static Material _fireDoomMaterial = null;
+
+    /// <summary>
+    /// 火災倒壊用の焦げ色マテリアル（テクスチャ無しのソリッド）。
+    /// 地震倒壊の木材テクスチャ・マテリアルは色変更では見た目が変わらないため、
+    /// 火災倒壊は専用マテリアルに丸ごと差し替えて区別する
+    /// </summary>
+    private static Material GetFireDoomMaterial()
+    {
+        if (_fireDoomMaterial == null)
+        {
+            Shader shader = Shader.Find("HDRP/Lit");
+            if (shader == null)
+            {
+                shader = Shader.Find("Standard");
+            }
+            _fireDoomMaterial = new Material(shader);
+            if (_fireDoomMaterial.HasProperty("_BaseColor"))
+            {
+                _fireDoomMaterial.SetColor("_BaseColor", _FIRE_DOOM_COLOR);
+            }
+            _fireDoomMaterial.color = _FIRE_DOOM_COLOR;
+        }
+        return _fireDoomMaterial;
+    }
 
     private void ApplyDoomMaterial(GameObject building, bool isFire = false)
     {
@@ -80,7 +105,8 @@ public class PlateauBuildingInteractor : MonoBehaviour
 
     private IEnumerator ApplyDoomMaterialCoroutine(GameObject building, bool isFire)
     {
-        Material source = MaterialManager.PlateauGenericWood;
+        // 火災倒壊は焦げ色の専用マテリアル、地震倒壊は従来の木材マテリアル
+        Material source = isFire ? GetFireDoomMaterial() : MaterialManager.PlateauGenericWood;
         Renderer component = building.GetComponent<Renderer>();
         building.GetComponentsInChildren<Renderer>();
         if (component != null)
@@ -89,17 +115,6 @@ public class PlateauBuildingInteractor : MonoBehaviour
             for (int i = 0; i < array.Length; i++)
             {
                 array[i] = new Material(source);
-                // 火災倒壊は焦げ色にして地震倒壊（木材色）と視覚的に区別する。
-                // PlateauGenericWood は HDRP マテリアルのため .color では変わらない →
-                // _BaseColor（HDRP のベースカラー）を設定する（標準シェーダ用に .color も併設）
-                if (isFire)
-                {
-                    if (array[i].HasProperty("_BaseColor"))
-                    {
-                        array[i].SetColor("_BaseColor", _FIRE_DOOM_COLOR);
-                    }
-                    array[i].color = _FIRE_DOOM_COLOR;
-                }
             }
             component.materials = array;
             yield return null;

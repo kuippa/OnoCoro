@@ -85,18 +85,23 @@ namespace CommonsUtility
             PlateauBuildingInteractor interactor = GetBuildingInteractor();
             Material warningMaterial = GetWarningMaterial();
             int highlightedCount = 0;
-            int targetCount = Mathf.Min(breakCount, breakTargets.Count);
 
-            for (int i = 0; i < targetCount; i++)
+            // building_break と同じく「未倒壊の建物を先頭から breakCount 件 新規に」塗る。
+            // 先頭 N 番目までを見る方式だと、前年までに倒壊済みの建物が先頭にあると塗る数が
+            // 不足し、実際に倒壊する建物（未倒壊優先で N 件）と一致しなかった（2026-06-18 修正）
+            foreach (GameObject building in breakTargets)
             {
-                GameObject building = breakTargets[i];
+                if (highlightedCount >= breakCount)
+                {
+                    break;
+                }
                 if (building == null || !building.activeSelf)
                 {
                     continue;
                 }
                 if (interactor != null && interactor.IsBuildingDoomed(building))
                 {
-                    continue;  // 既に倒壊済み（doom 表示中）の建物は触らない
+                    continue;  // 既に倒壊済みはスキップ（未倒壊を N 件塗る）
                 }
 
                 Renderer buildingRenderer = building.GetComponent<Renderer>();
