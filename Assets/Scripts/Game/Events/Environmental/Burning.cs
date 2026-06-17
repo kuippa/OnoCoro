@@ -168,7 +168,8 @@ public class Burning : MonoBehaviour
         }
         if (!(obj == null) && obj.activeSelf)
         {
-            component.SetBuildingToDoom(obj);
+            // 火災延焼による倒壊 → 焦げ色で表示し地震倒壊と区別する（教育表示）
+            component.SetBuildingToDoom(obj, isFire: true);
         }
     }
 

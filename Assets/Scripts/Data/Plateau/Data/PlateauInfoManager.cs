@@ -152,7 +152,7 @@ public class PlateauInfoManager : MonoBehaviour
         _uiManager.DisplayBuildingInfo(buildingInfo, rebuildCost, isDoomedBuilding);
     }
 
-    internal void SetBuildingToDoom(GameObject building)
+    internal void SetBuildingToDoom(GameObject building, bool isFire = false)
     {
         if (!_buildingInteractor.IsBuildingDoomed(building))
         {
@@ -166,7 +166,7 @@ public class PlateauInfoManager : MonoBehaviour
                 plateauCubeMaker = base.gameObject.AddComponent<PlateauCubeMaker>();
             }
             plateauCubeMaker.BreakUpBuildingCube(building, (int)num2);
-            _buildingInteractor.SetBuildingToDoom(building);
+            _buildingInteractor.SetBuildingToDoom(building, isFire);
         }
     }
 

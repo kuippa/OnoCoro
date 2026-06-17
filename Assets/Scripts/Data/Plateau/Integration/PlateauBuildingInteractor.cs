@@ -17,14 +17,14 @@ public class PlateauBuildingInteractor : MonoBehaviour
         Object.Destroy(building);
     }
 
-    internal void SetBuildingToDoom(GameObject building)
+    internal void SetBuildingToDoom(GameObject building, bool isFire = false)
     {
         StorageOriginalMaterial(building);
         if (!_doomedBuildings.Contains(building))
         {
             _doomedBuildings.Add(building);
         }
-        ApplyDoomMaterial(building);
+        ApplyDoomMaterial(building, isFire);
     }
 
     internal void RestoreBuildingMaterial(GameObject building)
@@ -70,12 +70,15 @@ public class PlateauBuildingInteractor : MonoBehaviour
         }
     }
 
-    private void ApplyDoomMaterial(GameObject building)
+    // 火災で倒壊した建物の焦げ色（地震倒壊の木材色と区別する・教育表示）
+    private static readonly Color _FIRE_DOOM_COLOR = new Color(0.18f, 0.10f, 0.08f);
+
+    private void ApplyDoomMaterial(GameObject building, bool isFire = false)
     {
-        StartCoroutine(ApplyDoomMaterialCoroutine(building));
+        StartCoroutine(ApplyDoomMaterialCoroutine(building, isFire));
     }
 
-    private IEnumerator ApplyDoomMaterialCoroutine(GameObject building)
+    private IEnumerator ApplyDoomMaterialCoroutine(GameObject building, bool isFire)
     {
         Material source = MaterialManager.PlateauGenericWood;
         Renderer component = building.GetComponent<Renderer>();
@@ -86,6 +89,11 @@ public class PlateauBuildingInteractor : MonoBehaviour
             for (int i = 0; i < array.Length; i++)
             {
                 array[i] = new Material(source);
+                // 火災倒壊は焦げ色にして地震倒壊（木材色）と視覚的に区別する
+                if (isFire)
+                {
+                    array[i].color = _FIRE_DOOM_COLOR;
+                }
             }
             component.materials = array;
             yield return null;
