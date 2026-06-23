@@ -24,7 +24,7 @@ namespace CommonsUtility
         private static readonly Vector2 _REFERENCE_RESOLUTION = new Vector2(1920f, 1080f);
 
         private const string _LABEL_FORMAT_YEAR = "Year {0} / {1}";
-        private const string _LABEL_PLACEMENT_NOTE = "準備中：施策を配置して開始してください";
+        private const string _LABEL_PLACEMENT_NOTE = "準備中：防災装置を置いてから開始しよう";
         private const string _LABEL_RUNNING_NOTE = "進行中…";
         private const string _LABEL_FINISHED = "シミュレーション終了";
         private const string _BUTTON_FORMAT_START = "Start Year {0}";

@@ -187,4 +187,49 @@ Material source = MaterialManager.PlateauGenericWood;
 一致していない。前述の報告を参照のこと。
 
 
+# 2026/6/23
+初期保有350では２年目以降配置できないので600に変更。
+射線がとおっていれば素早く消せる WaterTurret も利用できるように変更。
+今回の追加で足したHydrant,Cistern 右クリックでオブジェクトをリムーブできない。一度配置したらそのまま。他のユニットにならって右クリック対応。他のユニットに習えばプレファブ化やUnityEditor側でユニットタグの追加などが必要？
+TODO Hydrant,Cistern が英語名なので和名を表示する
+G:\unity\OnoCoro2026\Assets\Scripts\Game\Units\Structures\Hydrant.cs
+ただし、他のタワーも英名なので、UIを変更するタイミングで。
+
+シーン開始画面でなにをしてよいかわからないので、
+  - time: 1
+    event: telop
+    value: "三鷹井の頭"
+
+  - time: 1
+    event: subtelop
+    value: "ごみを60以下に保ち、5分間耐え抜こう！"
+のように、簡単なゲームの目的を追記する。
+施策という表現がわかりにくい。火を消すための防災装置などの表現に変更。
+year2 画面左側で発生している倒壊付近で火の手を確認できず。確認して。
+
+year2で壊れる
+bldg_3b89cc30-d09a-41ca-a3bb-c86df2be4f36
+の付近には出火しない仕様？ 
+出火の現在の条件をおしえて。
+ 確認した。 quake_fire.yaml は単純に２ヶ所のみで出火しているだけで、建物当回数を反映していない。event: spawn_unit でfirecubeを呼び出しているが、
+ event: building_break の類似、 building_break_fire をつくってfireまで連続でおきるようにしてはどうか。building_break は他でつかっているので内容を変えないこと。
+
+
+WaterTurret は CLKなのでCLKも+600に変更した。
+
+Assets/Resources/Prefabs/WorkUnit/Cistern.prefab
+Assets/Resources/Prefabs/WorkUnit/Hydrant.prefab
+
+を追加した。またTagをCistern,Hydrantを追加した。
+SpawnInfrastructureでGameObject.CreatePrimitive(PrimitiveType.Cylinder);で
+シリンダーをつくらずにPrefabManager経由で、呼び出すように変更して。
+内容はコードが生成したものをそのままプレファブにした。もし変更が必要な箇所があればおしえて。
+
+SpawnInfrastructure 
+_spawnCounter = _spawnCounter + 1; で名前をつけているが、staticのため、インクルードしている。
+名前のIDは呼び出しクラス持つなど統一化したい。今他のものをみたら_idxを足す方法がユニットによって共通規格がなかったので、将来規格化する。ユニークIDである必要はないけれど、極力ユニークに近づける。fixmeに記載しておいて。
+
+
+現在、Claude codeが 停電しているようなのでここまでかな・・・
+
 

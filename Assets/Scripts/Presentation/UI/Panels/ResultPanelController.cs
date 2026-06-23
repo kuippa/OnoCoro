@@ -161,8 +161,8 @@ namespace CommonsUtility
         private string BuildYearResultText(YearResult result)
         {
             string preventedNote = result.SavedBuildings > 0
-                ? $"  → 施策により延焼を {result.SavedBuildings} 棟ぶん抑えました"
-                : "  → 施策による延焼の抑制はありませんでした";
+                ? $"  → 防災装置により延焼を {result.SavedBuildings} 棟ぶん抑えました"
+                : "  → 防災装置による延焼の抑制はありませんでした";
 
             return
                 $"地震による倒壊: {result.QuakeCollapse} 棟（地震の初期被害）\n\n" +
