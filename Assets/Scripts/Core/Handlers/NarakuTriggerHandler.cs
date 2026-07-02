@@ -87,7 +87,7 @@ namespace CommonsUtility
                 baselineY = GetPlayerArmatureY();
                 if (baselineY == float.MinValue)
                 {
-                    Debug.LogWarning($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] Ground も PlayerArmature も見つかりません。{gameObject.name} の Y 位置を調整しません。");
+                    // Debug.LogWarning($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] Ground も PlayerArmature も見つかりません。{gameObject.name} の Y 位置を調整しません。");
                     return;
                 }
             }
@@ -100,7 +100,7 @@ namespace CommonsUtility
             currentPos.y = targetY;
             transform.position = currentPos;
 
-            Debug.Log($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] {gameObject.name} Y 位置を調整: {targetY:F1} (基準Y: {baselineY:F1}, Idx: {narakuIdx}, 計算: {baselineY:F1} - (30 * {narakuIdx + 1}))");
+            // Debug.Log($"[NarakuTriggerHandler.AdjustYPositionByPlayerSpawn] {gameObject.name} Y 位置を調整: {targetY:F1} (基準Y: {baselineY:F1}, Idx: {narakuIdx}, 計算: {baselineY:F1} - (30 * {narakuIdx + 1}))");
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace CommonsUtility
         {
             if (other == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnTriggerEnter] Collider is null");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnTriggerEnter] Collider is null");
                 return;
             }
 
@@ -199,14 +199,14 @@ namespace CommonsUtility
         {
             if (other == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] Collider is null");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] Collider is null");
                 return;
             }
 
             GameObject playerGO = other.gameObject;
             if (playerGO == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] Player GameObject is null");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] Player GameObject is null");
                 return;
             }
 
@@ -214,7 +214,7 @@ namespace CommonsUtility
             Vector3 resetPosition = DemController.GetClosestPointOnBounds(other, out bool succeeded);
             if (resetPosition == Vector3.zero)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] DemController returned zero position");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] DemController returned zero position");
                 return;
             }
 
@@ -231,7 +231,7 @@ namespace CommonsUtility
             InputController inputCtrl = playerGO.GetComponent<InputController>();
             if (inputCtrl == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] InputController not found on player");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnPlayerEnter] InputController not found on player");
                 return;
             }
 
@@ -243,7 +243,7 @@ namespace CommonsUtility
             popupDistance *= gameSpeedMultiplier;
 
             resetPosition.y += popupDistance;
-            Debug.Log($"[NarakuTriggerHandler.OnPlayerEnter] プレイヤーを Y+{popupDistance:F1} に移動 (GameSpeed: {GameSpeedManager.GetGameSpeed():F1}x, 乗数: {gameSpeedMultiplier:F2})");
+            // Debug.Log($"[NarakuTriggerHandler.OnPlayerEnter] プレイヤーを Y+{popupDistance:F1} に移動 (GameSpeed: {GameSpeedManager.GetGameSpeed():F1}x, 乗数: {gameSpeedMultiplier:F2})");
             inputCtrl.CharacterMoveToPosition(resetPosition);
         }
 
@@ -254,7 +254,7 @@ namespace CommonsUtility
         {
             if (other == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnDestructibleEnter] Collider is null");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnDestructibleEnter] Collider is null");
                 return;
             }
 
@@ -268,7 +268,7 @@ namespace CommonsUtility
         {
             if (other == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] Collider is null");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] Collider is null");
                 return;
             }
 
@@ -276,14 +276,14 @@ namespace CommonsUtility
             _eventSystem = GameObjectTreat.GetEventSystem(_eventSystem);
             if (_eventSystem == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] EventSystem not found");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] EventSystem not found");
                 return;
             }
 
             _waterSurface = GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(_eventSystem);
             if (_waterSurface == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] WaterSurfaceManager not found;");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnRainDropEnter] WaterSurfaceManager not found;");
                 return;
             }
 
@@ -299,7 +299,7 @@ namespace CommonsUtility
         {
             if (other == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnWaterEnter] Collider is null");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnWaterEnter] Collider is null");
                 return;
             }
 
@@ -313,7 +313,7 @@ namespace CommonsUtility
         {
             if (other == null)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnGenericObjectEnter] Collider is null");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnGenericObjectEnter] Collider is null");
                 return;
             }
 
@@ -324,13 +324,13 @@ namespace CommonsUtility
             Vector3 resetPosition = DemController.GetClosestPointOnBounds(other, out bool succeeded);
             if (resetPosition == Vector3.zero)
             {
-                Debug.LogWarning("[NarakuTriggerHandler.OnGenericObjectEnter] DemController returned zero position");
+                // Debug.LogWarning("[NarakuTriggerHandler.OnGenericObjectEnter] DemController returned zero position");
                 return;
             }
 
             if (!succeeded)
             {
-                Debug.LogWarning($"[NarakuTriggerHandler.OnGenericObjectEnter] {other.gameObject.name}: 全{DemController.MaxIteration}回試行失敗。初期スポーン位置へフォールバック");
+                // Debug.LogWarning($"[NarakuTriggerHandler.OnGenericObjectEnter] {other.gameObject.name}: 全{DemController.MaxIteration}回試行失敗。初期スポーン位置へフォールバック");
                 resetPosition = GetFallbackPosition(other);
             }
 
@@ -387,7 +387,7 @@ namespace CommonsUtility
                 StartCoroutine(ReleaseConstraintsNextFrame(rb, originalConstraints));
             }
 
-            Debug.Log($"[NarakuTriggerHandler.ResetObjectVelocity] {other.gameObject.name}: 重力・速度をリセット (GameSpeed: {GameSpeedManager.GetGameSpeed():F1}x)");
+            // Debug.Log($"[NarakuTriggerHandler.ResetObjectVelocity] {other.gameObject.name}: 重力・速度をリセット (GameSpeed: {GameSpeedManager.GetGameSpeed():F1}x)");
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace CommonsUtility
             if (rb != null)
             {
                 rb.constraints = originalConstraints;
-                Debug.Log($"[NarakuTriggerHandler.ReleaseConstraintsNextFrame] {rb.gameObject.name}: constraints を解除");
+                // Debug.Log($"[NarakuTriggerHandler.ReleaseConstraintsNextFrame] {rb.gameObject.name}: constraints を解除");
             }
         }
     }

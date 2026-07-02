@@ -25,6 +25,7 @@
 | CameraController.cs | 全体 | 入り組んでおりコード品質が低くバグの温床になりつつある。リファクタリング予定（下記詳細） | REFACTOR | 中 |
 | InfrastructureFactory.cs | _spawnCounter | 施策ユニットの命名 ID を static カウンタでインクリメントしているが、他ユニットは _idx を足す方式で共通規格がない（ユニットごとにバラバラ）。将来、命名 ID を呼び出しクラスが持つ等の共通規格に統一する（ユニークである必要はないが極力ユニークに）。PrefabManager.GetNextUID の活用も検討 | REFACTOR | 低 |
 | 防災装置の和名表示 | Hydrant/Cistern | ビルドメニュー等で英名（Hydrant/Cistern）のまま。他タワーも英名なので、UI 抜本変更のタイミングで和名化する（撤去情報ウィンドウは InfrastructureUnit.GetUnitStruct で和名対応済み） | TODO | 低 |
+| ログ全体の整理 | 全体 | 1施行で Log 515件・Warning 999+ とログ洪水状態（2026-07-03 ユーザー報告）。TriggerHandler 誤警告と鎮火ログは対処済みだが、既存の高頻度ログ（クリックごとの raycast ログ、スポーン系、UIFontManager 等）が多数残る。LogUtility のログレベル活用を含め、リファクタリングフェーズでまとめて整理する | REFACTOR | 中 |
 
 ---
 

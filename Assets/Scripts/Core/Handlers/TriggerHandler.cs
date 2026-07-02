@@ -125,11 +125,19 @@ namespace CommonsUtility
                 Debug.LogWarning($"[{nameof(TriggerHandler)}] Collider is not a trigger on {gameObject.name}");
             }
 
-            if (string.IsNullOrEmpty(_targetTag))
+            if (RequiresSingleTargetTag && string.IsNullOrEmpty(_targetTag))
             {
                 Debug.LogWarning($"[{nameof(TriggerHandler)}] Target tag not set on {gameObject.name}. Call SetDefaultTargetTag() in child Awake()");
             }
         }
+
+        /// <summary>
+        /// 単一の対象タグ（_targetTag）を必須とするか。
+        /// MultiTagTriggerHandler のように独自のタグ管理を持つ派生は false を返し、
+        /// 基底の「Target tag not set」誤警告を抑制する（FireCube スポーンごとに出て
+        /// ログが 999+ に膨れていた・2026-07-03）
+        /// </summary>
+        protected virtual bool RequiresSingleTargetTag => true;
 
         protected virtual void OnTriggerEnter(Collider other)
         {

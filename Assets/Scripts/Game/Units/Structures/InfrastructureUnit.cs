@@ -11,8 +11,18 @@ namespace CommonsUtility
     /// 効果パラメータは InfrastructureFactory が設定する。
     /// バランス調整は W3 のデモ準備時に行う（値はすべて Factory の定数）。
     /// </summary>
-    public class InfrastructureUnit : MonoBehaviour
+    public class InfrastructureUnit : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     {
+        /// <summary>
+        /// IItemStructProvider 実装。InfoWindowCtrl.GetParentObject が本コンポーネントで
+        /// 遡上を止めるために必要（未実装だと親コンテナ Infrastructures まで遡ってしまい
+        /// 右クリック撤去が機能しなかった・2026-07-03）
+        /// </summary>
+        public ItemStruct ItemStruct => BuildItemStruct();
+
+        /// <summary>IUnitStructProvider 実装（情報ウィンドウ表示用）</summary>
+        public UnitStruct UnitStruct => GetUnitStruct();
+
         /// <summary>効果チェックの周期（秒）</summary>
         private const float _EFFECT_TICK_INTERVAL = 1.0f;
 
@@ -56,6 +66,26 @@ namespace CommonsUtility
             InvestmentLedger.RefundInvestment(InfraType, Cost);                     // 台帳巻き戻し
             Debug.Log($"[InfrastructureUnit] {InfraType} を撤去（BIT {Cost} 返金）");
             GameObjectTreat.DestroyAll(this.gameObject);
+        }
+
+        /// <summary>
+        /// IItemStructProvider 用の ItemStruct（配置済みユニットの参照用・最低限の内容）
+        /// </summary>
+        private ItemStruct BuildItemStruct()
+        {
+            return new ItemStruct(
+                GetDisplayName(InfraType),
+                this.gameObject.name,
+                GetDisplayName(InfraType),
+                "防災装置。右クリックで撤去できます",
+                Cost,
+                GlobalConst.SHORT_SCORE1_SCALE,
+                0f,
+                1,
+                "",
+                "",
+                0
+            );
         }
 
         private static string GetDisplayName(GameEnum.ModelsType type)
@@ -108,7 +138,7 @@ namespace CommonsUtility
                 fireCube.transform.localScale = fireCube.transform.localScale * (1f - ExtinguishPowerPerTick);
                 if (fireCube.transform.localScale.x < _EXTINGUISH_SCALE_THRESHOLD)
                 {
-                    Debug.Log($"[InfrastructureUnit] {InfraType} が {fireCube.name} を鎮火しました");
+                    // [NOTE] 鎮火は FireCube ごとに発生し高頻度のためログは出さない（ログ洪水対策 2026-07-03）
                     Destroy(fireCube);
                 }
             }

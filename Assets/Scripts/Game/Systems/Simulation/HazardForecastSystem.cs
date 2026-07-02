@@ -141,8 +141,16 @@ namespace CommonsUtility
             {
                 foreach (Dictionary<string, string> eventData in eventList)
                 {
-                    if (!eventData.TryGetValue(eventField, out string eventName)
-                        || eventName != YamlEventType.building_break.ToString())
+                    // building_break と building_break_fire（地震連動火災・2026-06-23 追加）の両方を
+                    // 倒壊予測の対象にする。quake_fire の building_break_fire 化で予測が 0 件になり
+                    // オレンジ予告が消えていた（2026-07-03 修正）
+                    bool isBreakEvent = false;
+                    if (eventData.TryGetValue(eventField, out string eventName))
+                    {
+                        isBreakEvent = eventName == YamlEventType.building_break.ToString()
+                            || eventName == YamlEventType.building_break_fire.ToString();
+                    }
+                    if (!isBreakEvent)
                     {
                         continue;
                     }

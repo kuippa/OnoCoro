@@ -56,6 +56,12 @@ namespace CommonsUtility
             }
             _spawnCounter = _spawnCounter + 1;
             unitObject.name = infraType.ToString() + _spawnCounter.ToString();
+            // 右クリック撤去の識別用タグ（TagManager 登録済みの Hydrant/Cistern のみ。
+            // Plaza はタグ未登録のため設定しない＝未定義タグ設定の例外を回避）
+            if (infraType == GameEnum.ModelsType.Hydrant || infraType == GameEnum.ModelsType.Cistern)
+            {
+                unitObject.tag = infraType.ToString();
+            }
             unitObject.transform.position = SnapToDemHeight(spawnPoint);
             unitObject.transform.SetParent(GetParentContainer().transform, true);
 

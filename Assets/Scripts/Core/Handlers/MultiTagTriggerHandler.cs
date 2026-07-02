@@ -16,6 +16,9 @@ namespace CommonsUtility
     {
         private HashSet<GameEnum.TagType> _targetTags = new HashSet<GameEnum.TagType>();
 
+        /// <summary>複数タグ方式のため、基底の単一タグ必須チェック（誤警告）を無効化</summary>
+        protected override bool RequiresSingleTargetTag => false;
+
         /// <summary>
         /// 監視対象タグを設定します（複数指定可）
         /// </summary>

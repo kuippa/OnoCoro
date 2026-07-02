@@ -233,3 +233,25 @@ _spawnCounter = _spawnCounter + 1; で名前をつけているが、staticのた
 現在、Claude codeが 停電しているようなのでここまでかな・・・
 
 
+# 2026/7/3
+Fable5が戻ってきた
+[部分的OK] Console エラーなし
+一度の施行で大量のLog 515件、LogWarning 999+ を吐き出しているのでこちら側で明確に一部不要なものをコメントアウトした。おいきれない。
+その他不明瞭なログが多い、
+[TriggerHandler.Awake] [TriggerHandler] Target tag not set on FireCube(Clone). Call SetDefaultTargetTag() in child Awake()
+などが出ているがTriggerHandlerは今回追加されたクラスか？目的もわからず困惑している。
+CloneをつくったタイミングでAwakeしているが、そもそもなんの目的でつくっているのか不明。
+
+[NG] Hydrant/Cistern を右クリック → 情報ウィンドウ → 削除で撤去でき、BITが返る（他ユニット同様）
+機能していない。
+[InfoWindowCtrl.GetUnitStruct] GetUnitStruct default Untagged Infrastructures
+
+[NG]プレファブ経由で見た目/効果が従来どおり（範囲リング含む）
+マテリアルが飛んでいたので、こちらでセットした。
+
+[進展あり]Year2 で倒壊した建物すべての付近から出火する
+火がでる箇所が増えたが、予告で壊れるたてものの色変更が機能しなくなっており、どこから失火するかわからなくなってしまった。
+
+[次回あらためて確認]テロップ・「防災装置」表現
+
+
