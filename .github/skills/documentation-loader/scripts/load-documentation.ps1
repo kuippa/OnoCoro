@@ -38,7 +38,22 @@ param(
 )
 
 # Get project root
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = (Get-Location).Path
+
+if ($scriptDir) {
+    $fallbackRoot = Join-Path $scriptDir "..\..\..\.."
+    try {
+        $resolvedRoot = Resolve-Path $fallbackRoot -ErrorAction Stop
+        if ($resolvedRoot) {
+            $projectRoot = $resolvedRoot.Path
+        }
+    }
+    catch {
+        # Ignore fallback failure and use current location
+    }
+}
+
 $docsToLoad = @(
     "AGENTS.md",
     "docs/coding-standards.md",
