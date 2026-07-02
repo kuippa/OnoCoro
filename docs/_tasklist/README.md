@@ -35,6 +35,7 @@ tasklist/ フォルダは、**ドキュメント層（docs/）** とは異なる
 | [season3-w1-turnbased-detailed-plan.md](./detailed/season3-w1-turnbased-detailed-plan.md) | W1 ターンベース化 | 完了（2026-06-12） |
 | [season3-w2-policy-map-detailed-plan.md](./detailed/season3-w2-policy-map-detailed-plan.md) | W2 小マップ + 施策 + カメラシェイク | 完了（2026-06-13） |
 | [season3-w3-result-roi-detailed-plan.md](./detailed/season3-w3-result-roi-detailed-plan.md) | W3 結果表示（被害率・ROI）+ デモフロー | 完了（2026-06-16） |
+| [season3-w4-demo-materials-detailed-plan.md](./detailed/season3-w4-demo-materials-detailed-plan.md) | W4 デモ動画 + 首長向け資料 | 計画確定 |
 
 **Season 2 の計画（アーカイブ）**:
 - [../season2_archive/](../season2_archive/) - roadmap-phase-2/3、phase-2/3 詳細計画、bugs/fixme の Season 2 分
