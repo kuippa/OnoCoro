@@ -106,6 +106,9 @@ namespace CommonsUtility
         
         /// <summary>建物破壊イベント（BuildingBreak コンポーネント で処理）</summary>
         building_break,
+
+        /// <summary>建物破壊＋倒壊した各建物から出火（地震連動火災。倒壊数を出火数に反映）</summary>
+        building_break_fire,
         
         // UI 通知イベント
         /// <summary>通知メッセージ表示（NoticeCtrl で処理）</summary>

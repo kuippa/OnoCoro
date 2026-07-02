@@ -267,6 +267,9 @@ public class EventLoader : MonoBehaviour, IInitializable
             case nameof(YamlEventType.building_break):
                 CallBuildingBreak(event_value);
                 break;
+            case nameof(YamlEventType.building_break_fire):
+                CallBuildingBreakFire(event_value);
+                break;
             case nameof(YamlEventType.telop):
                 CallTelopShow(event_value);
                 break;
@@ -604,6 +607,52 @@ public class EventLoader : MonoBehaviour, IInitializable
         
         buildingBreak.EventBreakBuilding(event_value);
         EventLogCtrl.Instance.ShowEventLog("BuildingBreak:" + event_value);
+    }
+
+    /// <summary>
+    /// building_break_fire: 建物を N 棟倒壊させ、倒壊した各建物から出火させる。
+    /// 出火数が倒壊数に一致し、地震連動火災の延焼が倒壊規模を反映する
+    /// </summary>
+    private void CallBuildingBreakFire(string event_value)
+    {
+        GameObject eventSystem = GameObjectTreat.GetEventSystem();
+        BuildingBreak buildingBreak = eventSystem.GetComponent<BuildingBreak>();
+        if (buildingBreak == null)
+        {
+            buildingBreak = eventSystem.AddComponent<BuildingBreak>();
+        }
+
+        if (!int.TryParse(event_value.Trim(), out int count) || count <= 0)
+        {
+            Debug.LogWarning($"[EventLoader] building_break_fire: 棟数が不正 '{event_value}'");
+            return;
+        }
+
+        List<GameObject> brokenBuildings = buildingBreak.BreakBuildingsForFire(count);
+        SpawnController spawnCtrl = GameObjectTreat.GetSpawnController();
+        if (spawnCtrl == null)
+        {
+            return;
+        }
+
+        int fireCount = 0;
+        foreach (GameObject building in brokenBuildings)
+        {
+            if (building == null)
+            {
+                continue;
+            }
+            Renderer buildingRenderer = building.GetComponent<Renderer>();
+            if (buildingRenderer == null)
+            {
+                continue;
+            }
+            Vector3 firePosition = GetDoomFirePerimeterPosition(buildingRenderer.bounds.center, buildingRenderer.bounds.extents);
+            spawnCtrl.CallUnitByName(GameEnum.ModelsType.FireCube.ToString(), firePosition);
+            fireCount = fireCount + 1;
+        }
+        Debug.Log($"[EventLoader] building_break_fire: {brokenBuildings.Count} 棟倒壊・{fireCount} 箇所から出火");
+        EventLogCtrl.Instance.ShowEventLog("地震で " + brokenBuildings.Count + " 棟倒壊・出火");
     }
 
     private void CallTelopShow(string event_value, bool isSubTelop = false)

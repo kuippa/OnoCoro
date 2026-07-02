@@ -48,30 +48,60 @@ namespace CommonsUtility
                 return false;
             }
 
-            GameObject unitObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            GameObject unitObject = InstantiateInfrastructureBody(infraType);
+            if (unitObject == null)
+            {
+                Debug.LogWarning($"[InfrastructureFactory] {infraType} のプレファブが取得できません");
+                return false;
+            }
             _spawnCounter = _spawnCounter + 1;
             unitObject.name = infraType.ToString() + _spawnCounter.ToString();
             unitObject.transform.position = SnapToDemHeight(spawnPoint);
-            unitObject.transform.localScale = new Vector3(1.5f, 1.2f, 1.5f);
             unitObject.transform.SetParent(GetParentContainer().transform, true);
 
-            Renderer bodyRenderer = unitObject.GetComponent<Renderer>();
-            if (bodyRenderer != null)
+            // 効果パラメータは config 由来なので、プレファブに何が入っていても実行時に上書きする
+            InfrastructureUnit unit = unitObject.GetComponent<InfrastructureUnit>();
+            if (unit == null)
             {
-                bodyRenderer.material.color = color;
+                unit = unitObject.AddComponent<InfrastructureUnit>();
             }
-
-            InfrastructureUnit unit = unitObject.AddComponent<InfrastructureUnit>();
             unit.InfraType = infraType;
             unit.EffectRadius = radius;
             unit.ExtinguishPowerPerTick = power;
             unit.Cost = cost;
 
-            BuildRangeRing(unitObject, radius, color);
+            // 効果範囲リングは半径が config 依存のため、既存があれば作り直す
+            RebuildRangeRing(unitObject, radius, color);
             InvestmentLedger.RecordInvestment(infraType, cost);
 
             Debug.Log($"[InfrastructureFactory] {infraType} を配置: pos={spawnPoint}, 半径={radius}, コスト={cost}");
             return true;
+        }
+
+        /// <summary>
+        /// 施策タイプに対応するプレファブを PrefabManager から取得して生成する
+        /// </summary>
+        private static GameObject InstantiateInfrastructureBody(GameEnum.ModelsType infraType)
+        {
+            GameObject prefab = null;
+            if (infraType == GameEnum.ModelsType.Hydrant)
+            {
+                prefab = PrefabManager.HydrantPrefab;
+            }
+            else if (infraType == GameEnum.ModelsType.Cistern)
+            {
+                prefab = PrefabManager.CisternPrefab;
+            }
+            else if (infraType == GameEnum.ModelsType.Plaza)
+            {
+                prefab = PrefabManager.HydrantPrefab;  // Plaza は暫定（メニュー外）。専用プレファブ未作成
+            }
+
+            if (prefab == null)
+            {
+                return null;
+            }
+            return Object.Instantiate(prefab);
         }
 
         /// <summary>
@@ -110,6 +140,19 @@ namespace CommonsUtility
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// 効果範囲リングを（プレファブに既存があれば破棄して）現在の半径で構築し直す
+        /// </summary>
+        private static void RebuildRangeRing(GameObject unitObject, float radius, Color color)
+        {
+            Transform existingRing = unitObject.transform.Find("EffectRangeRing");
+            if (existingRing != null)
+            {
+                Object.Destroy(existingRing.gameObject);
+            }
+            BuildRangeRing(unitObject, radius, color);
         }
 
         /// <summary>

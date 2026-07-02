@@ -23,6 +23,8 @@
 |---------|--------|------|--------|--------|
 | （シーン作成手順） | - | 新規マップ作成時に DEM へ NavMesh Surface を追加し忘れるとユニットが配置できない。将来のユーザージェネレーティブなマップ作成に向けて、自動生成または起動時警告の仕組みが必要（2026-06-13 三鷹井の頭５丁目で発生。手順は staging/Scenes作成手順メモ.md 参照） | TODO | 中 |
 | CameraController.cs | 全体 | 入り組んでおりコード品質が低くバグの温床になりつつある。リファクタリング予定（下記詳細） | REFACTOR | 中 |
+| InfrastructureFactory.cs | _spawnCounter | 施策ユニットの命名 ID を static カウンタでインクリメントしているが、他ユニットは _idx を足す方式で共通規格がない（ユニットごとにバラバラ）。将来、命名 ID を呼び出しクラスが持つ等の共通規格に統一する（ユニークである必要はないが極力ユニークに）。PrefabManager.GetNextUID の活用も検討 | REFACTOR | 低 |
+| 防災装置の和名表示 | Hydrant/Cistern | ビルドメニュー等で英名（Hydrant/Cistern）のまま。他タワーも英名なので、UI 抜本変更のタイミングで和名化する（撤去情報ウィンドウは InfrastructureUnit.GetUnitStruct で和名対応済み） | TODO | 低 |
 
 ---
 

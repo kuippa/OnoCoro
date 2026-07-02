@@ -45,6 +45,34 @@ namespace CommonsUtility
         }
 
         /// <summary>
+        /// 施策の撤去に伴い投資記録を巻き戻す（BIT 返金と対で呼ぶ）
+        /// </summary>
+        internal static void RefundInvestment(GameEnum.ModelsType infraType, int cost)
+        {
+            int year = YearCycleSystem.CurrentYear;
+
+            if (_yearTotals.ContainsKey(year))
+            {
+                _yearTotals[year] = _yearTotals[year] - cost;
+                if (_yearTotals[year] < 0)
+                {
+                    _yearTotals[year] = 0;
+                }
+            }
+
+            if (_yearPlacements.ContainsKey(year) && _yearPlacements[year].ContainsKey(infraType))
+            {
+                _yearPlacements[year][infraType] = _yearPlacements[year][infraType] - 1;
+                if (_yearPlacements[year][infraType] < 0)
+                {
+                    _yearPlacements[year][infraType] = 0;
+                }
+            }
+
+            Debug.Log($"[InvestmentLedger] Year {year}: {infraType} を撤去（返金 {cost}）年合計 {GetYearTotal(year)}");
+        }
+
+        /// <summary>
         /// 指定年の投資合計を取得
         /// </summary>
         internal static int GetYearTotal(int year)

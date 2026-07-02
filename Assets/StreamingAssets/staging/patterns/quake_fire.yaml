@@ -17,12 +17,7 @@ events:
   - time: 2
     event: notice
     value: "地震が発生しました。"
+  # 倒壊した各建物から出火（出火数＝倒壊数）。旧: building_break + FireCube 2箇所固定
   - time: 7
-    event: building_break
+    event: building_break_fire
     value: "{break_count}"
-  - time: 8
-    event: spawn_unit
-    value: FireCube, random_doom_building
-  - time: 9
-    event: spawn_unit
-    value: FireCube, random_doom_building

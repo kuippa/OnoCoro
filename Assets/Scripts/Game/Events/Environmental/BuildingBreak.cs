@@ -83,6 +83,52 @@ public class BuildingBreak : MonoBehaviour
         Debug.Log($"[BuildingBreak] {num} 棟を倒壊指定（うち新規 {newlyCollapsed} 棟・対象候補 {_buildingGameObject.Count} 棟）");
     }
 
+    /// <summary>
+    /// [building_break_fire 用] 未倒壊の建物を先頭から count 件 新規に倒壊させ、その建物を返す。
+    /// EventBreakBuilding（building_break 本体）は変更せず、出火用に別メソッドとして用意。
+    /// 呼び出し側（EventLoader）が返り値の各建物から出火させる（倒壊数＝出火数）
+    /// </summary>
+    internal System.Collections.Generic.List<GameObject> BreakBuildingsForFire(int count)
+    {
+        var broken = new System.Collections.Generic.List<GameObject>();
+        if (_buildingGameObject.Count == 0)
+        {
+            Debug.LogWarning("[BuildingBreak] building_break_fire: 対象建物が 0 棟");
+            return broken;
+        }
+        GameObject obj = GameObject.Find("Plateau");
+        PlateauInfoManager component = obj != null ? obj.GetComponent<PlateauInfoManager>() : null;
+        PlateauBuildingInteractor interactor = obj != null ? obj.GetComponent<PlateauBuildingInteractor>() : null;
+        if (component == null)
+        {
+            Debug.LogWarning("[BuildingBreak] building_break_fire: PlateauInfoManager が見つからない");
+            return broken;
+        }
+
+        int num = 0;
+        foreach (GameObject item in _buildingGameObject)
+        {
+            if (num >= count)
+            {
+                break;
+            }
+            if (item == null || !item.activeSelf)
+            {
+                continue;
+            }
+            if (interactor != null && interactor.IsBuildingDoomed(item))
+            {
+                continue;  // 未倒壊優先（building_break と同じ）
+            }
+            component.SetBuildingToDoom(item);
+            broken.Add(item);
+            num++;
+        }
+        CommonsUtility.DamageReportSystem.AddQuakeCollapse(broken.Count);
+        Debug.Log($"[BuildingBreak] building_break_fire: {broken.Count} 棟を倒壊させ出火対象に");
+        return broken;
+    }
+
     private void Awake()
     {
         GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();

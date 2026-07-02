@@ -27,6 +27,8 @@ public class GameEnum
         SentryGuard,
         Holder,
         PathBloom,
+        Hydrant,
+        Cistern,
     }
 
     internal enum ModelsType

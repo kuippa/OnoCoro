@@ -88,6 +88,14 @@ public class InfoWindowCtrl : UIControllerBase
                 component2.DeleteUnitProcess();
             }
         }
+        else if (target.tag == GameEnum.TagType.Hydrant.ToString() || target.tag == GameEnum.TagType.Cistern.ToString())
+        {
+            InfrastructureUnit infra = target.GetComponent<InfrastructureUnit>();
+            if (infra != null)
+            {
+                infra.RemoveByUser();  // BIT 返金 + 台帳巻き戻し + 破棄
+            }
+        }
         else
         {
             Debug.Log("DeleteUnitProcess " + target.name + " " + target.tag);
@@ -305,6 +313,14 @@ public class InfoWindowCtrl : UIControllerBase
         else if (tag == GameEnum.TagType.SentryGuard.ToString())
         {
             unitStruct = collider.GetComponent<SentryGuard>().GetUnitStruct();
+        }
+        else if (tag == GameEnum.TagType.Hydrant.ToString() || tag == GameEnum.TagType.Cistern.ToString())
+        {
+            InfrastructureUnit infra = collider.GetComponent<InfrastructureUnit>();
+            if (infra != null)
+            {
+                unitStruct = infra.GetUnitStruct();
+            }
         }
         else
         {
