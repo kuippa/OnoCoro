@@ -61,70 +61,35 @@ public class PlateauCubeMaker : MonoBehaviour
             return;
         }
 
-        // [修正 2026-08-28] 既存の BreakUpBuildingCube と同じ方式に揃える。
-        // スポーンは建物中心・高さ center.y + 0.5（実際のばらつきは isSwayingPoint が担当）。
-        // 独自の接地 Raycast や山積み計算はやめ、既存挙動と揃えることで奈落落ちを防ぐ
+        // [修正 2026-08-28] 既存の BreakUpBuildingCube と完全に同じ手順にする。
+        // 生成も CreateGarbageRoundByAngle（円周状＋パーリンノイズ・小サイズ）を共用し、
+        // 目標量だけを「再建コスト」から「解体廃棄物量(t)」に差し替える。
+        // ※ 独自に大サイズ＋サイズ比例スコアにしたところ、巨大キューブ 2 個で
+        //    目標量に達してしまい雑多感が失われたため戻した
         Vector3 center = renderer.bounds.center;
-        Vector3 spawnPoint = new Vector3(center.x, center.y + _DEBRIS_SPAWN_HEIGHT, center.z);
+        Vector3 extents = renderer.bounds.extents;
 
-        // サイズをバラけさせつつ、ScoreCtrl.GetTotalGarbageScore（サイズから量を算出）を
-        // 積算して目標量に達するまで撒く → サイズが変わっても総量が揃う
         int targetAmount = Mathf.CeilToInt(debrisTons * _DEBRIS_AMOUNT_PER_TON);
+        int step = GetAngleSpacing(targetAmount);
         int accumulated = 0;
-        int spawnCount = 0;
+        int index = 0;
 
         while (accumulated < targetAmount)
         {
-            accumulated += CreateDemolitionDebrisCube(spawnPoint);
-            spawnCount++;
-            if (spawnCount > _MAX_DEBRIS_SPAWN_COUNT)
+            accumulated += CreateGarbageRoundByAngle(center, extents, step, index);
+            index++;
+            if (index > _MAX_DEBRIS_SPAWN_COUNT)
             {
                 break;
             }
         }
     }
 
-    /// <summary>瓦礫のスポーン高さ（建物 bounds 中心からの相対。既存 BreakUpBuildingCube と同値）</summary>
-    private const float _DEBRIS_SPAWN_HEIGHT = 0.5f;
+    /// <summary>廃棄物 1t あたりの目標量（GarbageCube の基本スコア 10 に対する重み）</summary>
+    private const float _DEBRIS_AMOUNT_PER_TON = 10.0f;
 
-    /// <summary>廃棄物 1t あたりの目標量（GetTotalGarbageScore の積算単位）</summary>
-    private const float _DEBRIS_AMOUNT_PER_TON = 1.0f;
-
-    /// <summary>1 棟あたりの瓦礫スポーン回数の上限（処理落ち防止。既存実装と同じ 200）</summary>
+    /// <summary>1 棟あたりの瓦礫スポーン回数の上限（既存実装と同じ 200）</summary>
     private const int _MAX_DEBRIS_SPAWN_COUNT = 200;
-
-    /// <summary>
-    /// 解体廃棄物の瓦礫を 1 個生成し、その量（サイズ由来のスコア）を返す。
-    ///
-    /// 既存の CreateGarbageCubeNormal と同じ同期生成で、
-    /// ScoreCtrl.GetTotalGarbageScore がキューブのサイズから量を算出する。
-    /// これによりサイズをランダムに散らしても、積算した総量は目標に揃う。
-    /// サイズは通常（0.3m）と大（1.5〜3.0m）を混ぜ、解体瓦礫として視認できる大きさにする
-    /// </summary>
-    private int CreateDemolitionDebrisCube(Vector3 pos)
-    {
-        int sizeFlag = GarbageCubeFactory._SIZE_BIG;
-        if (Utility.fRandomRange(0f, 1f) < _DEBRIS_SMALL_RATIO)
-        {
-            sizeFlag = GarbageCubeFactory._SIZE_NORMAL;
-        }
-
-        GameObject unit = GarbageCubeFactory.SpawnGarbageCube(pos, sizeFlag, isSwayingPoint: true);
-        if (unit == null)
-        {
-            return GarbageCube.GetBaseScore();  // 生成失敗時も無限ループにしない
-        }
-
-        Collider collider = unit.GetComponent<Collider>();
-        if (collider == null)
-        {
-            return GarbageCube.GetBaseScore();
-        }
-        return ScoreCtrl.GetTotalGarbageScore(collider);
-    }
-
-    /// <summary>小さい破片を混ぜる割合</summary>
-    private const float _DEBRIS_SMALL_RATIO = 0.3f;
 
     private int CreateGarbageRoundByAngle(Vector3 center, Vector3 extents, int step, int i)
     {
