@@ -54,6 +54,11 @@ namespace CommonsUtility
             {"bldg:rebuildcost", "再建コスト[BIT]"},
             {"bldg:rebuildbouns", "再建ボーナス[CLK]"},
 
+            // [CityHack 2026] 解体廃棄物まわり
+            // 建物構造は PLATEAU に実データが無いため、耐火構造種別・階数・用途地域から推定した値
+            {"bldg:structuretype", "構造種別"},
+            {"bldg:demolitiontons", "解体廃棄物[t]"},
+
         };
 
         internal static readonly Dictionary<string, string> _eng_lang_const = new Dictionary<string, string>()

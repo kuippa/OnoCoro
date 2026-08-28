@@ -72,6 +72,26 @@ namespace CommonsUtility
             return _specs[TYPE_UNKNOWN];
         }
 
+        /// <summary>
+        /// 建物種別キーを画面表示用の日本語名にする（情報ウィンドウ用）
+        /// </summary>
+        internal static string GetStructureDisplayName(string type)
+        {
+            if (type == TYPE_WOOD)
+            {
+                return "木造（推定）";
+            }
+            if (type == TYPE_STEEL)
+            {
+                return "鉄骨造（推定）";
+            }
+            if (type == TYPE_CONCRETE)
+            {
+                return "RC・SRC造（推定）";
+            }
+            return "不明";
+        }
+
         /// <summary>係数を既定値へ戻す（ステージロード時）</summary>
         internal static void ResetSpecsToDefaults()
         {
