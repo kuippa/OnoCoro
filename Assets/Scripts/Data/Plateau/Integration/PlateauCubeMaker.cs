@@ -65,6 +65,11 @@ public class PlateauCubeMaker : MonoBehaviour
         Vector3 extents = renderer.bounds.extents;
         float radius = GetRadius(extents);
 
+        // [修正 2026-08-28] 建物 bounds の中心高さから落とすと、地面コライダーが無い所や
+        // 建物内部に湧いてすり抜け、奈落に落ちて消えていた。
+        // 地面（Ground レイヤー）へ Raycast して接地高さを求め、その上に積む
+        int groundLayerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
+
         for (int i = 0; i < debrisCubeCount; i++)
         {
             // 跡地に山なりに積むため、中心寄り（0.2〜1.0 倍）のランダム半径に散らす
@@ -73,12 +78,62 @@ public class PlateauCubeMaker : MonoBehaviour
             float x = center.x + radius * ratio * Mathf.Cos(angle);
             float z = center.z + radius * ratio * Mathf.Sin(angle);
 
-            // 中心に近いほど高く積む（瓦礫の山の形）
-            float heightRatio = 1.0f - ratio;
-            float y = center.y + _DEBRIS_BASE_HEIGHT + heightRatio * _DEBRIS_PILE_HEIGHT;
+            if (!TryGetGroundY(x, z, groundLayerMask, out float groundY))
+            {
+                continue;  // 地面が無い位置には撒かない（場外・奈落行きを防ぐ）
+            }
 
-            CreateGarbageCubeSmall(new Vector3(x, y, z));
+            // 中心に近いほど高く積む（瓦礫の山の形）。接地高さ基準で少しだけ浮かせて落とす
+            float heightRatio = 1.0f - ratio;
+            float y = groundY + _DEBRIS_BASE_HEIGHT + heightRatio * _DEBRIS_PILE_HEIGHT;
+
+            CreateDemolitionDebrisCube(new Vector3(x, y, z));
         }
+    }
+
+    /// <summary>
+    /// 解体廃棄物の瓦礫を 1 個生成する。
+    /// [修正 2026-08-28] 従来の小サイズ（0.08〜0.3m）はゴミ屑相当で建物の隣ではほぼ見えなかったため、
+    /// 解体瓦礫は大サイズ（1.5〜3.0m）主体にして「瓦礫の山」として視認できるようにする
+    /// </summary>
+    private void CreateDemolitionDebrisCube(Vector3 pos)
+    {
+        GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
+        GarbageCubeSpawner garbageCubeSpawner = gameManagerObject.GetComponent<GarbageCubeSpawner>();
+        if (garbageCubeSpawner == null)
+        {
+            garbageCubeSpawner = gameManagerObject.AddComponent<GarbageCubeSpawner>();
+        }
+
+        // 大きい瓦礫を主体に、小さい破片を混ぜて山らしく見せる
+        int sizeFlag = GarbageCubeFactory._SIZE_BIG;
+        if (Utility.fRandomRange(0f, 1f) < _DEBRIS_SMALL_RATIO)
+        {
+            sizeFlag = GarbageCubeFactory._SIZE_NORMAL;
+        }
+        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, sizeFlag, isSwayingPoint: true);
+    }
+
+    /// <summary>小さい破片を混ぜる割合</summary>
+    private const float _DEBRIS_SMALL_RATIO = 0.3f;
+
+    /// <summary>
+    /// 指定 XZ の地面（Ground レイヤー）の高さを取得する
+    /// </summary>
+    private bool TryGetGroundY(float x, float z, int groundLayerMask, out float groundY)
+    {
+        const float _RAY_ORIGIN_HEIGHT = 500f;
+        const float _RAY_MAX_DISTANCE = 1000f;
+
+        Vector3 rayOrigin = new Vector3(x, _RAY_ORIGIN_HEIGHT, z);
+        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, groundLayerMask))
+        {
+            groundY = hit.point.y;
+            return true;
+        }
+
+        groundY = 0f;
+        return false;
     }
 
     /// <summary>瓦礫を撒く最小半径比（0 に近いほど中心に寄る）</summary>

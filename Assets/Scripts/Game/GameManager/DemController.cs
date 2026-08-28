@@ -173,10 +173,20 @@ public static class DemController
             return false;
         }
 
-        Mesh mesh = meshFilter.mesh;
+        // [修正 2026-08-28] meshFilter.mesh は呼ぶたびにメッシュの複製を生成する（リーク）。
+        // 読み取り専用の用途なので sharedMesh を使う
+        Mesh mesh = meshFilter.sharedMesh;
         if (mesh == null)
         {
             return false;
+        }
+
+        // [修正 2026-08-28] Read/Write 無効なメッシュは triangles にアクセスすると例外になる。
+        // Raycast がヒットしている以上ジオメトリは存在するので、判定成功とみなす
+        // （PLATEAU の結合メッシュは isReadable=false のため、瓦礫落下時に例外が多発していた）
+        if (!mesh.isReadable)
+        {
+            return true;
         }
 
         int[] triangles = mesh.triangles;
