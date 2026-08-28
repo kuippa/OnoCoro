@@ -46,6 +46,50 @@ public class PlateauCubeMaker : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 解体廃棄物として、建物の跡地に指定個数の瓦礫を散布する（CityHack 2026）
+    ///
+    /// 既存の BreakUpBuildingCube は「再建コスト分のスコアが貯まるまで」撒くのに対し、
+    /// こちらは DemolitionSystem が算定した廃棄物量に比例した個数を撒く。
+    /// 建物は更地化されるため、跡地（建物のフットプリント内側）にも瓦礫を積む
+    /// </summary>
+    internal void ScatterDemolitionDebris(GameObject targetObj, int debrisCubeCount)
+    {
+        Renderer renderer = targetObj.GetComponent<Renderer>();
+        if (renderer == null)
+        {
+            return;
+        }
+
+        Vector3 center = renderer.bounds.center;
+        Vector3 extents = renderer.bounds.extents;
+        float radius = GetRadius(extents);
+
+        for (int i = 0; i < debrisCubeCount; i++)
+        {
+            // 跡地に山なりに積むため、中心寄り（0.2〜1.0 倍）のランダム半径に散らす
+            float ratio = Utility.fRandomRange(_DEBRIS_INNER_RATIO, 1.0f);
+            float angle = Utility.fRandomRange(0f, 360f) * Mathf.Deg2Rad;
+            float x = center.x + radius * ratio * Mathf.Cos(angle);
+            float z = center.z + radius * ratio * Mathf.Sin(angle);
+
+            // 中心に近いほど高く積む（瓦礫の山の形）
+            float heightRatio = 1.0f - ratio;
+            float y = center.y + _DEBRIS_BASE_HEIGHT + heightRatio * _DEBRIS_PILE_HEIGHT;
+
+            CreateGarbageCubeSmall(new Vector3(x, y, z));
+        }
+    }
+
+    /// <summary>瓦礫を撒く最小半径比（0 に近いほど中心に寄る）</summary>
+    private const float _DEBRIS_INNER_RATIO = 0.2f;
+
+    /// <summary>瓦礫のスポーン基準高さ（地面へ落下させるため少し浮かせる）</summary>
+    private const float _DEBRIS_BASE_HEIGHT = 1.0f;
+
+    /// <summary>瓦礫の山の高さ（中心が最も高い）</summary>
+    private const float _DEBRIS_PILE_HEIGHT = 4.0f;
+
     private int CreateGarbageRoundByAngle(Vector3 center, Vector3 extents, int step, int i)
     {
         float radius = GetRadius(extents);

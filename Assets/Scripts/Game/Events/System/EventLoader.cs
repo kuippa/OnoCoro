@@ -270,6 +270,9 @@ public class EventLoader : MonoBehaviour, IInitializable
             case nameof(YamlEventType.building_break_fire):
                 CallBuildingBreakFire(event_value);
                 break;
+            case nameof(YamlEventType.building_demolish):
+                CallBuildingDemolish(event_value);
+                break;
             case nameof(YamlEventType.telop):
                 CallTelopShow(event_value);
                 break;
@@ -653,6 +656,38 @@ public class EventLoader : MonoBehaviour, IInitializable
         }
         Debug.Log($"[EventLoader] building_break_fire: {brokenBuildings.Count} 棟倒壊・{fireCount} 箇所から出火");
         EventLogCtrl.Instance.ShowEventLog("地震で " + brokenBuildings.Count + " 棟倒壊・出火");
+    }
+
+    /// <summary>
+    /// building_demolish: 建物を N 棟 解体（更地化＋瓦礫散布）する（CityHack 2026）。
+    /// value に "all" を指定すると対象建物すべてを解体する
+    /// </summary>
+    private void CallBuildingDemolish(string event_value)
+    {
+        GameObject eventSystem = GameObjectTreat.GetEventSystem();
+        BuildingBreak buildingBreak = eventSystem.GetComponent<BuildingBreak>();
+        if (buildingBreak == null)
+        {
+            buildingBreak = eventSystem.AddComponent<BuildingBreak>();
+        }
+
+        string trimmed = event_value.Trim();
+        int count = 0;
+        if (trimmed == GameEnum.PathMarkerNameParts.ALL)
+        {
+            count = buildingBreak.GetBreakTargets().Count;
+        }
+        else if (!int.TryParse(trimmed, out count) || count <= 0)
+        {
+            Debug.LogWarning($"[EventLoader] building_demolish: 棟数が不正 '{event_value}'");
+            return;
+        }
+
+        int demolished = buildingBreak.DemolishBuildings(count);
+        if (EventLogCtrl.Instance != null)
+        {
+            EventLogCtrl.Instance.ShowEventLog($"解体 {demolished} 棟 / {DemolitionSystem.GetSummaryText()}");
+        }
     }
 
     private void CallTelopShow(string event_value, bool isSubTelop = false)

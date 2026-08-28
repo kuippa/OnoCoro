@@ -30,6 +30,19 @@ namespace CommonsUtility
 
             {"uro:areaClassificationType", "用途区域"},
 
+            // 建物構造・地域地区（CityHack 2026: 解体廃棄物の発生原単位の係数に使用）
+            // ※ PLATEAU の整備状況によって存在しない属性もある（無い場合は表示されないだけ）
+            {"uro:buildingStructureType", "建物構造"},
+            {"uro:buildingStructureOrgType", "建物構造（独自）"},
+            {"uro:fireproofStructureType", "耐火構造種別"},
+            {"uro:districtsAndZonesType", "地域地区"},
+            {"uro:urbanPlanType", "区域区分"},
+            {"uro:landUseType", "土地利用"},
+            {"bldg:yearOfConstruction", "建築年"},
+            {"bldg:class", "建物分類"},
+            {"uro:totalFloorArea", "延床面積（実測）[㎡]"},
+            {"uro:buildingFootprintArea", "建築面積[㎡]"},
+
             {"dem:lod", "道"},
             {"gml:name", "名称"},
 

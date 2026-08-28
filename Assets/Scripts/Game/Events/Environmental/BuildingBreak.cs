@@ -129,6 +129,48 @@ public class BuildingBreak : MonoBehaviour
         return broken;
     }
 
+    /// <summary>
+    /// [building_demolish 用] 建物を count 棟 解体（更地化＋瓦礫散布）する（CityHack 2026）。
+    /// EventBreakBuilding（building_break 本体）は変更せず、解体用に別メソッドとして用意。
+    /// "all" 指定は EventLoader 側で対象数に変換して渡す
+    /// </summary>
+    /// <returns>解体した棟数</returns>
+    internal int DemolishBuildings(int count)
+    {
+        if (_buildingGameObject.Count == 0)
+        {
+            Debug.LogWarning("[BuildingBreak] building_demolish: 対象建物が 0 棟");
+            return 0;
+        }
+        GameObject obj = GameObject.Find("Plateau");
+        PlateauInfoManager component = obj != null ? obj.GetComponent<PlateauInfoManager>() : null;
+        if (component == null)
+        {
+            Debug.LogWarning("[BuildingBreak] building_demolish: PlateauInfoManager が見つからない");
+            return 0;
+        }
+
+        int demolished = 0;
+        foreach (GameObject item in _buildingGameObject)
+        {
+            if (demolished >= count)
+            {
+                break;
+            }
+            if (item == null || !item.activeSelf)
+            {
+                continue;  // 解体済み（Destroy されると null になる）はスキップ
+            }
+            if (component.DemolishBuilding(item) > 0f)
+            {
+                demolished++;
+            }
+        }
+
+        Debug.Log($"[BuildingBreak] building_demolish: {demolished} 棟を解体。{DemolitionSystem.GetSummaryText()}");
+        return demolished;
+    }
+
     private void Awake()
     {
         GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();

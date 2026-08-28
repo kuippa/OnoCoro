@@ -152,6 +152,46 @@ public class PlateauInfoManager : MonoBehaviour
         _uiManager.DisplayBuildingInfo(buildingInfo, rebuildCost, isDoomedBuilding);
     }
 
+    /// <summary>
+    /// 建物を解体する（CityHack 2026）。
+    /// 属性から解体廃棄物量を算定 → 跡地に瓦礫を散布 → 建物を完全消去（更地化）→ 累計に記録。
+    ///
+    /// SetBuildingToDoom（マテリアル変更で「壊れた表現」にする既存動作）とは異なり、
+    /// 建物そのものを消して更地にするのが解体イベントの挙動
+    /// </summary>
+    /// <returns>発生した解体廃棄物量（t）。解体できなかった場合は 0</returns>
+    internal float DemolishBuilding(GameObject building)
+    {
+        if (building == null)
+        {
+            return 0f;
+        }
+
+        Dictionary<string, string> buildingInfo = _dataExtractor.TryGetBuildingInfo(building);
+        float debrisTons = DemolitionSystem.CalcDebrisTons(buildingInfo);
+        if (debrisTons <= 0f)
+        {
+            Debug.LogWarning($"[PlateauInfoManager.DemolishBuilding] 廃棄物量を算定できません: {building.name}");
+            return 0f;
+        }
+
+        // 跡地に瓦礫を散布（建物を消す前に位置・サイズを使う）
+        PlateauCubeMaker plateauCubeMaker = base.gameObject.GetComponent<PlateauCubeMaker>();
+        if (plateauCubeMaker == null)
+        {
+            plateauCubeMaker = base.gameObject.AddComponent<PlateauCubeMaker>();
+        }
+        int debrisCubeCount = DemolitionSystem.CalcDebrisCubeCount(debrisTons);
+        plateauCubeMaker.ScatterDemolitionDebris(building, debrisCubeCount);
+
+        // 更地化（建物を完全に消去）
+        _buildingInteractor.DeleteBuilding(building);
+
+        DemolitionSystem.RecordDemolition(debrisTons);
+        Debug.Log($"[Demolition] {building.name}: {debrisTons:F1} t / 瓦礫 {debrisCubeCount} 個 / {DemolitionSystem.GetSummaryText()}");
+        return debrisTons;
+    }
+
     internal void SetBuildingToDoom(GameObject building, bool isFire = false)
     {
         if (!_buildingInteractor.IsBuildingDoomed(building))

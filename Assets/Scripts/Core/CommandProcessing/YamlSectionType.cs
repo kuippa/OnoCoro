@@ -109,6 +109,9 @@ namespace CommonsUtility
 
         /// <summary>建物破壊＋倒壊した各建物から出火（地震連動火災。倒壊数を出火数に反映）</summary>
         building_break_fire,
+
+        /// <summary>建物を解体して更地化し、延床面積×構造別原単位で算定した瓦礫を散布（CityHack 2026）</summary>
+        building_demolish,
         
         // UI 通知イベント
         /// <summary>通知メッセージ表示（NoticeCtrl で処理）</summary>

@@ -93,6 +93,7 @@ namespace CommonsUtility
             CurrentPhase = YearCyclePhase.Inactive;
             InvestmentLedger.Reset();  // 投資台帳もステージ単位でリセット（Season 3 W2）
             DamageReportSystem.Reset();  // 被害結果もステージ単位でリセット（Season 3 W3）
+            DemolitionSystem.Reset();    // 解体廃棄物の累計もリセット（CityHack 2026）
             HazardForecastSystem.ClearForecast();  // 強調表示の残留防止（W2 Task 5）
         }
 
