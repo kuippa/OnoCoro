@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// プレファブ選択用 Enum

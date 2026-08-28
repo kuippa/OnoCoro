@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using CommonsUtility;
 using UnityEngine.TextCore.Text;
+using Debug = CommonsUtility.Debug;
 
 public class GarbageCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
 {

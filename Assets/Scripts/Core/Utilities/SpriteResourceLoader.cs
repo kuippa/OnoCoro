@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// Sprite リソース読み込みのユーティリティクラス

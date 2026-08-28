@@ -8,6 +8,11 @@ using CommonsUtility;
 /// - テキストをログファイルに記録（Warning レベル以上のみ）
 /// - ビルド環境でのファイル出力機能を提供
 /// - エディタでのファイル出力は無効
+///
+/// [注意] このクラスだけは CommonsUtility.Debug ラッパーを使わず
+/// UnityEngine.Debug を完全修飾で直接呼ぶこと。
+/// ラッパーは出力時に本クラスの WriteLog を呼ぶため、
+/// ここでラッパーを使うと無限再帰になる（プロジェクト全体のルールの唯一の例外）
 /// </summary>
 public static class LogUtility
 {

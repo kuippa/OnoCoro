@@ -2,6 +2,7 @@
 // PrefabManager
 using System.Collections.Generic;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 public class PrefabManager
 {

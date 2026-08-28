@@ -122,6 +122,12 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 8. **Debug alias** - Always use the wrapper: `using Debug = CommonsUtility.Debug;`
    （`UnityEngine.Debug` を直接使うと `DebugLevel` による出力制御が効かず、
    `Debug.LogTrace()` も使えない）
+   - `namespace CommonsUtility` 内のクラスは、名前解決でラッパーが優先されるため
+     エイリアス不要（書いても害は無い）
+   - **例外1**: `Core/Utilities/LogUtility.cs` はラッパーの出力先そのもの。
+     ラッパーを使うと無限再帰するため `UnityEngine.Debug` を完全修飾で使う
+   - **例外2**: `Editor/` 配下のエディタ拡張。インポート時・ビルド時に動くもので、
+     実行時のログファイル出力に載せる意味が無いため対象外
 9. **Keep logging sparse** - See "Logging Policy" below
 
 For detailed code examples and rationale, see [docs/project-rules/coding-csharp.md](docs/project-rules/coding-csharp.md).

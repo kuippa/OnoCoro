@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public class Loupe : MonoBehaviour, IItemStructProvider
 {

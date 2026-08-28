@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public class XMLparser : MonoBehaviour
 {

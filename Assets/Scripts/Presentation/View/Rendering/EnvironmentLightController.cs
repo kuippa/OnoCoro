@@ -1,4 +1,5 @@
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 /// <summary>
 /// 環境光（Directional Light）の制御クラス

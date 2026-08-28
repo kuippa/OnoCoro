@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine.EventSystems;
 using CommonsUtility;
 using Unity.VisualScripting;
+using Debug = CommonsUtility.Debug;
 
 public class LoupeCtrl : MonoBehaviour
 {

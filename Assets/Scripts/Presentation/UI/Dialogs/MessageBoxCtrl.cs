@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System;
 using System.Collections;
 using TMPro;
+using Debug = CommonsUtility.Debug;
 
 public class MessageBoxCtrl : UIControllerBase
 {

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using PLATEAU.CityInfo;
 using PLATEAU.Native;
+using Debug = CommonsUtility.Debug;
 
 public class PlateauDataExtractor : MonoBehaviour
 {
@@ -117,8 +118,7 @@ public class PlateauDataExtractor : MonoBehaviour
             buildingInfo["bldg:rebuildbouns"] = CalcRebuildBonus(buildingInfo).ToString();
 
             // [CityHack 2026] 推定した建物種別（木造 / 鉄骨造 / RC・SRC 造）と
-            // 解体時の廃棄物量を情報ウィンドウに出すため、算出属性として持たせる。
-            // ※ Debug 等の名前衝突を避けるため CommonsUtility は完全修飾で参照する
+            // 解体時の廃棄物量を情報ウィンドウに出すため、算出属性として持たせる
             string structureType = CommonsUtility.DemolitionSystem.ClassifyStructure(buildingInfo);
             buildingInfo["bldg:structuretype"] =
                 CommonsUtility.DemolitionSystem.GetStructureDisplayName(structureType);

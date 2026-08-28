@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public class OkbtnCtrl : MonoBehaviour
 {

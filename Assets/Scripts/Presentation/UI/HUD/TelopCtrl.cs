@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Collections; // 'IEnumerator' を使用するために 'System.Collections' を追加
+using Debug = CommonsUtility.Debug;
 
 public class TelopCtrl : MonoBehaviour
 {
