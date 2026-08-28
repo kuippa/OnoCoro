@@ -60,6 +60,108 @@ public class PlateauInfoManager : MonoBehaviour
         Button component3 = obj.transform.Find("pnlDelete").gameObject.transform.Find("btnDelete").gameObject.GetComponent<Button>();
         component3.onClick.RemoveAllListeners();
         component3.onClick.AddListener(OnClickDeleteBtn);
+
+        SetupDemolitionButton(obj);
+    }
+
+    /// <summary>情報ウィンドウに追加する解体パネルの名前（CityHack 2026）</summary>
+    internal const string DEMOLITION_PANEL_NAME = "pnlDemolition";
+
+    /// <summary>解体ボタンのラベル</summary>
+    private const string _DEMOLITION_LABEL = "解体";
+
+    /// <summary>レイアウトグループが無い場合に複製パネルをずらす量</summary>
+    private const float _DEMOLITION_PANEL_OFFSET_Y = -36f;
+
+    /// <summary>
+    /// 建物情報ウィンドウに「解体」ボタンを実行時に追加する（CityHack 2026）。
+    ///
+    /// UI プレファブを編集せずに済むよう、既存の pnlBreak を複製してラベルと
+    /// クリック処理だけ差し替える。表示制御は PlateauUIManager が pnlBreak と同条件で行う
+    /// </summary>
+    private void SetupDemolitionButton(GameObject pnlInfo)
+    {
+        Transform breakPanel = pnlInfo.transform.Find("pnlBreak");
+        if (breakPanel == null)
+        {
+            Debug.LogWarning("[PlateauInfoManager] pnlBreak が見つからないため解体ボタンを追加できません");
+            return;
+        }
+
+        // 既に追加済みなら配線し直すだけ（シーン再読込時の二重生成を防ぐ）
+        Transform existing = pnlInfo.transform.Find(DEMOLITION_PANEL_NAME);
+        GameObject demolitionPanel;
+        if (existing != null)
+        {
+            demolitionPanel = existing.gameObject;
+        }
+        else
+        {
+            demolitionPanel = Object.Instantiate(breakPanel.gameObject, breakPanel.parent);
+            demolitionPanel.name = DEMOLITION_PANEL_NAME;
+
+            // 親にレイアウトグループが無いため位置を明示する。
+            // 通常プレイでは非表示の pnlDelete（デバッグ専用）の位置を借りると、
+            // 既存パネルと重ならず、デザイン済みの座標をそのまま使える
+            if (breakPanel.parent.GetComponent<LayoutGroup>() == null)
+            {
+                RectTransform demolitionRect = demolitionPanel.GetComponent<RectTransform>();
+                Transform deletePanel = pnlInfo.transform.Find("pnlDelete");
+                RectTransform deleteRect = deletePanel != null ? deletePanel.GetComponent<RectTransform>() : null;
+
+                if (demolitionRect != null && deleteRect != null)
+                {
+                    demolitionRect.anchoredPosition = deleteRect.anchoredPosition;
+                }
+                else if (demolitionRect != null)
+                {
+                    RectTransform breakRect = breakPanel.GetComponent<RectTransform>();
+                    demolitionRect.anchoredPosition = breakRect.anchoredPosition
+                        + new Vector2(0f, _DEMOLITION_PANEL_OFFSET_Y);
+                }
+            }
+
+            SetPanelLabel(demolitionPanel, _DEMOLITION_LABEL);
+        }
+
+        Button demolitionButton = demolitionPanel.GetComponentInChildren<Button>();
+        if (demolitionButton == null)
+        {
+            Debug.LogWarning("[PlateauInfoManager] 解体パネルにボタンが見つかりません");
+            return;
+        }
+        demolitionButton.onClick.RemoveAllListeners();
+        demolitionButton.onClick.AddListener(OnClickDemolishBtn);
+    }
+
+    /// <summary>複製したパネル内のテキストをすべて差し替える</summary>
+    private void SetPanelLabel(GameObject panel, string label)
+    {
+        foreach (Text text in panel.GetComponentsInChildren<Text>(true))
+        {
+            text.text = label;
+        }
+        foreach (TMPro.TextMeshProUGUI tmp in panel.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+        {
+            tmp.text = label;
+        }
+    }
+
+    /// <summary>
+    /// 解体ボタン: 選択中の建物を解体（更地化＋瓦礫散布＋廃棄物の積算）する
+    /// </summary>
+    private void OnClickDemolishBtn()
+    {
+        GameObject selectedObject = _objectSelector.GetSelectedObject();
+        if (selectedObject == null)
+        {
+            return;
+        }
+
+        if (DemolishBuilding(selectedObject) > 0f)
+        {
+            _uiManager.CloseInfoBox();
+        }
     }
 
     private void OnClickDeleteBtn()

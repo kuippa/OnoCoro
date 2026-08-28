@@ -37,6 +37,13 @@ public class PlateauUIManager : MonoBehaviour
             }
 
             pnlBreak.SetActive(!isDoomedBuilding);
+
+            // 解体パネル（実行時に PlateauInfoManager が追加）も破壊前の建物にのみ表示する
+            Transform demolitionPanel = pnlInfo.transform.Find(PlateauInfoManager.DEMOLITION_PANEL_NAME);
+            if (demolitionPanel != null)
+            {
+                demolitionPanel.gameObject.SetActive(!isDoomedBuilding);
+            }
             // if (!isDoomedBuilding)
             // {
             //     GameObject txtBreak = pnlRebuild.transform.Find("txtBreak").gameObject;
@@ -44,8 +51,11 @@ public class PlateauUIManager : MonoBehaviour
             //     // txtBreakText.text = " - " + rebuildCost.ToString() + GlobalConst.SHORT_SCORE1_SCALE;
             // }
 
+            // [CityHack 2026] 解体パネルは pnlDelete の位置を借りているため、
+            // デバッグモードで両方を出すと重なる。解体ボタンを優先して Delete は隠す
             pnlDelete.SetActive(false);
-            if (GameConfig._APP_GAME_MODE == GlobalConst.GAME_MODE_DEBUG)
+            bool hasDemolitionPanel = pnlInfo.transform.Find(PlateauInfoManager.DEMOLITION_PANEL_NAME) != null;
+            if (GameConfig._APP_GAME_MODE == GlobalConst.GAME_MODE_DEBUG && !hasDemolitionPanel)
             {
                     pnlDelete.SetActive(true);
             }
@@ -55,6 +65,13 @@ public class PlateauUIManager : MonoBehaviour
             pnlRebuild.SetActive(false);
             pnlBreak.SetActive(false);
             pnlDelete.SetActive(false);
+
+            // 道路等（DEM）では解体パネルも隠す
+            Transform demolitionPanelOnDem = pnlInfo.transform.Find(PlateauInfoManager.DEMOLITION_PANEL_NAME);
+            if (demolitionPanelOnDem != null)
+            {
+                demolitionPanelOnDem.gameObject.SetActive(false);
+            }
         }
         infoBox.SetActive(true);
     }
