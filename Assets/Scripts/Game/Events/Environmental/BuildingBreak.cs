@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using CommonsUtility;
+using Debug = CommonsUtility.Debug;
 
 public class BuildingBreak : MonoBehaviour
 {

@@ -42,6 +42,8 @@ namespace CommonsUtility
             {"bldg:class", "建物分類"},
             {"uro:totalFloorArea", "延床面積（実測）[㎡]"},
             {"uro:buildingFootprintArea", "建築面積[㎡]"},
+            {"bldg:storeysaboveground", "地上階数"},
+            {"bldg:storeysbelowground", "地下階数"},
 
             {"dem:lod", "道"},
             {"gml:name", "名称"},

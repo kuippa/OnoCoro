@@ -47,9 +47,9 @@ events:
   # 「延床面積 × 構造別の発生原単位」で算定した瓦礫を跡地に散布する。
   # value に "all" を指定すると全建物を解体（重いので注意）。
   # Console に [Demolition] と 4t トラック換算のサマリーが出る。
-  # - time: 5
-  #   event: building_demolish
-  #   value: "3"
+  - time: 5
+    event: building_demolish
+    value: "3"
 
 # [W3 Task 4] baseline = 消火なし時の想定火災延焼棟数（防いだ延焼=baseline-実延焼）。
 # 2026-06-18 各種修正後の消火なし実走で再採取して更新（4/3/6）。

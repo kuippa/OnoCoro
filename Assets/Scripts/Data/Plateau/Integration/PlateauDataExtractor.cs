@@ -146,7 +146,15 @@ public class PlateauDataExtractor : MonoBehaviour
         if (buildingInfo.TryGetValue("bldg:measuredheight", out string heightStr))
         {
             float height = float.Parse(heightStr);
-            int floors = Mathf.FloorToInt(height / BLDG_HEIGHT_PER_FLOOR);
+
+            // 階数は PLATEAU の実データ（bldg:storeysaboveground）を優先し、
+            // 無い場合のみ高さから推定する（CityHack 2026: 延床面積の精度向上）
+            int floors = 0;
+            if (!buildingInfo.TryGetValue("bldg:storeysaboveground", out string storeysStr)
+                || !int.TryParse(storeysStr, out floors) || floors <= 0)
+            {
+                floors = Mathf.FloorToInt(height / BLDG_HEIGHT_PER_FLOOR);
+            }
             buildingInfo["bldg:floors"] = floors.ToString();
 
             float floorSpace = GetSupFloorSpace(building);

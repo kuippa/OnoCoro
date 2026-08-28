@@ -16,6 +16,7 @@ namespace CommonsUtility
     /// </summary>
     internal static class DemolitionSystem
     {
+        
         // ===== 発生原単位（t/㎡）※ 仮の値。パートナー回答で差し替える =====
         private const float _UNIT_TONS_WOOD = 0.5f;      // 木造
         private const float _UNIT_TONS_STEEL = 0.7f;     // 鉄骨造(S)
@@ -89,16 +90,27 @@ namespace CommonsUtility
             return 0f;
         }
 
+        /// <summary>4 階建て以上は木造でない可能性が高い（木造判定の除外しきい値）</summary>
+        private const int _NON_WOOD_STOREYS_THRESHOLD = 4;
+
         /// <summary>
-        /// 構造種別から発生原単位（t/㎡）を決める。
-        /// PLATEAU の構造属性を優先し、無ければ建物用途から推定する
+        /// 発生原単位（t/㎡）を決める。
+        ///
+        /// [2026-08-28 実データ調査の結果]
+        /// 三鷹市データには建物構造（uro:buildingStructureType）が存在しなかった。
+        /// 代わりに以下が取得できたため、これらを組み合わせて構造を推定する:
+        ///   1. uro:fireproofStructureType（耐火 / 準耐火 / その他）… 構造の最有力な代理変数
+        ///   2. bldg:storeysaboveground（地上階数）… 高層なら非木造
+        ///   3. uro:districtsAndZonesType（用途地域）… 商業系は非木造が多い
+        ///   4. bldg:usagestr（建物用途）… 最後のフォールバック
         /// </summary>
         private static float GetUnitTonsPerSqm(Dictionary<string, string> buildingInfo)
         {
-            string structure = GetStructureText(buildingInfo);
-            if (!string.IsNullOrEmpty(structure))
+            // 1. 建物構造が明示されていれば最優先（他地域のデータで入っている場合に備える）
+            if (buildingInfo.TryGetValue("uro:buildingStructureType", out string structure)
+                && !string.IsNullOrEmpty(structure))
             {
-                if (structure.Contains("木造") || structure.Contains("木質"))
+                if (structure.Contains("木"))
                 {
                     return _UNIT_TONS_WOOD;
                 }
@@ -112,7 +124,51 @@ namespace CommonsUtility
                 }
             }
 
-            // フォールバック: 建物用途からの推定（住宅系は木造が多い / 施設系は非木造が多い）
+            int storeys = GetStoreysAboveGround(buildingInfo);
+
+            // 2. 耐火構造種別から推定（三鷹データで取得できる本命）
+            if (buildingInfo.TryGetValue("uro:fireproofStructureType", out string fireproof)
+                && !string.IsNullOrEmpty(fireproof))
+            {
+                if (fireproof.Contains("耐火") && !fireproof.Contains("準耐火"))
+                {
+                    return _UNIT_TONS_CONCRETE;  // 耐火建築物 → RC/SRC 相当
+                }
+                if (fireproof.Contains("準耐火"))
+                {
+                    return _UNIT_TONS_STEEL;     // 準耐火建築物 → S 造相当
+                }
+                if (fireproof.Contains("その他"))
+                {
+                    // 非耐火 → 木造の可能性が高い。ただし高層なら非木造とみなす
+                    if (storeys >= _NON_WOOD_STOREYS_THRESHOLD)
+                    {
+                        return _UNIT_TONS_STEEL;
+                    }
+                    return _UNIT_TONS_WOOD;
+                }
+            }
+
+            // 3. 階数による判定（耐火情報が無い場合）
+            if (storeys >= _NON_WOOD_STOREYS_THRESHOLD)
+            {
+                return _UNIT_TONS_CONCRETE;
+            }
+
+            // 4. 用途地域・建物用途からのフォールバック
+            if (buildingInfo.TryGetValue("uro:districtsAndZonesType", out string zone)
+                && !string.IsNullOrEmpty(zone))
+            {
+                if (zone.Contains("商業") || zone.Contains("工業"))
+                {
+                    return _UNIT_TONS_STEEL;
+                }
+                if (zone.Contains("低層住居"))
+                {
+                    return _UNIT_TONS_WOOD;
+                }
+            }
+
             if (buildingInfo.TryGetValue("bldg:usagestr", out string usage) && !string.IsNullOrEmpty(usage))
             {
                 if (usage.Contains("住宅") && !usage.Contains("共同"))
@@ -130,25 +186,21 @@ namespace CommonsUtility
         }
 
         /// <summary>
-        /// 建物の構造種別を表す文字列を取得（複数の属性名に対応）
+        /// 地上階数を取得する（実データ優先・無ければ計算値）
         /// </summary>
-        private static string GetStructureText(Dictionary<string, string> buildingInfo)
+        private static int GetStoreysAboveGround(Dictionary<string, string> buildingInfo)
         {
-            string[] structureKeys = new string[]
+            if (buildingInfo.TryGetValue("bldg:storeysaboveground", out string storeysStr)
+                && int.TryParse(storeysStr, out int storeys) && storeys > 0)
             {
-                "uro:buildingStructureType",
-                "uro:buildingStructureOrgType",
-                "uro:fireproofStructureType"
-            };
-
-            foreach (string key in structureKeys)
-            {
-                if (buildingInfo.TryGetValue(key, out string value) && !string.IsNullOrEmpty(value))
-                {
-                    return value;
-                }
+                return storeys;
             }
-            return "";
+            if (buildingInfo.TryGetValue("bldg:floors", out string floorsStr)
+                && int.TryParse(floorsStr, out int floors))
+            {
+                return floors;
+            }
+            return 0;
         }
 
         /// <summary>
