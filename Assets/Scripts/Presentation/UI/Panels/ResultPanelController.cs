@@ -11,7 +11,7 @@ namespace CommonsUtility
     /// 結果表示パネル（全画面・Season 3 W3 Task 2/3）
     ///
     /// 年末（YearResult フェーズ）に「Year N 結果」、全年完走（Finished フェーズ）に
-    /// 「3 年間の総括」を全画面で表示する。表示中は GameSpeedManager.SetGameSpeed(0) で
+    /// 「N 年間の総括」を全画面で表示する。表示中は GameSpeedManager.SetGameSpeed(0) で
     /// ゲーム進行を停止する（テロップ TelopCtrl の全画面オーバーレイ方式を参考）。
     /// シーン配置不要（起動時に自己構築・DontDestroyOnLoad 常駐）。
     /// </summary>
@@ -142,7 +142,7 @@ namespace CommonsUtility
         {
             YearResult summary = DamageReportSystem.GetSummary();
 
-            _titleLabel.SetText("3 年間の総括");
+            _titleLabel.SetText(BuildSummaryTitle());
             _bodyLabel.SetText(BuildSummaryText(summary));
             _nextButtonLabel.SetText("もう一度");
             _nextButtonRoot.SetActive(true);
@@ -171,6 +171,25 @@ namespace CommonsUtility
                 preventedNote + "\n\n" +
                 $"今年の投資: {result.Investment} ゴールド\n" +
                 $"投資効果(ROI): {result.Roi:F1}（投資100あたり抑えた延焼棟数）";
+        }
+
+        /// <summary>
+        /// 総括タイトルを実際の年数から作る。
+        /// ステージ YAML の years は増減するため（デモ用に 1 年へ減らす等）、
+        /// 年数を固定文言で持たない
+        /// </summary>
+        private string BuildSummaryTitle()
+        {
+            if (EventLoader.instance == null)
+            {
+                return "総括";
+            }
+            int yearCount = EventLoader.instance.GetYearCount();
+            if (yearCount <= 1)
+            {
+                return "総括";
+            }
+            return $"{yearCount} 年間の総括";
         }
 
         private string BuildSummaryText(YearResult summary)

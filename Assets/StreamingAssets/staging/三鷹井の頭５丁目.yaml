@@ -42,23 +42,23 @@ itemlists:
 #
 # ※ 建物種別は PLATEAU の耐火構造種別・階数・用途地域から推定している
 #   （三鷹市データには建物構造そのものが無いため）
-demolition:
-  - type: wood        # 木造
-    tons_per_sqm: 0.5     # 延床1㎡あたりの発生量[t]（パートナー値で差し替え予定）
-    debris_per_ton: 200   # 見た目の瓦礫量（増やすほど多く散らばる）
-    max_cubes: 2000       # 1棟あたりのキューブ数上限
-  - type: steel       # 鉄骨造(S)
-    tons_per_sqm: 0.7
-    debris_per_ton: 200
-    max_cubes: 2000
-  - type: concrete    # RC / SRC 造
-    tons_per_sqm: 1.1
-    debris_per_ton: 200
-    max_cubes: 2000
-  - type: unknown     # 不明
-    tons_per_sqm: 0.6
-    debris_per_ton: 200
-    max_cubes: 2000
+# demolition:
+#   - type: wood        # 木造
+#     tons_per_sqm: 0.5     # 延床1㎡あたりの発生量[t]（パートナー値で差し替え予定）
+#     debris_per_ton: 200   # 見た目の瓦礫量（増やすほど多く散らばる）
+#     max_cubes: 2000       # 1棟あたりのキューブ数上限
+#   - type: steel       # 鉄骨造(S)
+#     tons_per_sqm: 0.7
+#     debris_per_ton: 200
+#     max_cubes: 2000
+#   - type: concrete    # RC / SRC 造
+#     tons_per_sqm: 1.1
+#     debris_per_ton: 200
+#     max_cubes: 2000
+#   - type: unknown     # 不明
+#     tons_per_sqm: 0.6
+#     debris_per_ton: 200
+#     max_cubes: 2000
 
 # goals / gameovers は定義しない（3年完走がシミュレーション終了条件）
 
@@ -83,9 +83,9 @@ events:
   # 「延床面積 × 構造別の発生原単位」で算定した瓦礫を跡地に散布する。
   # value に "all" を指定すると全建物を解体（重いので注意）。
   # Console に [Demolition] と 4t トラック換算のサマリーが出る。
-  - time: 5
-    event: building_demolish
-    value: "3"
+  # - time: 5
+  #   event: building_demolish
+  #   value: "3"
 
 # [W3 Task 4] baseline = 消火なし時の想定火災延焼棟数（防いだ延焼=baseline-実延焼）。
 # 2026-06-18 各種修正後の消火なし実走で再採取して更新（4/3/6）。

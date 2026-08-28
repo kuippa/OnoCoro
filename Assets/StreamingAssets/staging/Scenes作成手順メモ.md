@@ -18,6 +18,12 @@ bake
 ステージ名と同名のyamlを \Assets\Resources\staging に配置
 
 
+# 海面を追加する場合
+watersurfaceのプレファブを追加
+OceanのY位置を調整
+波を弱めたいときは遠方風速を弱める
+
+
 
 # Plateau SDK からのインポート手順
 現在のところサーバー経由からの導入より、

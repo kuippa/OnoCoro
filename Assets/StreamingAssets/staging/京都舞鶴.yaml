@@ -2,8 +2,11 @@
 # 京都舞鶴 - 解体廃棄物シミュレーション（PLATEAU CityHack 2026）
 #
 # 三鷹井の頭５丁目.yaml をベースにした基本構成。
-# 3 年サイクルで地震→倒壊→出火が起き、プレイヤーは防災投資で被害を抑える。
+# 地震→倒壊→出火が起き、プレイヤーは防災投資で被害を抑える。
 # CityHack のデモとしては、建物を解体して廃棄物量を 4t トラック換算で見せる。
+#
+# [構成] 3〜5 分のデモに収めるため 1 年のみ有効。year 2/3 はコメントアウトしてある。
+# 内容は今後調整する。戻すときは years 配下のコメントを外すだけでよい。
 #
 # [このマップの特徴]
 # 舞鶴は港湾都市で、三鷹（内陸・木密住宅地）とは災害の性格が異なる。
@@ -69,7 +72,7 @@ demolition:
     debris_per_ton: 50
     max_cubes: 1000
 
-# goals / gameovers は定義しない（3年完走がシミュレーション終了条件）
+# goals / gameovers は定義しない（全年の完走がシミュレーション終了条件）
 
 # 年に依存しない初期設定イベント（ステージ開始時に1回だけ実行）
 events:
@@ -81,7 +84,7 @@ events:
     value: 7, 300  # 風速, 風向き(0~360) 西北西・日本海側の冬季卓越風向
   - time: 1
     event: telop
-    value: "地震火災から街を守ろう（全3年）"
+    value: "地震火災から街を守ろう"
   - time: 1
     event: subtelop
     value: "オレンジの建物が出火点。防災装置を置いて延焼を食い止めよう"
@@ -97,7 +100,7 @@ events:
 
 # baseline = 消火なし時の想定火災延焼棟数（防いだ延焼 = baseline - 実延焼）。
 # [未計測] 下記は三鷹の値をそのまま置いた暫定値。
-# 消火ユニットを一切置かずに 3 年完走し、実際の延焼棟数で置き換えること。
+# 消火ユニットを一切置かずに完走し、実際の延焼棟数で置き換えること。
 # 未指定の年は K×地震倒壊数（K=3）にフォールバックする。
 years:
   - year: 1
@@ -114,34 +117,34 @@ years:
         event: telop
         value: "Year 1: 地震発生。倒壊建物から出火"
 
-  - year: 2
-    duration: 90
-    note: "規模拡大。防火水槽（広範囲・弱効果）と比較する"
-    baseline: 3
-    schedule:
-      - pattern: quake_fire
-        at: 3
-        intensity: "1.8"
-        break_count: "5"
-    events:
-      - time: 1
-        event: telop
-        value: "Year 2: 揺れが強くなった"
+  # - year: 2
+  #   duration: 90
+  #   note: "規模拡大。防火水槽（広範囲・弱効果）と比較する"
+  #   baseline: 3
+  #   schedule:
+  #     - pattern: quake_fire
+  #       at: 3
+  #       intensity: "1.8"
+  #       break_count: "5"
+  #   events:
+  #     - time: 1
+  #       event: telop
+  #       value: "Year 2: 揺れが強くなった"
 
-  - year: 3
-    duration: 90
-    note: "本震+余震の多重編成"
-    baseline: 6
-    schedule:
-      - pattern: quake_fire
-        at: 3
-        intensity: "2.0"
-        break_count: "7"
-      - pattern: quake_fire
-        at: 45             # 余震
-        intensity: "1.5"
-        break_count: "3"
-    events:
-      - time: 1
-        event: telop
-        value: "Year 3: 大地震と余震の年"
+  # - year: 3
+  #   duration: 90
+  #   note: "本震+余震の多重編成"
+  #   baseline: 6
+  #   schedule:
+  #     - pattern: quake_fire
+  #       at: 3
+  #       intensity: "2.0"
+  #       break_count: "7"
+  #     - pattern: quake_fire
+  #       at: 45             # 余震
+  #       intensity: "1.5"
+  #       break_count: "3"
+  #   events:
+  #     - time: 1
+  #       event: telop
+  #       value: "Year 3: 大地震と余震の年"
