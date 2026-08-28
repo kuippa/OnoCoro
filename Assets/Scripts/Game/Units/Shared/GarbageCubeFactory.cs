@@ -39,8 +39,10 @@ public static class GarbageCubeFactory
             return null;
         }
 
-        prefab.transform.localScale = GetLocalScale(sizeFlag);
-        
+        // [修正 2026-08-28] ここで prefab.transform.localScale を書き換えると、
+        // Resources.Load が返す「プレファブ資産そのもの」を毎回書き換えてしまい、
+        // ランダムなスケールがアセットに焼き付いて GarbageCube.prefab が破損していた
+        // （git 上でも毎回 M 表示になっていた）。スケールは生成後のインスタンスに設定する
         Vector3 setPoint = spawnPoint;
         Quaternion setRotation = Quaternion.identity;
         
@@ -56,6 +58,9 @@ public static class GarbageCubeFactory
         }
 
         GameObject unit = Object.Instantiate(prefab, setPoint, setRotation);
+
+        // スケールはインスタンスに設定する（プレファブ資産を汚さない）
+        unit.transform.localScale = GetLocalScale(sizeFlag);
 
         // プロパティ設定
         SetGarbageCubeProperties(unit);

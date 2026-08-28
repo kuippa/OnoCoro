@@ -35,7 +35,8 @@ public static class FireCubeFactory
             return null;
         }
 
-        prefab.transform.localScale = new Vector3(1f, 1f, 1f);
+        // [修正 2026-08-28] プレファブ資産を直接書き換えないこと（アセット破損の原因）。
+        // スケールは生成後のインスタンスに設定する
         Vector3 setPoint = spawnPoint;
         Quaternion setRotation = Quaternion.identity;
 
@@ -47,6 +48,9 @@ public static class FireCubeFactory
         }
 
         GameObject unit = Object.Instantiate(prefab, setPoint, setRotation);
+
+        // スケールはインスタンスに設定する（プレファブ資産を汚さない）
+        unit.transform.localScale = Vector3.one;
 
         // プロパティ設定
         SetFireCubeProperties(unit);

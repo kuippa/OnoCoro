@@ -30,8 +30,9 @@ public static class PowerCubeFactory
         }
 
         // BaseScore に基づいてスケールを計算
+        // [修正 2026-08-28] プレファブ資産を直接書き換えないこと（アセット破損の原因）。
+        // スケールは生成後のインスタンスに設定する
         Vector3 scale = CalculateScale(baseScore);
-        prefab.transform.localScale = scale;
 
         // ランダム回転を生成
         Quaternion spawnRotation = Quaternion.Euler(
@@ -46,6 +47,9 @@ public static class PowerCubeFactory
 
         // プレハブをインスタンス化
         GameObject instance = Object.Instantiate(prefab, adjustedSpawnPoint, spawnRotation);
+
+        // スケールはインスタンスに設定する（プレファブ資産を汚さない）
+        instance.transform.localScale = scale;
 
         // コンポーネント設定
         SetPowerCubeProperties(instance, baseScore);
