@@ -53,7 +53,8 @@ public class PlateauCubeMaker : MonoBehaviour
     /// こちらは DemolitionSystem が算定した廃棄物量に比例した個数を撒く。
     /// 建物は更地化されるため、跡地（建物のフットプリント内側）にも瓦礫を積む
     /// </summary>
-    internal void ScatterDemolitionDebris(GameObject targetObj, float debrisTons)
+    /// <param name="targetAmount">DemolitionSystem が算定した瓦礫の目標量（建物種別の係数込み）</param>
+    internal void ScatterDemolitionDebris(GameObject targetObj, int targetAmount)
     {
         Renderer renderer = targetObj.GetComponent<Renderer>();
         if (renderer == null)
@@ -61,35 +62,31 @@ public class PlateauCubeMaker : MonoBehaviour
             return;
         }
 
-        // [修正 2026-08-28] 既存の BreakUpBuildingCube と完全に同じ手順にする。
-        // 生成も CreateGarbageRoundByAngle（円周状＋パーリンノイズ・小サイズ）を共用し、
-        // 目標量だけを「再建コスト」から「解体廃棄物量(t)」に差し替える。
-        // ※ 独自に大サイズ＋サイズ比例スコアにしたところ、巨大キューブ 2 個で
-        //    目標量に達してしまい雑多感が失われたため戻した
+        // [修正 2026-08-28] 建物の外周に円状へばらまくのをやめ、建物跡地の中央に集約する。
+        // 生成は既存の CreateGarbageCubeSmall（小サイズ・GarbageCubeSpawner 経由）を共用し、
+        // 位置のばらつきは GarbageCubeFactory の isSwayingPoint（±2m）が担当する
         Vector3 center = renderer.bounds.center;
-        Vector3 extents = renderer.bounds.extents;
+        Vector3 spawnPoint = new Vector3(center.x, center.y + _DEBRIS_SPAWN_HEIGHT, center.z);
 
-        int targetAmount = Mathf.CeilToInt(debrisTons * _DEBRIS_AMOUNT_PER_TON);
-        int step = GetAngleSpacing(targetAmount);
         int accumulated = 0;
-        int index = 0;
+        int spawnCount = 0;
 
         while (accumulated < targetAmount)
         {
-            accumulated += CreateGarbageRoundByAngle(center, extents, step, index);
-            index++;
-            if (index > _MAX_DEBRIS_SPAWN_COUNT)
+            accumulated += CreateGarbageCubeSmall(spawnPoint);
+            spawnCount++;
+            if (spawnCount > _MAX_DEBRIS_SPAWN_COUNT)
             {
                 break;
             }
         }
     }
 
-    /// <summary>廃棄物 1t あたりの目標量（GarbageCube の基本スコア 10 に対する重み）</summary>
-    private const float _DEBRIS_AMOUNT_PER_TON = 10.0f;
+    /// <summary>瓦礫のスポーン高さ（建物 bounds 中心からの相対。既存実装と同値）</summary>
+    private const float _DEBRIS_SPAWN_HEIGHT = 0.5f;
 
-    /// <summary>1 棟あたりの瓦礫スポーン回数の上限（既存実装と同じ 200）</summary>
-    private const int _MAX_DEBRIS_SPAWN_COUNT = 200;
+    /// <summary>1 棟あたりの瓦礫スポーン回数の上限（量を増やしたため既存の 200 から拡大）</summary>
+    private const int _MAX_DEBRIS_SPAWN_COUNT = 1000;
 
     private int CreateGarbageRoundByAngle(Vector3 center, Vector3 extents, int step, int i)
     {

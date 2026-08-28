@@ -14,14 +14,69 @@ namespace CommonsUtility
     /// infrastructures.yaml と同じ方式で外部ファイル化して差し替える（T3）。
     /// 設計: docs/_tasklist/detailed/cityhack2026-demolition-plan.md
     /// </summary>
+    /// <summary>
+    /// 建物種別ごとの解体係数（ステージ YAML の demolition セクションで調整する）
+    /// </summary>
+    internal struct DemolitionSpec
+    {
+        /// <summary>延床面積 1 ㎡あたりの解体廃棄物発生量（t/㎡）</summary>
+        public float TonsPerSqm;
+
+        /// <summary>廃棄物 1t あたりの瓦礫キューブ量（見た目の量。大きいほど多く散らばる）</summary>
+        public float DebrisPerTon;
+
+        public DemolitionSpec(float tonsPerSqm, float debrisPerTon)
+        {
+            TonsPerSqm = tonsPerSqm;
+            DebrisPerTon = debrisPerTon;
+        }
+    }
+
     internal static class DemolitionSystem
     {
-        
-        // ===== 発生原単位（t/㎡）※ 仮の値。パートナー回答で差し替える =====
-        private const float _UNIT_TONS_WOOD = 0.5f;      // 木造
-        private const float _UNIT_TONS_STEEL = 0.7f;     // 鉄骨造(S)
-        private const float _UNIT_TONS_CONCRETE = 1.1f;  // RC/SRC 造
-        private const float _UNIT_TONS_UNKNOWN = 0.6f;   // 不明（木造と鉄骨の中間）
+        // ===== 建物種別のキー（YAML の type と対応）=====
+        internal const string TYPE_WOOD = "wood";          // 木造
+        internal const string TYPE_STEEL = "steel";        // 鉄骨造(S)
+        internal const string TYPE_CONCRETE = "concrete";  // RC/SRC 造
+        internal const string TYPE_UNKNOWN = "unknown";    // 不明
+
+        /// <summary>建物種別ごとの係数（既定値。ステージ YAML の demolition で上書きされる）</summary>
+        private static Dictionary<string, DemolitionSpec> _specs = BuildDefaultSpecs();
+
+        private static Dictionary<string, DemolitionSpec> BuildDefaultSpecs()
+        {
+            // 発生原単位は仮の値（パートナー回答で差し替える）。
+            // DebrisPerTon は見た目の量で、50 は従来の 5 倍に相当する
+            return new Dictionary<string, DemolitionSpec>
+            {
+                { TYPE_WOOD, new DemolitionSpec(0.5f, 50f) },
+                { TYPE_STEEL, new DemolitionSpec(0.7f, 50f) },
+                { TYPE_CONCRETE, new DemolitionSpec(1.1f, 50f) },
+                { TYPE_UNKNOWN, new DemolitionSpec(0.6f, 50f) },
+            };
+        }
+
+        /// <summary>係数を上書き登録する（DemolitionYamlProvider から呼ぶ）</summary>
+        internal static void SetSpec(string type, DemolitionSpec spec)
+        {
+            _specs[type] = spec;
+        }
+
+        /// <summary>係数を取得する（未定義なら unknown にフォールバック）</summary>
+        internal static DemolitionSpec GetSpec(string type)
+        {
+            if (_specs.TryGetValue(type, out DemolitionSpec spec))
+            {
+                return spec;
+            }
+            return _specs[TYPE_UNKNOWN];
+        }
+
+        /// <summary>係数を既定値へ戻す（ステージロード時）</summary>
+        internal static void ResetSpecsToDefaults()
+        {
+            _specs = BuildDefaultSpecs();
+        }
 
         /// <summary>混合廃棄物の見かけ比重（t/m³）※ 体積換算用・仮の値</summary>
         private const float _DEBRIS_DENSITY = 0.4f;
@@ -61,8 +116,17 @@ namespace CommonsUtility
                 return 0f;
             }
 
-            float unitTons = GetUnitTonsPerSqm(buildingInfo);
-            return totalArea * unitTons;
+            DemolitionSpec spec = GetSpec(ClassifyStructure(buildingInfo));
+            return totalArea * spec.TonsPerSqm;
+        }
+
+        /// <summary>
+        /// 建物の廃棄物量から、散布する瓦礫の目標量を求める（建物種別ごとの係数を反映）
+        /// </summary>
+        internal static int CalcDebrisAmount(Dictionary<string, string> buildingInfo, float debrisTons)
+        {
+            DemolitionSpec spec = GetSpec(ClassifyStructure(buildingInfo));
+            return Mathf.CeilToInt(debrisTons * spec.DebrisPerTon);
         }
 
         /// <summary>
@@ -88,7 +152,7 @@ namespace CommonsUtility
         private const int _NON_WOOD_STOREYS_THRESHOLD = 4;
 
         /// <summary>
-        /// 発生原単位（t/㎡）を決める。
+        /// 建物種別（wood / steel / concrete / unknown）を推定する。
         ///
         /// [2026-08-28 実データ調査の結果]
         /// 三鷹市データには建物構造（uro:buildingStructureType）が存在しなかった。
@@ -98,23 +162,28 @@ namespace CommonsUtility
         ///   3. uro:districtsAndZonesType（用途地域）… 商業系は非木造が多い
         ///   4. bldg:usagestr（建物用途）… 最後のフォールバック
         /// </summary>
-        private static float GetUnitTonsPerSqm(Dictionary<string, string> buildingInfo)
+        internal static string ClassifyStructure(Dictionary<string, string> buildingInfo)
         {
+            if (buildingInfo == null)
+            {
+                return TYPE_UNKNOWN;
+            }
+
             // 1. 建物構造が明示されていれば最優先（他地域のデータで入っている場合に備える）
             if (buildingInfo.TryGetValue("uro:buildingStructureType", out string structure)
                 && !string.IsNullOrEmpty(structure))
             {
                 if (structure.Contains("木"))
                 {
-                    return _UNIT_TONS_WOOD;
+                    return TYPE_WOOD;
                 }
                 if (structure.Contains("鉄骨鉄筋") || structure.Contains("鉄筋") || structure.Contains("コンクリート"))
                 {
-                    return _UNIT_TONS_CONCRETE;
+                    return TYPE_CONCRETE;
                 }
                 if (structure.Contains("鉄骨") || structure.Contains("軽量"))
                 {
-                    return _UNIT_TONS_STEEL;
+                    return TYPE_STEEL;
                 }
             }
 
@@ -126,27 +195,27 @@ namespace CommonsUtility
             {
                 if (fireproof.Contains("耐火") && !fireproof.Contains("準耐火"))
                 {
-                    return _UNIT_TONS_CONCRETE;  // 耐火建築物 → RC/SRC 相当
+                    return TYPE_CONCRETE;  // 耐火建築物 → RC/SRC 相当
                 }
                 if (fireproof.Contains("準耐火"))
                 {
-                    return _UNIT_TONS_STEEL;     // 準耐火建築物 → S 造相当
+                    return TYPE_STEEL;     // 準耐火建築物 → S 造相当
                 }
                 if (fireproof.Contains("その他"))
                 {
                     // 非耐火 → 木造の可能性が高い。ただし高層なら非木造とみなす
                     if (storeys >= _NON_WOOD_STOREYS_THRESHOLD)
                     {
-                        return _UNIT_TONS_STEEL;
+                        return TYPE_STEEL;
                     }
-                    return _UNIT_TONS_WOOD;
+                    return TYPE_WOOD;
                 }
             }
 
             // 3. 階数による判定（耐火情報が無い場合）
             if (storeys >= _NON_WOOD_STOREYS_THRESHOLD)
             {
-                return _UNIT_TONS_CONCRETE;
+                return TYPE_CONCRETE;
             }
 
             // 4. 用途地域・建物用途からのフォールバック
@@ -155,11 +224,11 @@ namespace CommonsUtility
             {
                 if (zone.Contains("商業") || zone.Contains("工業"))
                 {
-                    return _UNIT_TONS_STEEL;
+                    return TYPE_STEEL;
                 }
                 if (zone.Contains("低層住居"))
                 {
-                    return _UNIT_TONS_WOOD;
+                    return TYPE_WOOD;
                 }
             }
 
@@ -167,16 +236,16 @@ namespace CommonsUtility
             {
                 if (usage.Contains("住宅") && !usage.Contains("共同"))
                 {
-                    return _UNIT_TONS_WOOD;
+                    return TYPE_WOOD;
                 }
                 if (usage.Contains("共同住宅") || usage.Contains("商業") || usage.Contains("業務")
                     || usage.Contains("文教") || usage.Contains("公共"))
                 {
-                    return _UNIT_TONS_CONCRETE;
+                    return TYPE_CONCRETE;
                 }
             }
 
-            return _UNIT_TONS_UNKNOWN;
+            return TYPE_UNKNOWN;
         }
 
         /// <summary>

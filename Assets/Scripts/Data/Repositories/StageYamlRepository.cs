@@ -45,6 +45,9 @@ public class StageYamlRepository : MonoBehaviour
         // 防災施策のバランス値を共通ファイルから読み込む（Season 3 W3: 外部化）
         InfrastructureYamlProvider.LoadSharedConfig();
 
+        // 解体廃棄物の係数（建物種別ごと）を読み込む（CityHack 2026）
+        DemolitionYamlProvider.LoadDemolitionConfig(yaml);
+
         // パス・ナビゲーションセットアップ
         RouteYamlProvider.LoadPathMakers(yaml);
         RouteYamlProvider.LoadRouteNames(yaml, _eventLoader);

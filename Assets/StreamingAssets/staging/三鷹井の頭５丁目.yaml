@@ -24,6 +24,28 @@ itemlists:
   - item: Cistern       # 防火水槽（施策・統計効果型）
   # - item: Plaza       # 避難広場: ゲーム上の意味が未確定のため一旦外す（W3 Task4・後で再検討）
 
+# ===== 解体廃棄物の係数（CityHack 2026）=====
+# 建物種別ごとに、解体で出る廃棄物量と画面上の瓦礫の量を調整する。
+#   type           : 建物種別（wood=木造 / steel=鉄骨造 / concrete=RC・SRC造 / unknown=不明）
+#   tons_per_sqm   : 延床面積 1 ㎡あたりの発生量[t]  ※ 仮の値。パートナーの実務値で差し替える
+#   debris_per_ton : 廃棄物 1t あたりの瓦礫の量（見た目の量。大きいほど多く散らばる）
+#
+# ※ 建物種別は PLATEAU の耐火構造種別・階数・用途地域から推定している
+#   （三鷹市データには建物構造そのものが無いため）
+demolition:
+  - type: wood        # 木造
+    tons_per_sqm: 0.5
+    debris_per_ton: 50
+  - type: steel       # 鉄骨造(S)
+    tons_per_sqm: 0.7
+    debris_per_ton: 50
+  - type: concrete    # RC / SRC 造
+    tons_per_sqm: 1.1
+    debris_per_ton: 50
+  - type: unknown     # 不明
+    tons_per_sqm: 0.6
+    debris_per_ton: 50
+
 # goals / gameovers は定義しない（3年完走がシミュレーション終了条件）
 
 # 年に依存しない初期設定イベント（ステージ開始時に1回だけ実行）

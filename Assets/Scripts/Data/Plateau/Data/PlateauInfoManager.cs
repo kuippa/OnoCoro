@@ -181,7 +181,8 @@ public class PlateauInfoManager : MonoBehaviour
         {
             plateauCubeMaker = base.gameObject.AddComponent<PlateauCubeMaker>();
         }
-        plateauCubeMaker.ScatterDemolitionDebris(building, debrisTons);
+        int debrisAmount = DemolitionSystem.CalcDebrisAmount(buildingInfo, debrisTons);
+        plateauCubeMaker.ScatterDemolitionDebris(building, debrisAmount);
 
         // 更地化（建物を完全に消去）
         _buildingInteractor.DeleteBuilding(building);
