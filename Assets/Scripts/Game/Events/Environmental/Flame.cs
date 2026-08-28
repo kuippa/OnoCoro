@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Debug = CommonsUtility.Debug;
 
 
 // Unity6 と HDRP にしたらVFXが動かなくなったので、このクラスは現在休眠中

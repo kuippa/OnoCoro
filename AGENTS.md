@@ -119,7 +119,9 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 5. **Function length** - Maximum 40 lines per function
 6. **Meaningful names** - Use descriptive variable names, not abbreviations
 7. **Utility classes** - Consolidate related functionality (see standards doc)
-8. **UnityEngine.Debug** - Always use explicit alias: `using Debug = UnityEngine.Debug;`
+8. **Debug alias** - Always use the wrapper: `using Debug = CommonsUtility.Debug;`
+   （`UnityEngine.Debug` を直接使うと `DebugLevel` による出力制御が効かず、
+   `Debug.LogTrace()` も使えない）
 9. **Keep logging sparse** - See "Logging Policy" below
 
 For detailed code examples and rationale, see [docs/project-rules/coding-csharp.md](docs/project-rules/coding-csharp.md).
