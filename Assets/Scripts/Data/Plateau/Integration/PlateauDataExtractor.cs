@@ -59,11 +59,64 @@ public class PlateauDataExtractor : MonoBehaviour
         foreach (var cityObj in cityObjs.PrimaryCityObjects)
         {
             buildingInfo = ExtractAttributesFromCityObject(cityObj, buildingInfo);
+            DumpRawAttributes(building, cityObj);
         }
         buildingInfo = CalculateAdditionalInfo(buildingInfo, building);
 
         // Debug.Log("BuildingInfo: " + buildingInfo);
         return buildingInfo;
+    }
+
+    // ===== 属性調査用ダンプ（CityHack 2026: 瓦礫係数に使える属性の実地確認） =====
+
+    /// <summary>ダンプする建物数の上限（ログ洪水防止）</summary>
+    private const int _DUMP_BUILDING_LIMIT = 5;
+
+    /// <summary>ネスト属性を辿る最大深さ</summary>
+    private const int _DUMP_MAX_DEPTH = 4;
+
+    private static int _dumpedBuildingCount = 0;
+
+    /// <summary>
+    /// PLATEAU 建物の生属性をすべて再帰的にログ出力する（調査用）。
+    /// 建物ごとに初回抽出時のみ・先頭 _DUMP_BUILDING_LIMIT 棟までに制限。
+    ///
+    /// 目的: uro:buildingStructureType（建物構造）/ uro:fireproofStructureType（耐火構造種別）/
+    /// uro:districtsAndZonesType（地域地区）等が対象データに入っているかを確認し、
+    /// 解体廃棄物の発生原単位の係数設計に使えるかを判断する
+    /// </summary>
+    private void DumpRawAttributes(GameObject building, PLATEAU.CityInfo.CityObjectList.CityObject cityObj)
+    {
+        if (_dumpedBuildingCount >= _DUMP_BUILDING_LIMIT)
+        {
+            return;
+        }
+        _dumpedBuildingCount = _dumpedBuildingCount + 1;
+
+        Debug.Log($"[PlateauAttrDump] ===== {_dumpedBuildingCount}/{_DUMP_BUILDING_LIMIT} 棟目: {building.name} =====");
+        DumpAttributeMap(cityObj.AttributesMap, 0);
+        Debug.Log($"[PlateauAttrDump] ===== {building.name} 終了 =====");
+    }
+
+    private void DumpAttributeMap(PLATEAU.CityInfo.CityObjectList.Attributes attrMap, int depth)
+    {
+        if (attrMap == null || depth > _DUMP_MAX_DEPTH)
+        {
+            return;
+        }
+
+        string indent = new string('-', depth * 2);
+        foreach (var pair in attrMap)
+        {
+            string value = pair.Value.StringValue;
+            Debug.Log($"[PlateauAttrDump] {indent}{pair.Key} = {value}");
+
+            var nested = pair.Value.AttributesMapValue;
+            if (nested != null)
+            {
+                DumpAttributeMap(nested, depth + 1);
+            }
+        }
     }
 
     private Dictionary<string, string> ExtractAttributesFromCityObject(PLATEAU.CityInfo.CityObjectList.CityObject cityObj, Dictionary<string, string> buildingInfo)
