@@ -25,10 +25,17 @@ namespace CommonsUtility
         /// <summary>廃棄物 1t あたりの瓦礫キューブ量（見た目の量。大きいほど多く散らばる）</summary>
         public float DebrisPerTon;
 
-        public DemolitionSpec(float tonsPerSqm, float debrisPerTon)
+        /// <summary>
+        /// 1 棟あたりに生成する瓦礫キューブ数の上限（物理負荷の安全弁）。
+        /// ここに達すると TonsPerSqm / DebrisPerTon を増やしても見た目が変わらなくなる
+        /// </summary>
+        public int MaxCubes;
+
+        public DemolitionSpec(float tonsPerSqm, float debrisPerTon, int maxCubes)
         {
             TonsPerSqm = tonsPerSqm;
             DebrisPerTon = debrisPerTon;
+            MaxCubes = maxCubes;
         }
     }
 
@@ -40,6 +47,9 @@ namespace CommonsUtility
         internal const string TYPE_CONCRETE = "concrete";  // RC/SRC 造
         internal const string TYPE_UNKNOWN = "unknown";    // 不明
 
+        /// <summary>1 棟あたりの瓦礫キューブ数の上限の既定値（YAML の max_cubes で上書きできる）</summary>
+        private const int _DEFAULT_MAX_CUBES = 1000;
+
         /// <summary>建物種別ごとの係数（既定値。ステージ YAML の demolition で上書きされる）</summary>
         private static Dictionary<string, DemolitionSpec> _specs = BuildDefaultSpecs();
 
@@ -49,10 +59,10 @@ namespace CommonsUtility
             // DebrisPerTon は見た目の量で、50 は従来の 5 倍に相当する
             return new Dictionary<string, DemolitionSpec>
             {
-                { TYPE_WOOD, new DemolitionSpec(0.5f, 50f) },
-                { TYPE_STEEL, new DemolitionSpec(0.7f, 50f) },
-                { TYPE_CONCRETE, new DemolitionSpec(1.1f, 50f) },
-                { TYPE_UNKNOWN, new DemolitionSpec(0.6f, 50f) },
+                { TYPE_WOOD, new DemolitionSpec(0.5f, 50f, _DEFAULT_MAX_CUBES) },
+                { TYPE_STEEL, new DemolitionSpec(0.7f, 50f, _DEFAULT_MAX_CUBES) },
+                { TYPE_CONCRETE, new DemolitionSpec(1.1f, 50f, _DEFAULT_MAX_CUBES) },
+                { TYPE_UNKNOWN, new DemolitionSpec(0.6f, 50f, _DEFAULT_MAX_CUBES) },
             };
         }
 
@@ -147,6 +157,14 @@ namespace CommonsUtility
         {
             DemolitionSpec spec = GetSpec(ClassifyStructure(buildingInfo));
             return Mathf.CeilToInt(debrisTons * spec.DebrisPerTon);
+        }
+
+        /// <summary>
+        /// 1 棟あたりの瓦礫キューブ数の上限を取得する（建物種別ごと）
+        /// </summary>
+        internal static int CalcMaxCubes(Dictionary<string, string> buildingInfo)
+        {
+            return GetSpec(ClassifyStructure(buildingInfo)).MaxCubes;
         }
 
         /// <summary>

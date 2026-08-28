@@ -284,7 +284,8 @@ public class PlateauInfoManager : MonoBehaviour
             plateauCubeMaker = base.gameObject.AddComponent<PlateauCubeMaker>();
         }
         int debrisAmount = DemolitionSystem.CalcDebrisAmount(buildingInfo, debrisTons);
-        plateauCubeMaker.ScatterDemolitionDebris(building, debrisAmount);
+        int maxCubes = DemolitionSystem.CalcMaxCubes(buildingInfo);
+        plateauCubeMaker.ScatterDemolitionDebris(building, debrisAmount, maxCubes);
 
         // 更地化（建物を完全に消去）
         _buildingInteractor.DeleteBuilding(building);

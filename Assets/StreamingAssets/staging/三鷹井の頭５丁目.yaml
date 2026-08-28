@@ -28,23 +28,37 @@ itemlists:
 # 建物種別ごとに、解体で出る廃棄物量と画面上の瓦礫の量を調整する。
 #   type           : 建物種別（wood=木造 / steel=鉄骨造 / concrete=RC・SRC造 / unknown=不明）
 #   tons_per_sqm   : 延床面積 1 ㎡あたりの発生量[t]  ※ 仮の値。パートナーの実務値で差し替える
-#   debris_per_ton : 廃棄物 1t あたりの瓦礫の量（見た目の量。大きいほど多く散らばる）
+#   debris_per_ton : 廃棄物 1t あたりの瓦礫の量（見た目だけに効く）
+#   max_cubes      : 1 棟あたりの瓦礫キューブ数の上限（物理負荷の安全弁）
+#
+# [重要] つまみの役割を分けてある。混ぜて使うと数字か見た目のどちらかが壊れる。
+#   ・トラック台数など「発表で出す数字」を変えたい → tons_per_sqm
+#   ・画面の瓦礫を増やしたいだけ                   → debris_per_ton と max_cubes
+# tons_per_sqm を見た目のために盛ると、廃棄物量とトラック台数まで一緒に嘘になる。
+#
+# [注意] max_cubes に達すると、tons_per_sqm や debris_per_ton をいくら増やしても
+#   見た目は変わらない（頭打ちになる）。打ち切り時は Console に警告が出る。
+#   増やすほど Rigidbody が増えて重くなるので、上げるときは実機で fps を確認すること。
 #
 # ※ 建物種別は PLATEAU の耐火構造種別・階数・用途地域から推定している
 #   （三鷹市データには建物構造そのものが無いため）
 demolition:
   - type: wood        # 木造
-    tons_per_sqm: 0.5
-    debris_per_ton: 50
+    tons_per_sqm: 0.5     # 延床1㎡あたりの発生量[t]（パートナー値で差し替え予定）
+    debris_per_ton: 200   # 見た目の瓦礫量（増やすほど多く散らばる）
+    max_cubes: 2000       # 1棟あたりのキューブ数上限
   - type: steel       # 鉄骨造(S)
     tons_per_sqm: 0.7
-    debris_per_ton: 50
+    debris_per_ton: 200
+    max_cubes: 2000
   - type: concrete    # RC / SRC 造
     tons_per_sqm: 1.1
-    debris_per_ton: 50
+    debris_per_ton: 200
+    max_cubes: 2000
   - type: unknown     # 不明
     tons_per_sqm: 0.6
-    debris_per_ton: 50
+    debris_per_ton: 200
+    max_cubes: 2000
 
 # goals / gameovers は定義しない（3年完走がシミュレーション終了条件）
 

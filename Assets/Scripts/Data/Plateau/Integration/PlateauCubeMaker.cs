@@ -54,7 +54,8 @@ public class PlateauCubeMaker : MonoBehaviour
     /// 建物は更地化されるため、跡地（建物のフットプリント内側）にも瓦礫を積む
     /// </summary>
     /// <param name="targetAmount">DemolitionSystem が算定した瓦礫の目標量（建物種別の係数込み）</param>
-    internal void ScatterDemolitionDebris(GameObject targetObj, int targetAmount)
+    /// <param name="maxCubes">生成するキューブ数の上限（物理負荷の安全弁。YAML の max_cubes）</param>
+    internal void ScatterDemolitionDebris(GameObject targetObj, int targetAmount, int maxCubes)
     {
         Renderer renderer = targetObj.GetComponent<Renderer>();
         if (renderer == null)
@@ -75,8 +76,14 @@ public class PlateauCubeMaker : MonoBehaviour
         {
             accumulated += CreateGarbageCubeSmall(spawnPoint);
             spawnCount++;
-            if (spawnCount > _MAX_DEBRIS_SPAWN_COUNT)
+            if (spawnCount >= maxCubes)
             {
+                // [重要] ここで打ち切ると、YAML の tons_per_sqm / debris_per_ton を
+                // いくら増やしても見た目が変わらなくなる。黙って頭打ちにならないよう警告を出す
+                Debug.LogWarning(
+                    $"[Demolition] {targetObj.name}: 瓦礫が上限 {maxCubes} 個に達したため打ち切りました"
+                    + $"（目標 {targetAmount} / 生成 {accumulated}）。"
+                    + "さらに増やすには YAML の max_cubes を上げてください");
                 break;
             }
         }
@@ -84,9 +91,6 @@ public class PlateauCubeMaker : MonoBehaviour
 
     /// <summary>瓦礫のスポーン高さ（建物 bounds 中心からの相対。既存実装と同値）</summary>
     private const float _DEBRIS_SPAWN_HEIGHT = 0.5f;
-
-    /// <summary>1 棟あたりの瓦礫スポーン回数の上限（量を増やしたため既存の 200 から拡大）</summary>
-    private const int _MAX_DEBRIS_SPAWN_COUNT = 1000;
 
     private int CreateGarbageRoundByAngle(Vector3 center, Vector3 extents, int step, int i)
     {
