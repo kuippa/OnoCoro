@@ -127,7 +127,7 @@ namespace CommonsUtility
         internal static float TotalVolumeCubicMeters => _totalTons / _DEBRIS_DENSITY;
 
         /// <summary>4t トラック換算の台数（切り上げ）</summary>
-        internal static int TruckCount => Mathf.CeilToInt(_totalTons / _TRUCK_CAPACITY_TONS);
+        internal static int TruckCount => CalcTruckCount(_totalTons);
 
         /// <summary>
         /// 建物属性から解体廃棄物量（t）を算定する。
@@ -332,6 +332,71 @@ namespace CommonsUtility
         internal static string GetSummaryText()
         {
             return $"解体 {_demolishedBuildingCount} 棟 / 廃棄物 {_totalTons:F0} t / 4tトラック {TruckCount} 台分";
+        }
+
+        // =============================================
+        // 画面上のゴミ実物からの集計（リザルト表示用）
+        //
+        // RecordDemolition の累計（_totalTons）は「解体した建物の算定値」だが、
+        // こちらは「マップに実際に転がっているゴミ」を数える。
+        // 解体由来だけでなく火災由来・プレイヤー由来のゴミも含む総量になる。
+        // =============================================
+
+        /// <summary>タグ Garbage が付いたオブジェクトの個数を数える</summary>
+        internal static int CountGarbageObjects()
+        {
+            GameObject[] garbageObjects =
+                GameObject.FindGameObjectsWithTag(GameEnum.TagType.Garbage.ToString());
+            return garbageObjects.Length;
+        }
+
+        /// <summary>
+        /// ゴミの個数を廃棄物量[t]に換算する。
+        ///
+        /// 散布時は「目標量 = 廃棄物量 t × DebrisPerTon」を
+        /// 1 個あたり GarbageCube の基準スコアぶん消化して生成している。
+        /// ここはその逆算にあたるため、見た目の調整つまみ（DebrisPerTon）を
+        /// 変えても換算後のトン数は変わらない。
+        ///
+        /// [注意] max_cubes で打ち切られた場合は実際の解体量より少なく出る
+        /// </summary>
+        internal static float CalcTonsFromGarbageCount(int garbageCount)
+        {
+            if (garbageCount <= 0)
+            {
+                return 0f;
+            }
+
+            // 混在したゴミを一律換算するため、種別不明の係数を代表値として使う
+            float debrisPerTon = GetSpec(TYPE_UNKNOWN).DebrisPerTon;
+            if (debrisPerTon <= 0f)
+            {
+                return 0f;
+            }
+
+            float totalAmount = garbageCount * GarbageCube.GetBaseScore();
+            return totalAmount / debrisPerTon;
+        }
+
+        /// <summary>廃棄物量[t]を 4t トラックの台数に換算する（切り上げ）</summary>
+        internal static int CalcTruckCount(float tons)
+        {
+            if (tons <= 0f)
+            {
+                return 0;
+            }
+            return Mathf.CeilToInt(tons / _TRUCK_CAPACITY_TONS);
+        }
+
+        /// <summary>
+        /// リザルト用: マップ上のゴミ総量から「N t / 4tトラック M 台分」を作る
+        /// </summary>
+        internal static string GetGarbageTruckText()
+        {
+            int garbageCount = CountGarbageObjects();
+            float tons = CalcTonsFromGarbageCount(garbageCount);
+            int truckCount = CalcTruckCount(tons);
+            return $"廃材 {tons:F0} t（ゴミ {garbageCount} 個）\n4t トラック {truckCount} 台分";
         }
     }
 }

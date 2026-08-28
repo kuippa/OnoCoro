@@ -182,6 +182,8 @@ namespace CommonsUtility
                 $"無施策時の予想延焼（累計）: {summary.AssumedSpread} 棟\n" +
                 $"抑えた延焼（累計）: {summary.SavedBuildings} 棟\n" +
                 $"総合 投資効果(ROI): {summary.Roi:F1}\n\n" +
+                // [CityHack 2026] マップに残ったゴミの総量を 4t トラック換算で示す
+                DemolitionSystem.GetGarbageTruckText() + "\n\n" +
                 BuildSummaryMessage(summary);
         }
 
