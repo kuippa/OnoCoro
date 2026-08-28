@@ -181,14 +181,13 @@ public class PlateauInfoManager : MonoBehaviour
         {
             plateauCubeMaker = base.gameObject.AddComponent<PlateauCubeMaker>();
         }
-        int debrisCubeCount = DemolitionSystem.CalcDebrisCubeCount(debrisTons);
-        plateauCubeMaker.ScatterDemolitionDebris(building, debrisCubeCount);
+        plateauCubeMaker.ScatterDemolitionDebris(building, debrisTons);
 
         // 更地化（建物を完全に消去）
         _buildingInteractor.DeleteBuilding(building);
 
         DemolitionSystem.RecordDemolition(debrisTons);
-        Debug.Log($"[Demolition] {building.name}: {debrisTons:F1} t / 瓦礫 {debrisCubeCount} 個 / {DemolitionSystem.GetSummaryText()}");
+        Debug.Log($"[Demolition] {building.name}: {debrisTons:F1} t / {DemolitionSystem.GetSummaryText()}");
         return debrisTons;
     }
 

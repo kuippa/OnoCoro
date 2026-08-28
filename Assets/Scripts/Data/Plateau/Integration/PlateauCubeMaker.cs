@@ -53,7 +53,7 @@ public class PlateauCubeMaker : MonoBehaviour
     /// こちらは DemolitionSystem が算定した廃棄物量に比例した個数を撒く。
     /// 建物は更地化されるため、跡地（建物のフットプリント内側）にも瓦礫を積む
     /// </summary>
-    internal void ScatterDemolitionDebris(GameObject targetObj, int debrisCubeCount)
+    internal void ScatterDemolitionDebris(GameObject targetObj, float debrisTons)
     {
         Renderer renderer = targetObj.GetComponent<Renderer>();
         if (renderer == null)
@@ -61,89 +61,70 @@ public class PlateauCubeMaker : MonoBehaviour
             return;
         }
 
+        // [修正 2026-08-28] 既存の BreakUpBuildingCube と同じ方式に揃える。
+        // スポーンは建物中心・高さ center.y + 0.5（実際のばらつきは isSwayingPoint が担当）。
+        // 独自の接地 Raycast や山積み計算はやめ、既存挙動と揃えることで奈落落ちを防ぐ
         Vector3 center = renderer.bounds.center;
-        Vector3 extents = renderer.bounds.extents;
-        float radius = GetRadius(extents);
+        Vector3 spawnPoint = new Vector3(center.x, center.y + _DEBRIS_SPAWN_HEIGHT, center.z);
 
-        // [修正 2026-08-28] 建物 bounds の中心高さから落とすと、地面コライダーが無い所や
-        // 建物内部に湧いてすり抜け、奈落に落ちて消えていた。
-        // 地面（Ground レイヤー）へ Raycast して接地高さを求め、その上に積む
-        int groundLayerMask = 1 << LayerMask.NameToLayer(GameEnum.LayerType.Ground.ToString());
+        // サイズをバラけさせつつ、ScoreCtrl.GetTotalGarbageScore（サイズから量を算出）を
+        // 積算して目標量に達するまで撒く → サイズが変わっても総量が揃う
+        int targetAmount = Mathf.CeilToInt(debrisTons * _DEBRIS_AMOUNT_PER_TON);
+        int accumulated = 0;
+        int spawnCount = 0;
 
-        for (int i = 0; i < debrisCubeCount; i++)
+        while (accumulated < targetAmount)
         {
-            // 跡地に山なりに積むため、中心寄り（0.2〜1.0 倍）のランダム半径に散らす
-            float ratio = Utility.fRandomRange(_DEBRIS_INNER_RATIO, 1.0f);
-            float angle = Utility.fRandomRange(0f, 360f) * Mathf.Deg2Rad;
-            float x = center.x + radius * ratio * Mathf.Cos(angle);
-            float z = center.z + radius * ratio * Mathf.Sin(angle);
-
-            if (!TryGetGroundY(x, z, groundLayerMask, out float groundY))
+            accumulated += CreateDemolitionDebrisCube(spawnPoint);
+            spawnCount++;
+            if (spawnCount > _MAX_DEBRIS_SPAWN_COUNT)
             {
-                continue;  // 地面が無い位置には撒かない（場外・奈落行きを防ぐ）
+                break;
             }
-
-            // 中心に近いほど高く積む（瓦礫の山の形）。接地高さ基準で少しだけ浮かせて落とす
-            float heightRatio = 1.0f - ratio;
-            float y = groundY + _DEBRIS_BASE_HEIGHT + heightRatio * _DEBRIS_PILE_HEIGHT;
-
-            CreateDemolitionDebrisCube(new Vector3(x, y, z));
         }
     }
 
-    /// <summary>
-    /// 解体廃棄物の瓦礫を 1 個生成する。
-    /// [修正 2026-08-28] 従来の小サイズ（0.08〜0.3m）はゴミ屑相当で建物の隣ではほぼ見えなかったため、
-    /// 解体瓦礫は大サイズ（1.5〜3.0m）主体にして「瓦礫の山」として視認できるようにする
-    /// </summary>
-    private void CreateDemolitionDebrisCube(Vector3 pos)
-    {
-        GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
-        GarbageCubeSpawner garbageCubeSpawner = gameManagerObject.GetComponent<GarbageCubeSpawner>();
-        if (garbageCubeSpawner == null)
-        {
-            garbageCubeSpawner = gameManagerObject.AddComponent<GarbageCubeSpawner>();
-        }
+    /// <summary>瓦礫のスポーン高さ（建物 bounds 中心からの相対。既存 BreakUpBuildingCube と同値）</summary>
+    private const float _DEBRIS_SPAWN_HEIGHT = 0.5f;
 
-        // 大きい瓦礫を主体に、小さい破片を混ぜて山らしく見せる
+    /// <summary>廃棄物 1t あたりの目標量（GetTotalGarbageScore の積算単位）</summary>
+    private const float _DEBRIS_AMOUNT_PER_TON = 1.0f;
+
+    /// <summary>1 棟あたりの瓦礫スポーン回数の上限（処理落ち防止。既存実装と同じ 200）</summary>
+    private const int _MAX_DEBRIS_SPAWN_COUNT = 200;
+
+    /// <summary>
+    /// 解体廃棄物の瓦礫を 1 個生成し、その量（サイズ由来のスコア）を返す。
+    ///
+    /// 既存の CreateGarbageCubeNormal と同じ同期生成で、
+    /// ScoreCtrl.GetTotalGarbageScore がキューブのサイズから量を算出する。
+    /// これによりサイズをランダムに散らしても、積算した総量は目標に揃う。
+    /// サイズは通常（0.3m）と大（1.5〜3.0m）を混ぜ、解体瓦礫として視認できる大きさにする
+    /// </summary>
+    private int CreateDemolitionDebrisCube(Vector3 pos)
+    {
         int sizeFlag = GarbageCubeFactory._SIZE_BIG;
         if (Utility.fRandomRange(0f, 1f) < _DEBRIS_SMALL_RATIO)
         {
             sizeFlag = GarbageCubeFactory._SIZE_NORMAL;
         }
-        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, sizeFlag, isSwayingPoint: true);
+
+        GameObject unit = GarbageCubeFactory.SpawnGarbageCube(pos, sizeFlag, isSwayingPoint: true);
+        if (unit == null)
+        {
+            return GarbageCube.GetBaseScore();  // 生成失敗時も無限ループにしない
+        }
+
+        Collider collider = unit.GetComponent<Collider>();
+        if (collider == null)
+        {
+            return GarbageCube.GetBaseScore();
+        }
+        return ScoreCtrl.GetTotalGarbageScore(collider);
     }
 
     /// <summary>小さい破片を混ぜる割合</summary>
     private const float _DEBRIS_SMALL_RATIO = 0.3f;
-
-    /// <summary>
-    /// 指定 XZ の地面（Ground レイヤー）の高さを取得する
-    /// </summary>
-    private bool TryGetGroundY(float x, float z, int groundLayerMask, out float groundY)
-    {
-        const float _RAY_ORIGIN_HEIGHT = 500f;
-        const float _RAY_MAX_DISTANCE = 1000f;
-
-        Vector3 rayOrigin = new Vector3(x, _RAY_ORIGIN_HEIGHT, z);
-        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, _RAY_MAX_DISTANCE, groundLayerMask))
-        {
-            groundY = hit.point.y;
-            return true;
-        }
-
-        groundY = 0f;
-        return false;
-    }
-
-    /// <summary>瓦礫を撒く最小半径比（0 に近いほど中心に寄る）</summary>
-    private const float _DEBRIS_INNER_RATIO = 0.2f;
-
-    /// <summary>瓦礫のスポーン基準高さ（地面へ落下させるため少し浮かせる）</summary>
-    private const float _DEBRIS_BASE_HEIGHT = 1.0f;
-
-    /// <summary>瓦礫の山の高さ（中心が最も高い）</summary>
-    private const float _DEBRIS_PILE_HEIGHT = 4.0f;
 
     private int CreateGarbageRoundByAngle(Vector3 center, Vector3 extents, int step, int i)
     {

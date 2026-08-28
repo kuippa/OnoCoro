@@ -29,12 +29,6 @@ namespace CommonsUtility
         /// <summary>4t トラック 1 台あたりの積載量（t）</summary>
         private const float _TRUCK_CAPACITY_TONS = 4.0f;
 
-        /// <summary>瓦礫キューブ 1 個が表す廃棄物量（t）※ 見た目の量を決める</summary>
-        private const float _TONS_PER_DEBRIS_CUBE = 3.0f;
-
-        /// <summary>1 棟あたりの瓦礫キューブ上限（処理落ち防止）</summary>
-        private const int _MAX_DEBRIS_CUBES_PER_BUILDING = 60;
-
         private static float _totalTons = 0f;
         private static int _demolishedBuildingCount = 0;
 
@@ -214,15 +208,6 @@ namespace CommonsUtility
             }
             _totalTons = _totalTons + tons;
             _demolishedBuildingCount = _demolishedBuildingCount + 1;
-        }
-
-        /// <summary>
-        /// 廃棄物量（t）から散布する瓦礫キューブ数を求める（上限あり）
-        /// </summary>
-        internal static int CalcDebrisCubeCount(float tons)
-        {
-            int count = Mathf.CeilToInt(tons / _TONS_PER_DEBRIS_CUBE);
-            return Mathf.Clamp(count, 1, _MAX_DEBRIS_CUBES_PER_BUILDING);
         }
 
         /// <summary>
