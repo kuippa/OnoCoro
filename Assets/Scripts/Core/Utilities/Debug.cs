@@ -9,17 +9,26 @@ namespace CommonsUtility
     /// </summary>
     public enum DebugLevel
     {
-        /// <summary>エディタ環境でのみ最詳細ログを出力（呼び出し元情報含む）</summary>
+        /// <summary>
+        /// 通常の開発時の設定。呼び出し元情報を付けつつ Log 以上を出力する。
+        /// トレース（LogTrace）は出さないので、Console が追跡可能な量に保たれる
+        /// </summary>
         Editor = 0,
 
-        /// <summary>すべてのログを出力（全環境）</summary>
-        Log = 1,
+        /// <summary>
+        /// トレースを含めてすべて出力する。特定の不具合を追うときだけ一時的に使う。
+        /// 常用すると Console が流れて必要な情報が追えなくなる
+        /// </summary>
+        Trace = 1,
+
+        /// <summary>通常のログ以上を出力（トレースは出さない）</summary>
+        Log = 2,
 
         /// <summary>警告ログ以上を出力</summary>
-        Warning = 2,
+        Warning = 3,
 
         /// <summary>エラーのみ出力</summary>
-        Error = 3,
+        Error = 4,
 
         /// <summary>ログ出力なし</summary>
         None = 99
@@ -56,6 +65,23 @@ namespace CommonsUtility
         public static void Log(string message)
         {
             if (ShouldLog(DebugLevel.Log))
+            {
+                string formattedMessage = BuildLogMessage(message);
+                UnityEngine.Debug.Log(formattedMessage);
+                LogUtility.WriteLog(LogUtility.LogLevel.Log, formattedMessage);
+            }
+        }
+
+        /// <summary>
+        /// トレースログを出力（既定では出力されない）
+        ///
+        /// ループ内・毎フレーム・オブジェクト単位で出るような、
+        /// 平常時には読む必要のない追跡用ログはこちらを使う。
+        /// 見たいときだけ GameConfig.DebugLevel = DebugLevel.Trace にする
+        /// </summary>
+        public static void LogTrace(string message)
+        {
+            if (ShouldLog(DebugLevel.Trace))
             {
                 string formattedMessage = BuildLogMessage(message);
                 UnityEngine.Debug.Log(formattedMessage);
@@ -257,7 +283,7 @@ namespace CommonsUtility
         /// 現在のデバッグレベルでログ出力すべきかを判定
         /// 
         /// DebugLevel のenumにおける数値順序に準拠：
-        /// Editor(0)→詳細（エディタのみ）> Log(1)→全出力 > Warning(2) > Error(3) > None(99)→沈黙
+        /// Editor(0)→Log以上＋呼び出し元情報 / Trace(1)→全出力 > Log(2) > Warning(3) > Error(4) > None(99)→沈黙
         /// </summary>
         private static bool ShouldLog(DebugLevel requiredLevel)
         {
@@ -269,14 +295,12 @@ namespace CommonsUtility
                 return false;
             }
 
-            // Editor の設定でリリース環境に来た場合は常に出力
+            // Editor は「呼び出し元情報つきで Log 以上」。
+            // トレースまで出すと Console が流れて必要な情報が追えなくなるため、
+            // トレースを見たいときは明示的に DebugLevel.Trace を指定する
             if (currentLevel == DebugLevel.Editor)
             {
-// #if UNITY_EDITOR
-                return true;
-// #else
-//                 return false;
-// #endif
+                return requiredLevel >= DebugLevel.Log;
             }
 
             // Log 以上のレベルでは、requiredLevel に基づいて判定

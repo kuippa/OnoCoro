@@ -113,7 +113,7 @@ internal static class RouteYamlProvider
                 eventLoader._routeNameToMarkerSequenceDict.Add(routeName, markerSequence);
             }
 
-            Debug.Log($"[RouteYamlProvider.LoadRouteNames] Registered route '{routeName}' → '{markerSequence}'");
+            Debug.LogTrace($"[RouteYamlProvider.LoadRouteNames] Registered route '{routeName}' → '{markerSequence}'");
         }
     }
 

@@ -767,7 +767,7 @@ public class EventLoader : MonoBehaviour, IInitializable
 
         // ユニットをルートオブジェクトの子要素として登録
         enemy_unit.transform.SetParent(pathRootObject.transform);
-        Debug.Log($"[EventLoader.RegisterEnemyToPath] ユニット '{enemy_unit.name}' をパス '{markerSequence}' に登録（現在の子要素数: {pathRootObject.transform.childCount})");
+        Debug.LogTrace($"[EventLoader.RegisterEnemyToPath] ユニット '{enemy_unit.name}' をパス '{markerSequence}' に登録（現在の子要素数: {pathRootObject.transform.childCount})");
         
         return markerSequence;
     }
@@ -790,7 +790,7 @@ public class EventLoader : MonoBehaviour, IInitializable
         if (_routeNameToMarkerSequenceDict.ContainsKey(markerSequence))
         {
             resolvedMarkerSequence = _routeNameToMarkerSequenceDict[markerSequence];
-            Debug.Log($"[EventLoader.NotifyEnemyDeath] routeName '{markerSequence}' を実マーカーシーケンス '{resolvedMarkerSequence}' に変換");
+            Debug.LogTrace($"[EventLoader.NotifyEnemyDeath] routeName '{markerSequence}' を実マーカーシーケンス '{resolvedMarkerSequence}' に変換");
         }
 
         // パス用ルートオブジェクトを取得
@@ -803,18 +803,18 @@ public class EventLoader : MonoBehaviour, IInitializable
         // パス上のユニット数をカウント（子要素 = スポーン済みユニット）
         int childCount = pathRootObject.transform.childCount;
         
-        Debug.Log($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' の現在の子要素数: {childCount}");
-        
+        Debug.LogTrace($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' の現在の子要素数: {childCount}");
+
         // 子要素の詳細ログ（デバッグ用）
         for (int i = 0; i < childCount; i++)
         {
             Transform child = pathRootObject.transform.GetChild(i);
-            Debug.Log($"  └─ [{i}] {child.gameObject.name}");
+            Debug.LogTrace($"  └─ [{i}] {child.gameObject.name}");
         }
-        
+
         if (childCount > 0)
         {
-            Debug.Log($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' にまだ {childCount} 個のユニットがいるため、off_bloom_path は実行しません");
+            Debug.LogTrace($"[EventLoader.NotifyEnemyDeath] パス '{resolvedMarkerSequence}' にまだ {childCount} 個のユニットがいるため、off_bloom_path は実行しません");
             return;
         }
 

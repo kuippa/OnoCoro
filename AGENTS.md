@@ -120,8 +120,33 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
 6. **Meaningful names** - Use descriptive variable names, not abbreviations
 7. **Utility classes** - Consolidate related functionality (see standards doc)
 8. **UnityEngine.Debug** - Always use explicit alias: `using Debug = UnityEngine.Debug;`
+9. **Keep logging sparse** - See "Logging Policy" below
 
 For detailed code examples and rationale, see [docs/project-rules/coding-csharp.md](docs/project-rules/coding-csharp.md).
+
+### Logging Policy
+
+**ログは「後で読む人が追える量」に保つこと。** 大量のトレースログは Console を流し、
+必要な情報を埋もれさせる。ログ行が増えるとコード自体も読みにくくなる。
+
+**書く前に「これは平常時に読む価値があるか？」を自問する。** 無いなら書かないか、
+`Debug.LogTrace()` を使う。
+
+| 用途 | 使うもの | 出力されるか |
+|------|---------|------------|
+| 処理の節目・結果のサマリー（1 イベントに 1 行程度） | `Debug.Log()` | 既定で出る |
+| ループ内・毎フレーム・オブジェクト単位の追跡用 | `Debug.LogTrace()` | 既定では出ない |
+| 想定外だが処理は継続できる | `Debug.LogWarning()` | 出る |
+| 処理が破綻している | `Debug.LogError()` | 出る |
+
+- ❌ ループの中で `Debug.Log()` を回さない（`Debug.LogTrace()` を使う）
+- ❌ 「関数に入った」「値を取得した」だけのログを書かない
+- ❌ デバッグで使ったログをコメントアウトして残さない。**消す**（履歴は git にある）
+- ✅ N 件を 1 行に集約する（`{count} 件を処理` であって 1 件ずつ出さない）
+- ✅ 上限や打ち切りなど、**黙って挙動が変わる箇所には必ず警告を出す**
+- ✅ 調査用の一時的なダンプは、調査が終わったらコードごと削除する
+
+トレースを見たいときだけ `GameConfig.DebugLevel = DebugLevel.Trace` に切り替える。
 
 ---
 

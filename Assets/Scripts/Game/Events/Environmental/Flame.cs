@@ -38,15 +38,13 @@ public class Flame : MonoBehaviour
 
             for (int i = garbage.Length -1; i < garbage.Length; i--)
             {
-                Debug.Log("GarbageToFire" + i );
-
                 // 加速度があるか調べる
                 Rigidbody rb = garbage[i].GetComponent<Rigidbody>();
                 if (rb != null)
                 {
                     // rb.velocity = Vector3.zero;
                     // rb.angularVelocity = Vector3.zero;
-                    Debug.Log("GarbageToFire" + i + " "+ rb.linearVelocity + rb.angularVelocity);
+                    Debug.LogTrace($"[Flame] GarbageToFire {i} vel={rb.linearVelocity} ang={rb.angularVelocity}");
 
                     // if (rb.velocity == Vector3.zero)
                     // if (rb.angularVelocity == Vector3.zero)
