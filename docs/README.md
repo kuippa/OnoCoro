@@ -68,6 +68,13 @@ OnoCoro プロジェクトの公式ドキュメントです。各層に分かれ
 - [yaml-format.md](reference/yaml-format.md) - YAML ファイル形式仕様
 - [data-models.md](reference/data-models.md) - データ構造定義
 
+### [HowTo] 作業手順層
+
+たまにしかやらないため、そのたびに調べ直している作業の手順メモ
+
+- [howto/README.md](howto/README.md) - HowTo 一覧・書き方の方針
+- [howto/import-builtin-assets-to-hdrp.md](howto/import-builtin-assets-to-hdrp.md) - Built-in 向けアセットを HDRP に取り込む（マテリアルがマゼンタになる問題）
+
 ### [Archive] 非推奨ファイル
 
 古いドキュメント・廃止予定ファイル
