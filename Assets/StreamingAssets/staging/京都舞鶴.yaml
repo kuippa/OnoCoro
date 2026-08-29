@@ -8,6 +8,9 @@
 # [構成] 3〜5 分のデモに収めるため 1 年のみ有効。year 2/3 はコメントアウトしてある。
 # 内容は今後調整する。戻すときは years 配下のコメントを外すだけでよい。
 #
+# [デモの流れ] t=2 経路ハイライト → t=5 巨大猫が出現して建物を解体しながら移動
+#   → t=7 前後 地震で倒壊・出火 → 年末リザルトで廃材の 4t トラック換算を表示
+#
 # [このマップの特徴]
 # 舞鶴は港湾都市で、三鷹（内陸・木密住宅地）とは災害の性格が異なる。
 #   建物  7928 棟（三鷹井の頭５丁目の約 5.4 倍。重いので break_count は控えめ）
@@ -32,6 +35,24 @@ itemlists:
   - item: WaterTurret   # 消火器（従来ユニット・比較用）
   - item: Hydrant       # 消火栓（施策・統計効果型）
   - item: Cistern       # 防火水槽（施策・統計効果型）
+
+# ===== 巨大猫の移動経路（CityHack 2026）=====
+# [暫定] 座標はシーンに置かれていた EnemyCat の位置(151, 10, -235)を起点に、
+# そこから北東へ 3 点を機械的に並べただけのもの。道に沿ってはいない。
+# Unity 上でマーカーを掴んで動かせば、その位置が優先される
+# （同名マーカーが既にシーンにある場合、YAML は位置のみ更新する仕様）。
+#
+# Y は auto にしてあるので、地面の高さは Raycast で自動検出される。
+# 舞鶴は起伏があるため、手で数値を入れるより auto のままが安全。
+pathmakers:
+  - name: path_marker_start
+    pos: 151, auto, -235     # 猫の出発点
+
+  - name: path_marker_01
+    pos: 180, auto, -190     # 中間地点
+
+  - name: path_marker_goal
+    pos: 210, auto, -150     # ゴール（ここに着くと猫は消える）
 
 # ===== 解体廃棄物の係数（CityHack 2026）=====
 # 建物種別ごとに、解体で出る廃棄物量と画面上の瓦礫の量を調整する。
@@ -99,13 +120,23 @@ events:
   #   value: "3"
 
   # ===== 巨大猫（CityHack 2026）=====
-  # 指定した経路を移動し、近づいた建物を次々と解体していく敵ユニット。
-  # 使う前に、シーンへ path_marker プレファブを配置して名前を合わせること
-  # （Prefabs/Marker/path_marker。start から goal まで通り道に沿って並べる）。
+  # 指定した経路を移動し、近づいた建物を次々と解体していく。
+  # マーカーは上の pathmakers セクションで定義している。
+  # 経路を変えたいときは、pathmakers の座標か Unity 上のマーカー位置を直す。
+
+  # 経路をハイライト表示（どこを通るか観客に見せる）
+  - time: 2
+    event: bloom_path
+    value: path_marker_start, path_marker_01, path_marker_goal
+
+  - time: 4
+    event: subtelop
+    value: "巨大猫が現れた。通り道の建物が解体されていく"
+
   # value: Cat, <開始マーカー>, <経由マーカー...>, <ゴールマーカー>
-  # - time: 5
-  #   event: spawn_enemy_unit
-  #   value: Cat, path_marker_start, path_marker_01, path_marker_goal
+  - time: 5
+    event: spawn_enemy_unit
+    value: Cat, path_marker_start, path_marker_01, path_marker_goal
 
 # baseline = 消火なし時の想定火災延焼棟数（防いだ延焼 = baseline - 実延焼）。
 # [未計測] 下記は三鷹の値をそのまま置いた暫定値。
