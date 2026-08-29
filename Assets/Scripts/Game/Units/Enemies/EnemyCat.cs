@@ -310,17 +310,20 @@ public class EnemyCat : MonoBehaviour
     }
 
     /// <summary>
-    /// ピボットからコライダー底面までのローカルオフセットを返す
+    /// ピボットからコライダー底面までのローカルオフセットを返す。
+    ///
+    /// 猫のプレファブはモデルを子に持つ構成が多く、ルートにコライダーが無いことがある。
+    /// そのため子オブジェクトも探す（EnemyLitter はルートのみ見ている）
     /// </summary>
     private float GetBottomOffset()
     {
-        CapsuleCollider capsuleCollider = GetComponent<CapsuleCollider>();
+        CapsuleCollider capsuleCollider = GetComponentInChildren<CapsuleCollider>();
         if (capsuleCollider != null)
         {
             return capsuleCollider.height / 2f - capsuleCollider.center.y;
         }
 
-        BoxCollider boxCollider = GetComponent<BoxCollider>();
+        BoxCollider boxCollider = GetComponentInChildren<BoxCollider>();
         if (boxCollider != null)
         {
             return boxCollider.size.y / 2f - boxCollider.center.y;

@@ -280,13 +280,10 @@ public class SpawnController : MonoBehaviour
         Vector3 spawnPosition = GetFirstMarkerPosition(marker_names);
 
         GameObject catObject = Instantiate(prefab, spawnPosition, Quaternion.identity);
-        EnemyCat enemyCat = catObject.GetComponent<EnemyCat>();
-        if (enemyCat == null)
-        {
-            Debug.LogWarning("[SpawnController] SpawnCat: プレファブに EnemyCat コンポーネントがありません");
-            Destroy(catObject);
-            return false;
-        }
+
+        // プレファブは見た目（モデル）だけでよい。挙動コンポーネントはここで付ける。
+        // NavMeshAgent は EnemyCat.Awake 内の NavMeshManager.GetNavMeshAgent が用意する
+        EnemyCat enemyCat = GameObjectTreat.GetOrAddComponent<EnemyCat>(catObject);
 
         catObject.name = GameEnum.ModelsType.Cat.ToString() + EnemyCat._idx;
         Cat catUnit = GameObjectTreat.GetOrAddComponent<Cat>(catObject);
