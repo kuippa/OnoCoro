@@ -18,6 +18,7 @@ namespace CommonsUtility
     ///       tons_per_sqm: 0.5     # 発生量[t/㎡]。トラック台数などの数字に効く
     ///       debris_per_ton: 200   # 見た目の瓦礫量のみに効く
     ///       max_cubes: 2000       # 1 棟あたりのキューブ数上限（物理負荷の安全弁）
+    ///       noncombustible_ratio: 0.4  # 廃棄物のうち不燃物の割合（0.0〜1.0）
     /// </summary>
     internal static class DemolitionYamlProvider
     {
@@ -26,6 +27,7 @@ namespace CommonsUtility
         private const string _FIELD_TONS_PER_SQM = "tons_per_sqm";
         private const string _FIELD_DEBRIS_PER_TON = "debris_per_ton";
         private const string _FIELD_MAX_CUBES = "max_cubes";
+        private const string _FIELD_NONCOMBUSTIBLE_RATIO = "noncombustible_ratio";
 
         /// <summary>
         /// demolition セクションを読み込み DemolitionSystem に反映する。
@@ -87,6 +89,11 @@ namespace CommonsUtility
                 && int.TryParse(maxCubesText, out int maxCubes) && maxCubes > 0)
             {
                 spec.MaxCubes = maxCubes;
+            }
+            if (row.TryGetValue(_FIELD_NONCOMBUSTIBLE_RATIO, out string ratioText)
+                && float.TryParse(ratioText, out float ratio) && ratio >= 0f && ratio <= 1f)
+            {
+                spec.NoncombustibleRatio = ratio;
             }
 
             DemolitionSystem.SetSpec(normalizedType, spec);

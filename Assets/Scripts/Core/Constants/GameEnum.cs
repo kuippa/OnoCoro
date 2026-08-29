@@ -29,12 +29,14 @@ public class GameEnum
         PathBloom,
         Hydrant,
         Cistern,
-        Cat,        // 巨大猫（CityHack 2026: 経路上の建物を解体する敵ユニット）
+        Cat,            // 巨大猫（CityHack 2026: 経路上の建物を解体する敵ユニット）
+        GarbageNoBurn,  // 不燃ゴミ（CityHack 2026: コンクリートがら・金属など）
     }
 
     internal enum ModelsType
     {
         GarbageCube,
+        GarbageCubeNoBurn,
         GarbageCubeBox,
         GarbageCubeBig,
         Litter,

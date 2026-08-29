@@ -46,10 +46,10 @@ itemlists:
 # 舞鶴は起伏があるため、手で数値を入れるより auto のままが安全。
 pathmakers:
   - name: path_marker_start
-    pos: 151, auto, -235     # 猫の出発点
+    pos: 131, auto, -235     # 猫の出発点
 
   - name: path_marker_01
-    pos: 180, auto, -190     # 中間地点
+    pos: 89, auto, -164     # 中間地点
 
   - name: path_marker_goal
     pos: 210, auto, -150     # ゴール（ここに着くと猫は消える）
@@ -60,6 +60,11 @@ pathmakers:
 #   tons_per_sqm   : 延床面積 1 ㎡あたりの発生量[t]  ※ 仮の値。パートナーの実務値で差し替える
 #   debris_per_ton : 廃棄物 1t あたりの瓦礫の量（見た目だけに効く）
 #   max_cubes      : 1 棟あたりの瓦礫キューブ数の上限（物理負荷の安全弁）
+#   noncombustible_ratio : 廃棄物のうち不燃物が占める割合(0.0〜1.0)
+#                          コンクリートがら・金属など燃やせないもの。
+#                          可燃と不燃は処理先も費用も異なるため分けて数える。
+#                          [仮の値] PLATEAU 技術資料 plateau_tech_doc_0015 の
+#                          P43 以降にある組成比で差し替える予定
 #
 # [重要] つまみの役割を分けてある。混ぜて使うと数字か見た目のどちらかが壊れる。
 #   ・トラック台数など「発表で出す数字」を変えたい → tons_per_sqm
@@ -80,18 +85,22 @@ demolition:
     tons_per_sqm: 0.5     # 延床1㎡あたりの発生量[t]（パートナー値で差し替え予定）
     debris_per_ton: 50    # 見た目の瓦礫量（増やすほど多く散らばる）
     max_cubes: 1000       # 1棟あたりのキューブ数上限
+    noncombustible_ratio: 0.4   # 不燃物の割合（木くず中心なので可燃寄り）
   - type: steel       # 鉄骨造(S)
     tons_per_sqm: 0.7
     debris_per_ton: 50
     max_cubes: 1000
+    noncombustible_ratio: 0.7   # 不燃物の割合（鉄骨・金属くずが多い）
   - type: concrete    # RC / SRC 造
     tons_per_sqm: 1.1
     debris_per_ton: 50
     max_cubes: 1000
+    noncombustible_ratio: 0.9   # 不燃物の割合（コンクリートがら中心でほぼ不燃）
   - type: unknown     # 不明
     tons_per_sqm: 0.6
     debris_per_ton: 50
     max_cubes: 1000
+    noncombustible_ratio: 0.6   # 不燃物の割合（中間値）
 
 # goals / gameovers は定義しない（全年の完走がシミュレーション終了条件）
 

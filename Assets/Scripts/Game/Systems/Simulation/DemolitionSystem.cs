@@ -31,11 +31,19 @@ namespace CommonsUtility
         /// </summary>
         public int MaxCubes;
 
-        public DemolitionSpec(float tonsPerSqm, float debrisPerTon, int maxCubes)
+        /// <summary>
+        /// 廃棄物のうち不燃物が占める割合（0.0〜1.0）。
+        /// コンクリートがら・金属くず・ガラスなど燃やせないもの。
+        /// 木造は可燃が多く、RC 造はほぼ不燃になる
+        /// </summary>
+        public float NoncombustibleRatio;
+
+        public DemolitionSpec(float tonsPerSqm, float debrisPerTon, int maxCubes, float noncombustibleRatio)
         {
             TonsPerSqm = tonsPerSqm;
             DebrisPerTon = debrisPerTon;
             MaxCubes = maxCubes;
+            NoncombustibleRatio = noncombustibleRatio;
         }
     }
 
@@ -57,12 +65,15 @@ namespace CommonsUtility
         {
             // 発生原単位は仮の値（パートナー回答で差し替える）。
             // DebrisPerTon は見た目の量で、50 は従来の 5 倍に相当する
+            // 不燃率は仮の値。木造は木くず中心で可燃寄り、RC 造はコンクリートがら中心で
+            // ほぼ不燃、という実務上の傾向だけを反映してある。
+            // PLATEAU の技術資料（plateau_tech_doc_0015）の組成比で差し替える予定
             return new Dictionary<string, DemolitionSpec>
             {
-                { TYPE_WOOD, new DemolitionSpec(0.5f, 50f, _DEFAULT_MAX_CUBES) },
-                { TYPE_STEEL, new DemolitionSpec(0.7f, 50f, _DEFAULT_MAX_CUBES) },
-                { TYPE_CONCRETE, new DemolitionSpec(1.1f, 50f, _DEFAULT_MAX_CUBES) },
-                { TYPE_UNKNOWN, new DemolitionSpec(0.6f, 50f, _DEFAULT_MAX_CUBES) },
+                { TYPE_WOOD, new DemolitionSpec(0.5f, 50f, _DEFAULT_MAX_CUBES, 0.4f) },
+                { TYPE_STEEL, new DemolitionSpec(0.7f, 50f, _DEFAULT_MAX_CUBES, 0.7f) },
+                { TYPE_CONCRETE, new DemolitionSpec(1.1f, 50f, _DEFAULT_MAX_CUBES, 0.9f) },
+                { TYPE_UNKNOWN, new DemolitionSpec(0.6f, 50f, _DEFAULT_MAX_CUBES, 0.6f) },
             };
         }
 
@@ -165,6 +176,14 @@ namespace CommonsUtility
         internal static int CalcMaxCubes(Dictionary<string, string> buildingInfo)
         {
             return GetSpec(ClassifyStructure(buildingInfo)).MaxCubes;
+        }
+
+        /// <summary>
+        /// 建物種別に応じた不燃物の割合（0.0〜1.0）を取得する
+        /// </summary>
+        internal static float CalcNoncombustibleRatio(Dictionary<string, string> buildingInfo)
+        {
+            return GetSpec(ClassifyStructure(buildingInfo)).NoncombustibleRatio;
         }
 
         /// <summary>
@@ -342,12 +361,26 @@ namespace CommonsUtility
         // 解体由来だけでなく火災由来・プレイヤー由来のゴミも含む総量になる。
         // =============================================
 
-        /// <summary>タグ Garbage が付いたオブジェクトの個数を数える</summary>
-        internal static int CountGarbageObjects()
+        /// <summary>タグ Garbage（可燃）が付いたオブジェクトの個数を数える</summary>
+        internal static int CountBurnableGarbageObjects()
         {
             GameObject[] garbageObjects =
                 GameObject.FindGameObjectsWithTag(GameEnum.TagType.Garbage.ToString());
             return garbageObjects.Length;
+        }
+
+        /// <summary>タグ GarbageNoBurn（不燃）が付いたオブジェクトの個数を数える</summary>
+        internal static int CountNoBurnGarbageObjects()
+        {
+            GameObject[] garbageObjects =
+                GameObject.FindGameObjectsWithTag(GameEnum.TagType.GarbageNoBurn.ToString());
+            return garbageObjects.Length;
+        }
+
+        /// <summary>可燃・不燃を合わせたゴミの個数</summary>
+        internal static int CountGarbageObjects()
+        {
+            return CountBurnableGarbageObjects() + CountNoBurnGarbageObjects();
         }
 
         /// <summary>
@@ -393,10 +426,16 @@ namespace CommonsUtility
         /// </summary>
         internal static string GetGarbageTruckText()
         {
-            int garbageCount = CountGarbageObjects();
-            float tons = CalcTonsFromGarbageCount(garbageCount);
-            int truckCount = CalcTruckCount(tons);
-            return $"廃材 {tons:F0} t（ゴミ {garbageCount} 個）\n4t トラック {truckCount} 台分";
+            int burnableCount = CountBurnableGarbageObjects();
+            int noBurnCount = CountNoBurnGarbageObjects();
+
+            float burnableTons = CalcTonsFromGarbageCount(burnableCount);
+            float noBurnTons = CalcTonsFromGarbageCount(noBurnCount);
+            float totalTons = burnableTons + noBurnTons;
+
+            return $"廃材 {totalTons:F0} t"
+                + $"（可燃 {burnableTons:F0} t / 不燃 {noBurnTons:F0} t）\n"
+                + $"4t トラック {CalcTruckCount(totalTons)} 台分";
         }
     }
 }

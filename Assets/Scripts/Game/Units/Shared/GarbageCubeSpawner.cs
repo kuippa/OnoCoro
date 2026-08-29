@@ -16,12 +16,14 @@ public class GarbageCubeSpawner : MonoBehaviour
         public Vector3 Position;
         public int SizeFlag;
         public bool IsSwayingPoint;
+        public bool IsNoBurn;
 
-        public SpawnRequest(Vector3 pos, int size, bool sway)
+        public SpawnRequest(Vector3 pos, int size, bool sway, bool noBurn)
         {
             Position = pos;
             SizeFlag = size;
             IsSwayingPoint = sway;
+            IsNoBurn = noBurn;
         }
     }
 
@@ -35,9 +37,9 @@ public class GarbageCubeSpawner : MonoBehaviour
     /// 非同期でゴミキューブをスポーンします（キューに追加）
     /// UnitFireDisaster など大量生成時に使用
     /// </summary>
-    internal void SpawnGarbageCubeAsync(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false)
+    internal void SpawnGarbageCubeAsync(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false, bool isNoBurn = false)
     {
-        _spawnQueue.Enqueue(new SpawnRequest(spawnPoint, sizeFlag, isSwayingPoint));
+        _spawnQueue.Enqueue(new SpawnRequest(spawnPoint, sizeFlag, isSwayingPoint, isNoBurn));
         
         if (!_isProcessingQueue)
         {
@@ -70,6 +72,15 @@ public class GarbageCubeSpawner : MonoBehaviour
                 }
 
                 SpawnRequest request = _spawnQueue.Dequeue();
+                if (request.IsNoBurn)
+                {
+                    GarbageCubeNoBurnFactory.SpawnGarbageCube(
+                        request.Position,
+                        request.SizeFlag,
+                        request.IsSwayingPoint
+                    );
+                    continue;
+                }
                 GarbageCubeFactory.SpawnGarbageCube(
                     request.Position,
                     request.SizeFlag,

@@ -10,6 +10,7 @@ public class PrefabManager
 	{
 		// WorkUnit
 		GarbageCube,
+		GarbageCubeNoBurn,
 		FireCube,
 		DustBox,
 		TowerSentryGuard,
@@ -50,6 +51,7 @@ public class PrefabManager
 	{
 		// WorkUnit
 		{ PrefabType.GarbageCube, "Prefabs/WorkUnit/GarbageCube" },
+		{ PrefabType.GarbageCubeNoBurn, "Prefabs/WorkUnit/GarbageCubeNoBurn" },
 		{ PrefabType.FireCube, "Prefabs/WorkUnit/FireCube" },
 		{ PrefabType.DustBox, "Prefabs/WorkUnit/TowerDustBox" },
 		{ PrefabType.TowerSentryGuard, "Prefabs/WorkUnit/TowerSentryGuard" },
@@ -136,6 +138,7 @@ public class PrefabManager
 	internal static GameObject UIStageInfoBoxPrefab => GetPrefab(PrefabType.UIStageInfoBox);
 	internal static GameObject UIBuildingInfoPrefab => GetPrefab(PrefabType.UIBuildingInfo);
 	internal static GameObject GarbageCubePrefab => GetPrefab(PrefabType.GarbageCube);
+	internal static GameObject GarbageCubeNoBurnPrefab => GetPrefab(PrefabType.GarbageCubeNoBurn);
 	internal static GameObject RainDropPrefab => GetPrefab(PrefabType.RainDrop);
 	internal static GameObject PuddlePrefab => GetPrefab(PrefabType.Puddle);
 	internal static GameObject FireCubePrefab => GetPrefab(PrefabType.FireCube);
@@ -164,6 +167,7 @@ public class PrefabManager
 	internal static GameObject SignboardPrefab => GetPrefab(PrefabType.Signboard);
 
 	internal static int GarbageCubeUID => GetNextUID(PrefabType.GarbageCube);
+	internal static int GarbageCubeNoBurnUID => GetNextUID(PrefabType.GarbageCubeNoBurn);
 	internal static int FireCubeUID => GetNextUID(PrefabType.FireCube);
 	internal static int DustBoxUID => GetNextUID(PrefabType.DustBox);
 	internal static int TowerSentryGuardUID => GetNextUID(PrefabType.TowerSentryGuard);

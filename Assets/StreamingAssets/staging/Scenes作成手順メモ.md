@@ -14,6 +14,7 @@ dem_*** を右クリック
 AI → 
 nav AI>NavMesh Surfaceを追加
 NavMesh Surface の Agent typeをターゲット（sweeper）タイプに変更
+レイヤーをグラウンドのみに
 bake
 ステージ名と同名のyamlを \Assets\Resources\staging に配置
 

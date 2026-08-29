@@ -7,6 +7,52 @@
 
 ---
 
+## 不燃ゴミ（GarbageCubeNoBurn）2026-08-29 追加
+
+解体廃棄物を可燃・不燃に分けて数えるために追加した。
+実務では処理先も処理費用も異なり、仮置場の計画に効いてくるため。
+
+### プレファブ要件
+
+**配置場所**: `Assets/Resources/Prefabs/WorkUnit/GarbageCubeNoBurn.prefab`
+
+`GarbageCube.prefab` を複製してマテリアルを差し替えるのが早い。
+コンクリートがら・金属を想定しているので `DebrisConcrete` か
+`DebrisMetal` のテクスチャが合う。
+
+| 項目 | 内容 |
+|------|------|
+| タグ | `GarbageNoBurn`（TagManager に追加済み。Factory 側でも設定する） |
+| スケール | `1, 1, 1`（サイズは生成時にインスタンスへ設定するため） |
+| Collider / Rigidbody | 無ければ Factory が付ける |
+
+[NOTE] プレファブが未作成の間は、可燃ゴミのプレファブで代用して動く。
+見た目だけ可燃と同じになり、タグと集計は不燃として扱われる。
+
+### 割合の設定
+
+ステージ YAML の `demolition` セクションに `noncombustible_ratio`（0.0〜1.0）を追加。
+
+```yaml
+demolition:
+  - type: wood
+    noncombustible_ratio: 0.4   # 木くず中心なので可燃寄り
+  - type: concrete
+    noncombustible_ratio: 0.9   # コンクリートがら中心でほぼ不燃
+```
+
+[WARN] 現在の値は**構造ごとの傾向だけを反映した仮の値**。
+PLATEAU 技術資料 `plateau_tech_doc_0015` の P43 以降にある組成比で差し替えること。
+（資料 URL: https://www.mlit.go.jp/plateau/file/libraries/doc/plateau_tech_doc_0015_ver01.pdf）
+
+### なぜタグを分けるか
+
+延焼処理（`Flame` / `Burning`）は tag `Garbage` を対象にしている。
+タグを分けることで**不燃ゴミは自動的に延焼対象から外れる**。
+コンクリートがらが燃えないのは物理的にも正しい。
+
+---
+
 ## コンセプト
 
 **「巨大な猫が街を壊すと、建物の構造・規模に応じた廃材が散らばり、4t トラック何杯分かが分かる。跡地には花が咲く」**

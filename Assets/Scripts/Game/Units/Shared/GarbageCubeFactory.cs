@@ -73,8 +73,9 @@ public static class GarbageCubeFactory
 
     /// <summary>
     /// サイズフラグに基づくローカルスケールを計算します
+    /// （不燃ゴミ側とサイズを揃えるため GarbageCubeNoBurnFactory からも使う）
     /// </summary>
-    private static Vector3 GetLocalScale(int sizeFlag)
+    internal static Vector3 GetLocalScale(int sizeFlag)
     {
         Vector3 localScale = Vector3.zero;
         

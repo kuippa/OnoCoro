@@ -55,7 +55,8 @@ public class PlateauCubeMaker : MonoBehaviour
     /// </summary>
     /// <param name="targetAmount">DemolitionSystem が算定した瓦礫の目標量（建物種別の係数込み）</param>
     /// <param name="maxCubes">生成するキューブ数の上限（物理負荷の安全弁。YAML の max_cubes）</param>
-    internal void ScatterDemolitionDebris(GameObject targetObj, int targetAmount, int maxCubes)
+    /// <param name="noncombustibleRatio">不燃物の割合（0.0〜1.0。YAML の noncombustible_ratio）</param>
+    internal void ScatterDemolitionDebris(GameObject targetObj, int targetAmount, int maxCubes, float noncombustibleRatio)
     {
         Renderer renderer = targetObj.GetComponent<Renderer>();
         if (renderer == null)
@@ -74,7 +75,10 @@ public class PlateauCubeMaker : MonoBehaviour
 
         while (accumulated < targetAmount)
         {
-            accumulated += CreateGarbageCubeSmall(spawnPoint);
+            // 不燃率に応じて可燃・不燃を振り分ける。
+            // 1 個ずつ抽選するので、まばらに混ざって山ができる
+            bool isNoBurn = Utility.fRandomRange(0f, 1f) < noncombustibleRatio;
+            accumulated += CreateGarbageCubeSmall(spawnPoint, isNoBurn);
             spawnCount++;
             if (spawnCount >= maxCubes)
             {
@@ -116,7 +120,7 @@ public class PlateauCubeMaker : MonoBehaviour
         return num;
     }
 
-    private int CreateGarbageCubeSmall(Vector3 pos)
+    private int CreateGarbageCubeSmall(Vector3 pos, bool isNoBurn = false)
     {
         GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
         GarbageCubeSpawner garbageCubeSpawner = gameManagerObject.GetComponent<GarbageCubeSpawner>();
@@ -124,7 +128,9 @@ public class PlateauCubeMaker : MonoBehaviour
         {
             garbageCubeSpawner = gameManagerObject.AddComponent<GarbageCubeSpawner>();
         }
-        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true);
+        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true, isNoBurn: isNoBurn);
+
+        // 可燃・不燃で基準スコアは同値。換算式を共通に保つため
         return GarbageCube.GetBaseScore();
     }
 
