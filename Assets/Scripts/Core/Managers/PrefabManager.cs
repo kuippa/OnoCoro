@@ -21,6 +21,7 @@ public class PrefabManager
 		RainDrop,
 		Puddle,
 		EnemyLitter,
+		EnemyCat,
 		TowerDock,
 		Hydrant,
 		Cistern,
@@ -60,6 +61,7 @@ public class PrefabManager
 		{ PrefabType.RainDrop, "Prefabs/WorkUnit/RainDrop" },
 		{ PrefabType.Puddle, "Prefabs/WorkUnit/Puddle" },
 		{ PrefabType.EnemyLitter, "Prefabs/EnemyUnit/EnemyLitter" },
+		{ PrefabType.EnemyCat, "Prefabs/EnemyUnit/EnemyCat" },
 		{ PrefabType.TowerDock, "Prefabs/WorkUnit/TowerDock" },
 		{ PrefabType.Hydrant, "Prefabs/WorkUnit/Hydrant" },
 		{ PrefabType.Cistern, "Prefabs/WorkUnit/Cistern" },
@@ -142,6 +144,7 @@ public class PrefabManager
 	internal static GameObject DustBoxPrefab => GetPrefab(PrefabType.DustBox);
 	internal static GameObject TowerSentryGuardPrefab => GetPrefab(PrefabType.TowerSentryGuard);
 	internal static GameObject EnemyLitterPrefab => GetPrefab(PrefabType.EnemyLitter);
+	internal static GameObject EnemyCatPrefab => GetPrefab(PrefabType.EnemyCat);
 	internal static GameObject WaterTurretPrefab => GetPrefab(PrefabType.WaterTurret);
 	internal static GameObject HydrantPrefab => GetPrefab(PrefabType.Hydrant);
 	internal static GameObject CisternPrefab => GetPrefab(PrefabType.Cistern);

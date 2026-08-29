@@ -29,6 +29,7 @@ public class GameEnum
         PathBloom,
         Hydrant,
         Cistern,
+        Cat,        // 巨大猫（CityHack 2026: 経路上の建物を解体する敵ユニット）
     }
 
     internal enum ModelsType
@@ -49,6 +50,9 @@ public class GameEnum
         Hydrant,   // 消火栓
         Cistern,   // 防火水槽
         Plaza,     // 避難広場
+
+        // CityHack 2026
+        Cat,       // 巨大猫（経路上の建物を解体する敵ユニット）
     }
 
     internal enum LayerType

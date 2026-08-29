@@ -98,6 +98,15 @@ events:
   #   event: building_demolish
   #   value: "3"
 
+  # ===== 巨大猫（CityHack 2026）=====
+  # 指定した経路を移動し、近づいた建物を次々と解体していく敵ユニット。
+  # 使う前に、シーンへ path_marker プレファブを配置して名前を合わせること
+  # （Prefabs/Marker/path_marker。start から goal まで通り道に沿って並べる）。
+  # value: Cat, <開始マーカー>, <経由マーカー...>, <ゴールマーカー>
+  # - time: 5
+  #   event: spawn_enemy_unit
+  #   value: Cat, path_marker_start, path_marker_01, path_marker_goal
+
 # baseline = 消火なし時の想定火災延焼棟数（防いだ延焼 = baseline - 実延焼）。
 # [未計測] 下記は三鷹の値をそのまま置いた暫定値。
 # 消火ユニットを一切置かずに完走し、実際の延焼棟数で置き換えること。

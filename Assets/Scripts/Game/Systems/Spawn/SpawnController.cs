@@ -186,6 +186,10 @@ public class SpawnController : MonoBehaviour
         {
             result = SpawnLitter(marker_names);
         }
+        else if (unitName == GameEnum.ModelsType.Cat.ToString())
+        {
+            result = SpawnCat(marker_names);
+        }
         else
         {
             Debug.Log("default CallEnemyUnitByName: " + unitName);
@@ -258,6 +262,46 @@ public class SpawnController : MonoBehaviour
         }
         
         component.InitUnitSpawn(marker_names);
+        return true;
+    }
+
+    /// <summary>
+    /// 巨大猫を生成する（CityHack 2026）。SpawnLitter と同じ流れ
+    /// </summary>
+    private bool SpawnCat(string[] marker_names)
+    {
+        GameObject prefab = PrefabManager.EnemyCatPrefab;
+        if (prefab == null)
+        {
+            Debug.LogWarning("[SpawnController] SpawnCat: EnemyCat プレファブが見つかりません（Resources/Prefabs/EnemyUnit/EnemyCat）");
+            return false;
+        }
+
+        Vector3 spawnPosition = GetFirstMarkerPosition(marker_names);
+
+        GameObject catObject = Instantiate(prefab, spawnPosition, Quaternion.identity);
+        EnemyCat enemyCat = catObject.GetComponent<EnemyCat>();
+        if (enemyCat == null)
+        {
+            Debug.LogWarning("[SpawnController] SpawnCat: プレファブに EnemyCat コンポーネントがありません");
+            Destroy(catObject);
+            return false;
+        }
+
+        catObject.name = GameEnum.ModelsType.Cat.ToString() + EnemyCat._idx;
+        Cat catUnit = GameObjectTreat.GetOrAddComponent<Cat>(catObject);
+        catUnit._unit_struct.UnitID = catObject.name;
+        catUnit._item_struct.ItemID = catObject.name;
+
+        // パス追跡ユニットを EventLoader に登録（off_bloom_path_complete 用）
+        EventLoader eventLoader = EventLoader.instance;
+        if (eventLoader != null)
+        {
+            string markerSequence = eventLoader.RegisterEnemyToPath(marker_names, catObject);
+            enemyCat.SetPathMarkerSequence(markerSequence);
+        }
+
+        enemyCat.InitUnitSpawn(marker_names);
         return true;
     }
 
