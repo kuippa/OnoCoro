@@ -16,12 +16,49 @@ public static class NavMeshManager
     // エージェントごとの意図した目的地を記録（キー：NavMeshAgent.GetInstanceID()）
     private static Dictionary<int, Vector3> _intendedDestinations = new Dictionary<int, Vector3>();
     
+    /// <summary>
+    /// ユニットが使うエージェントタイプの設定インデックス。
+    /// NavMesh はこのタイプでベイクされている（Humanoid ではない）
+    /// </summary>
+    private const int _UNIT_AGENT_SETTING_INDEX = 1;
+
+    /// <summary>
+    /// エージェントタイプをベイク済み NavMesh に合わせる。
+    ///
+    /// プレファブに手で NavMeshAgent を付けると既定の Humanoid になるが、
+    /// 本プロジェクトの NavMesh は別のエージェントタイプでベイクされているため、
+    /// そのままだと NavMesh に乗れず速度 0 のまま一歩も動けない
+    /// </summary>
+    internal static void AlignAgentType(NavMeshAgent navMeshAgent, string ownerName = "")
+    {
+        if (navMeshAgent == null)
+        {
+            return;
+        }
+
+        int expectedTypeId = NavMesh.GetSettingsByIndex(_UNIT_AGENT_SETTING_INDEX).agentTypeID;
+        if (navMeshAgent.agentTypeID == expectedTypeId)
+        {
+            return;
+        }
+
+        Debug.LogWarning(
+            $"[NavMeshManager] {ownerName}: エージェントタイプが NavMesh と不一致のため補正します"
+            + $"（{navMeshAgent.agentTypeID} → {expectedTypeId}）");
+
+        // agentTypeID の変更は無効化してから行わないと反映されない
+        bool wasEnabled = navMeshAgent.enabled;
+        navMeshAgent.enabled = false;
+        navMeshAgent.agentTypeID = expectedTypeId;
+        navMeshAgent.enabled = wasEnabled;
+    }
+
     internal static NavMeshAgent GetNavMeshAgent(GameObject targetObject)
     {
         NavMeshAgent navMeshAgent = targetObject.GetComponent<NavMeshAgent>();
         if (navMeshAgent == null)
         {
-            NavMeshBuildSettings settingsByIndex = NavMesh.GetSettingsByIndex(1);
+            NavMeshBuildSettings settingsByIndex = NavMesh.GetSettingsByIndex(_UNIT_AGENT_SETTING_INDEX);
             navMeshAgent = targetObject.AddComponent<NavMeshAgent>();
             navMeshAgent.enabled = false;
             navMeshAgent.agentTypeID = settingsByIndex.agentTypeID;
@@ -136,6 +173,23 @@ public static class NavMeshManager
             return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// 指定座標に最も近い NavMesh 上の点を探す。
+    ///
+    /// マーカーを道の中心から少し外れた位置に置いても経路を作れるようにするため。
+    /// 海上や建物の中など、周囲に NavMesh が無い場所では false を返す
+    /// </summary>
+    internal static bool TrySnapToNavMesh(Vector3 position, out Vector3 snapped, float maxDistance)
+    {
+        snapped = position;
+        if (!NavMesh.SamplePosition(position, out NavMeshHit hit, maxDistance, NavMesh.AllAreas))
+        {
+            return false;
+        }
+        snapped = hit.position;
+        return true;
     }
 
     private static bool IsOnNavMesh(NavMeshAgent NavMeshAgent)

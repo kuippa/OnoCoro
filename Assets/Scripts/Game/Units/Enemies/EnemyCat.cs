@@ -37,6 +37,12 @@ public class EnemyCat : MonoBehaviour
 
     private const string _PLATEAU_OBJECT_NAME = "Plateau";
 
+    /// <summary>
+    /// マーカー座標を NavMesh 上へ吸着させるときの探索半径(m)。
+    /// 手で置いたマーカーが道からずれていても拾えるよう広めにしてある
+    /// </summary>
+    private const float _NAVMESH_SNAP_DISTANCE = 30f;
+
     private bool _movingMode = true;
     private bool _demolishMode = true;
     private int _demolishedCount = 0;
@@ -52,6 +58,10 @@ public class EnemyCat : MonoBehaviour
             enabled = false;
             return;
         }
+
+        // プレファブに手で付けた NavMeshAgent は Humanoid になりがちで、
+        // 別タイプでベイクされた NavMesh に乗れず動けなくなるため合わせる
+        NavMeshManager.AlignAgentType(_navMeshAgent, name);
 
         _pathManager = new LitterPathManager();
         _movementController = new LitterMovementController();
@@ -97,6 +107,15 @@ public class EnemyCat : MonoBehaviour
         }
 
         AgentJumpToStartPosition();
+
+        // ここで NavMesh に乗れていないと以降まったく動かないため、先に切り分ける
+        if (!_navMeshAgent.isOnNavMesh)
+        {
+            Debug.LogWarning(
+                $"[EnemyCat] {name}: NavMesh に乗れていません（現在地 {transform.position}）。"
+                + "NavMesh がベイクされているか、出発マーカーが陸上にあるか確認してください");
+        }
+
         SetNextPath(_myPaths);
         NavMeshManager.ChangeAgentSpeed(_navMeshAgent, _AGENT_BASE_SPEED, _AGENT_MAX_SPEED);
 
@@ -232,6 +251,8 @@ public class EnemyCat : MonoBehaviour
     /// </summary>
     private void HandleMovementTimeout()
     {
+        Debug.LogWarning($"[EnemyCat] {name}: 目的地へ到達できません。{DescribeAgentState()}");
+
         GameObject target = FindNearestBuilding();
         if (target != null)
         {
@@ -240,34 +261,70 @@ public class EnemyCat : MonoBehaviour
         }
 
         _movementController.ResetStuckCounter();
-        NavMeshManager.SetDestinationFromIntended(_navMeshAgent);
+
+        // 同じ目的地に粘っても届かないことがある（経路が分断されている等）。
+        // 建物を壊しても駄目なら次の地点へ切り替えて、止まったままにしない
+        _movingMode = SetNextPath(_myPaths);
     }
 
+    /// <summary>
+    /// 次の目的地を設定する。
+    /// NavMesh に載らない地点は飛ばして先へ進む（マーカーが海上や建物内にある場合）
+    /// </summary>
     private bool SetNextPath(Vector3[] paths)
     {
-        if (paths == null || paths.Length == 0)
+        List<Vector3> remainingPaths = new List<Vector3>();
+        if (paths != null)
         {
-            AgentReachedGoal();
+            remainingPaths.AddRange(paths);
+        }
+
+        while (remainingPaths.Count > 0)
+        {
+            Vector3 destination = remainingPaths[0];
+            remainingPaths.RemoveAt(0);
+
+            if (TrySetDestination(destination))
+            {
+                _myPaths = remainingPaths.ToArray();
+                return true;
+            }
+        }
+
+        _myPaths = new Vector3[0];
+        AgentReachedGoal();
+        return false;
+    }
+
+    /// <summary>
+    /// 目的地を NavMesh 上へ吸着させてから設定する。
+    /// 近くに NavMesh が無ければ false（呼び出し側でその地点を飛ばす）
+    /// </summary>
+    private bool TrySetDestination(Vector3 destination)
+    {
+        if (!NavMeshManager.TrySnapToNavMesh(destination, out Vector3 snapped, _NAVMESH_SNAP_DISTANCE))
+        {
+            Debug.LogWarning(
+                $"[EnemyCat] {name}: {destination} の周囲 {_NAVMESH_SNAP_DISTANCE}m に NavMesh が見つかりません。"
+                + "この地点を飛ばします（マーカーが道から離れすぎている可能性）");
             return false;
         }
 
-        Vector3 destination = paths[0];
-        SetDestination(destination);
-
-        List<Vector3> remainingPaths = new List<Vector3>(paths);
-        remainingPaths.RemoveAt(0);
-        _myPaths = remainingPaths.ToArray();
-
+        if (NavMeshManager.IsSameDestination(_navMeshAgent, snapped))
+        {
+            return true;
+        }
+        NavMeshManager.SetDestination(snapped, _navMeshAgent);
         return true;
     }
 
-    private void SetDestination(Vector3 destination)
+    /// <summary>
+    /// 詰まった理由を切り分けるための状態文字列
+    /// </summary>
+    private string DescribeAgentState()
     {
-        if (NavMeshManager.IsSameDestination(_navMeshAgent, destination))
-        {
-            return;
-        }
-        NavMeshManager.SetDestination(destination, _navMeshAgent);
+        return $"経路状態={_navMeshAgent.pathStatus} 残り距離={_navMeshAgent.remainingDistance:F1}m"
+            + $" NavMesh上={_navMeshAgent.isOnNavMesh} 現在地={transform.position} 目的地={_navMeshAgent.destination}";
     }
 
     private void AgentReachedGoal()
@@ -298,6 +355,15 @@ public class EnemyCat : MonoBehaviour
         }
 
         Vector3 startPosition = _myPaths[0];
+
+        // 出発点が道から外れていると最初から動けないので NavMesh 上へ寄せる
+        if (!NavMeshManager.TrySnapToNavMesh(startPosition, out startPosition, _NAVMESH_SNAP_DISTANCE))
+        {
+            Debug.LogWarning(
+                $"[EnemyCat] {name}: 出発マーカー {_myPaths[0]} の周囲に NavMesh がありません。"
+                + "そのまま配置しますが移動できない可能性があります");
+        }
+
         float bottomOffset = GetBottomOffset();
         Vector3 warpPosition = new Vector3(startPosition.x, startPosition.y + bottomOffset, startPosition.z);
 
