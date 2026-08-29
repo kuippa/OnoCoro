@@ -432,16 +432,18 @@ namespace CommonsUtility
         /// </summary>
         internal static string GetGarbageTruckText()
         {
-            int burnableCount = CountBurnableGarbageObjects();
-            int noBurnCount = CountNoBurnGarbageObjects();
+            float burnableTons = CalcTonsFromGarbageCount(CountBurnableGarbageObjects());
+            float noBurnTons = CalcTonsFromGarbageCount(CountNoBurnGarbageObjects());
 
-            float burnableTons = CalcTonsFromGarbageCount(burnableCount);
-            float noBurnTons = CalcTonsFromGarbageCount(noBurnCount);
-            float totalTons = burnableTons + noBurnTons;
+            // 可燃と不燃は処理先が違うため、トラックは別々に仕立てる。
+            // よって台数は合算せず、それぞれ切り上げてから足す
+            int burnableTrucks = CalcTruckCount(burnableTons);
+            int noBurnTrucks = CalcTruckCount(noBurnTons);
 
-            return $"廃材 {totalTons:F0} t"
-                + $"（可燃 {burnableTons:F0} t / 不燃 {noBurnTons:F0} t）\n"
-                + $"4t トラック {CalcTruckCount(totalTons)} 台分";
+            return $"廃材 {(burnableTons + noBurnTons):F0} t\n"
+                + $"可燃 {burnableTons:F0} t → 4t トラック {burnableTrucks} 台分\n"
+                + $"不燃 {noBurnTons:F0} t → 4t トラック {noBurnTrucks} 台分\n"
+                + $"合計 {(burnableTrucks + noBurnTrucks)} 台分";
         }
     }
 }

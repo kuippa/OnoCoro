@@ -31,6 +31,7 @@ namespace CommonsUtility
         private TextMeshProUGUI _bodyLabel = null;
         private GameObject _nextButtonRoot = null;
         private TextMeshProUGUI _nextButtonLabel = null;
+        private GameObject _exploreButtonRoot = null;
         private GameObject _titleButtonRoot = null;
 
         private YearCyclePhase _displayedPhase = YearCyclePhase.Inactive;
@@ -129,6 +130,7 @@ namespace CommonsUtility
             bool isFinalYear = EventLoader.instance != null && year >= EventLoader.instance.GetYearCount();
             _nextButtonLabel.SetText(isFinalYear ? "総括を見る" : "次の年へ");
             _nextButtonRoot.SetActive(true);
+            _exploreButtonRoot.SetActive(false);  // 年の途中は進行を止めたくないので出さない
             _titleButtonRoot.SetActive(false);
 
             SetPanelVisible(true);
@@ -146,6 +148,7 @@ namespace CommonsUtility
             _bodyLabel.SetText(BuildSummaryText(summary));
             _nextButtonLabel.SetText("もう一度");
             _nextButtonRoot.SetActive(true);
+            _exploreButtonRoot.SetActive(true);
             _titleButtonRoot.SetActive(true);
 
             SetPanelVisible(true);
@@ -234,6 +237,21 @@ namespace CommonsUtility
             }
         }
 
+        /// <summary>
+        /// 総括を閉じてステージを見て回れるようにする。
+        ///
+        /// パネルを隠して進行を戻すだけで、年サイクルの状態はそのまま。
+        /// Update() はフェーズが変わったときしか再描画しないため、
+        /// Finished のまま隠しておけば総括が再表示されることはない
+        /// （もう一度見たいときは撮り直しになるが、
+        ///   壊れた街を撮影・観察する用途を優先している）
+        /// </summary>
+        private void OnClickExplore()
+        {
+            ResumeGame();
+            SetPanelVisible(false);
+        }
+
         private void OnClickBackToTitle()
         {
             ResumeGame();
@@ -288,8 +306,13 @@ namespace CommonsUtility
             _bodyLabel = BuildLabel(panel.transform, "ResultBody", 28f, new Vector2(0f, 30f), new Vector2(1400f, 460f), TextAlignmentOptions.Center);
             EnableAutoSize(_bodyLabel, 14f, 30f);
 
-            _nextButtonRoot = BuildButton(panel.transform, "NextButton", new Vector2(0f, -320f), _BUTTON_COLOR, OnClickNext, out _nextButtonLabel);
-            _titleButtonRoot = BuildButton(panel.transform, "TitleButton", new Vector2(0f, -410f), _SUBBUTTON_COLOR, OnClickBackToTitle, out TextMeshProUGUI titleButtonLabel);
+            // ボタンは総括時に 3 つ並ぶため、下端からはみ出さない間隔にしてある
+            _nextButtonRoot = BuildButton(panel.transform, "NextButton", new Vector2(0f, -290f), _BUTTON_COLOR, OnClickNext, out _nextButtonLabel);
+
+            _exploreButtonRoot = BuildButton(panel.transform, "ExploreButton", new Vector2(0f, -370f), _SUBBUTTON_COLOR, OnClickExplore, out TextMeshProUGUI exploreButtonLabel);
+            exploreButtonLabel.SetText("ステージを見て回る");
+
+            _titleButtonRoot = BuildButton(panel.transform, "TitleButton", new Vector2(0f, -450f), _SUBBUTTON_COLOR, OnClickBackToTitle, out TextMeshProUGUI titleButtonLabel);
             titleButtonLabel.SetText("タイトルへ");
         }
 
