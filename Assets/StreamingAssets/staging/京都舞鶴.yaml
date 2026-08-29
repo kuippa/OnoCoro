@@ -121,12 +121,12 @@ events:
   - time: 0
     event: wind
     value: 7, 300  # 風速, 風向き(0~360) 西北西・日本海側の冬季卓越風向
-  - time: 1
-    event: telop
-    value: "地震火災から街を守ろう"
-  - time: 1
-    event: subtelop
-    value: "オレンジの建物が出火点。防災装置を置いて延焼を食い止めよう"
+  # - time: 1
+  #   event: telop
+  #   value: "地震火災から街を守ろう"
+  # - time: 1
+  #   event: subtelop
+  #   value: "オレンジの建物が出火点。防災装置を置いて延焼を食い止めよう"
 
   # ===== CityHack 2026 解体デモ用（試すときだけコメントを外す）=====
   # building_demolish: 建物を N 棟解体して更地化し、
