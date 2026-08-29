@@ -65,15 +65,21 @@ namespace CommonsUtility
         {
             // 発生原単位は仮の値（パートナー回答で差し替える）。
             // DebrisPerTon は見た目の量で、50 は従来の 5 倍に相当する
-            // 不燃率は仮の値。木造は木くず中心で可燃寄り、RC 造はコンクリートがら中心で
-            // ほぼ不燃、という実務上の傾向だけを反映してある。
-            // PLATEAU の技術資料（plateau_tech_doc_0015）の組成比で差し替える予定
+            // 原単位・組成比は PLATEAU 技術資料 plateau_tech_doc_0015「5.7 災害廃棄物発生量の
+            // 採用原単位」の値（横浜市災害廃棄物処理計画／環境省 災害廃棄物対策指針 技術資料）。
+            //   木造   0.6 t/㎡ ・ 非木造 1.0 t/㎡ ・ 焼失 0.23 t/㎡
+            //   種類別割合は木造・非木造とも 可燃 11% / 不燃 89%
+            //
+            // [NOTE] 木造でも不燃が 89% を占めるのは、重量比だとコンクリート殻・
+            //   基礎・土砂が支配的なため。体積の見た目とは一致しない
+            // [未実装] 焼失（0.23 t/㎡・不燃 99.9%）は被害要因別の区分で、
+            //   本システムは構造別のみのため未対応。火災倒壊と結びつけるのは今後の課題
             return new Dictionary<string, DemolitionSpec>
             {
-                { TYPE_WOOD, new DemolitionSpec(0.5f, 50f, _DEFAULT_MAX_CUBES, 0.4f) },
-                { TYPE_STEEL, new DemolitionSpec(0.7f, 50f, _DEFAULT_MAX_CUBES, 0.7f) },
-                { TYPE_CONCRETE, new DemolitionSpec(1.1f, 50f, _DEFAULT_MAX_CUBES, 0.9f) },
-                { TYPE_UNKNOWN, new DemolitionSpec(0.6f, 50f, _DEFAULT_MAX_CUBES, 0.6f) },
+                { TYPE_WOOD, new DemolitionSpec(0.6f, 50f, _DEFAULT_MAX_CUBES, 0.89f) },
+                { TYPE_STEEL, new DemolitionSpec(1.0f, 50f, _DEFAULT_MAX_CUBES, 0.89f) },
+                { TYPE_CONCRETE, new DemolitionSpec(1.0f, 50f, _DEFAULT_MAX_CUBES, 0.89f) },
+                { TYPE_UNKNOWN, new DemolitionSpec(0.6f, 50f, _DEFAULT_MAX_CUBES, 0.89f) },
             };
         }
 
