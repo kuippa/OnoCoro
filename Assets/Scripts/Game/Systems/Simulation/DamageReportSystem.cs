@@ -12,6 +12,8 @@ namespace CommonsUtility
         public int Year;
         public int QuakeCollapse;    // 地震倒壊（避けられない初期被害）
         public int FireSpread;       // 火災延焼（施策で減らせる被害・実測）
+        public int FloodCollapse;    // 浸水倒壊（高潮・浸水による被害）
+        public int Demolished;       // 解体（巨大猫による完全解体。更地化されるので倒壊とは別枠）
         public int AssumedSpread;    // 想定延焼被害（施策ゼロ時の想定）
         public int SavedBuildings;   // 救った棟数（想定 - 実測、0 でクランプ）
         public int Investment;       // この年の投資額
@@ -43,6 +45,8 @@ namespace CommonsUtility
         // 当年の集計用
         private static int _doomedCountAtYearStart = 0;
         private static int _quakeCollapseThisYear = 0;
+        private static int _floodCollapseThisYear = 0;
+        private static int _demolishedCountAtYearStart = 0;
 
         /// <summary>
         /// 年の開始時に呼ぶ（YearCycleSystem.StartYear から）。当年の集計を初期化
@@ -51,6 +55,23 @@ namespace CommonsUtility
         {
             _doomedCountAtYearStart = GetDoomedCount();
             _quakeCollapseThisYear = 0;
+            _floodCollapseThisYear = 0;
+
+            // 解体は建物が削除されるため倒壊数には現れない。累計の差分で当年ぶんを測る
+            _demolishedCountAtYearStart = DemolitionSystem.DemolishedBuildingCount;
+        }
+
+        /// <summary>
+        /// 浸水で倒壊させた棟数を加算（FloodDamageMonitor から呼ぶ）。
+        /// 加算しないと「総被害 - 地震倒壊」の引き算で火災延焼に混ざってしまう
+        /// </summary>
+        internal static void AddFloodCollapse(int newlyCollapsedCount)
+        {
+            if (newlyCollapsedCount <= 0)
+            {
+                return;
+            }
+            _floodCollapseThisYear = _floodCollapseThisYear + newlyCollapsedCount;
         }
 
         /// <summary>
@@ -75,7 +96,14 @@ namespace CommonsUtility
 
             int totalNewDamage = Mathf.Max(0, doomedCountAtYearEnd - _doomedCountAtYearStart);
             int quakeCollapse = Mathf.Clamp(_quakeCollapseThisYear, 0, totalNewDamage);
-            int fireSpread = totalNewDamage - quakeCollapse;
+            int floodCollapse = Mathf.Clamp(_floodCollapseThisYear, 0, totalNewDamage - quakeCollapse);
+
+            // 残りを火災延焼とみなす。原因が判明している被害を先に差し引かないと
+            // 浸水倒壊まで火災延焼として数えられてしまう
+            int fireSpread = totalNewDamage - quakeCollapse - floodCollapse;
+
+            int demolished = Mathf.Max(0,
+                DemolitionSystem.DemolishedBuildingCount - _demolishedCountAtYearStart);
 
             // 想定延焼: YAML の baseline（消火なし実測）を優先、未指定なら K×N（W3 Task 4）
             int assumedSpread = GetBaselineSpread(year, quakeCollapse);
@@ -90,6 +118,8 @@ namespace CommonsUtility
                 Year = year,
                 QuakeCollapse = quakeCollapse,
                 FireSpread = fireSpread,
+                FloodCollapse = floodCollapse,
+                Demolished = demolished,
                 AssumedSpread = assumedSpread,
                 SavedBuildings = savedBuildings,
                 Investment = investment,
@@ -98,7 +128,9 @@ namespace CommonsUtility
             };
             _results.Add(result);
 
-            Debug.Log($"[DamageReportSystem] Year {year} 結果: 地震倒壊 {quakeCollapse} / 火災延焼 {fireSpread} / 無施策時予想 {assumedSpread} / 抑えた延焼 {savedBuildings} / 投資 {investment} / ROI {roi:F1}");
+            Debug.Log($"[DamageReportSystem] Year {year} 結果: 地震倒壊 {quakeCollapse} / 浸水倒壊 {floodCollapse}"
+                + $" / 火災延焼 {fireSpread} / 解体 {demolished} / 無施策時予想 {assumedSpread}"
+                + $" / 抑えた延焼 {savedBuildings} / 投資 {investment} / ROI {roi:F1}");
         }
 
         /// <summary>
@@ -129,6 +161,8 @@ namespace CommonsUtility
             {
                 summary.QuakeCollapse = summary.QuakeCollapse + stored.QuakeCollapse;
                 summary.FireSpread = summary.FireSpread + stored.FireSpread;
+                summary.FloodCollapse = summary.FloodCollapse + stored.FloodCollapse;
+                summary.Demolished = summary.Demolished + stored.Demolished;
                 summary.AssumedSpread = summary.AssumedSpread + stored.AssumedSpread;
                 summary.SavedBuildings = summary.SavedBuildings + stored.SavedBuildings;
                 investmentTotal = investmentTotal + stored.Investment;
@@ -147,6 +181,8 @@ namespace CommonsUtility
             _results.Clear();
             _doomedCountAtYearStart = 0;
             _quakeCollapseThisYear = 0;
+            _floodCollapseThisYear = 0;
+            _demolishedCountAtYearStart = 0;
         }
 
         /// <summary>

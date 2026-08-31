@@ -150,6 +150,9 @@ public class FloodDamageMonitor : MonoBehaviour
         infoManager.SetBuildingToDoom(state.Building);
         state.IsBroken = true;
         FloodDamageSystem.RecordFloodedBuilding();
+
+        // 報告しないと「総被害 - 地震倒壊」の引き算で火災延焼に混ざる
+        DamageReportSystem.AddFloodCollapse(1);
     }
 
     /// <summary>

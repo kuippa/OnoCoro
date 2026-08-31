@@ -163,15 +163,46 @@ namespace CommonsUtility
 
         private string BuildYearResultText(YearResult result)
         {
-            string preventedNote = result.SavedBuildings > 0
-                ? $"  → 防災装置により延焼を {result.SavedBuildings} 棟ぶん抑えました"
-                : "  → 防災装置による延焼の抑制はありませんでした";
+            string body = BuildDamageBreakdownText(result);
 
-            return
-                $"地震による倒壊: {result.QuakeCollapse} 棟（地震の初期被害）\n\n" +
-                $"火災による延焼: {result.FireSpread} 棟\n" +
-                $"無施策時の予想延焼: {result.AssumedSpread} 棟\n" +
-                preventedNote + "\n\n" +
+            // 投資が無いステージ（デモ用の一本道構成など）では ROI に意味が無いので出さない
+            if (result.Investment <= 0)
+            {
+                return body;
+            }
+            return body + "\n\n" + BuildInvestmentText(result);
+        }
+
+        /// <summary>
+        /// 被害の内訳。原因ごとに分けて出す
+        /// （浸水・解体を火災延焼に混ぜないよう DamageReportSystem 側で分離済み）
+        /// </summary>
+        private string BuildDamageBreakdownText(YearResult result)
+        {
+            string text = $"災害による倒壊\n";
+            text = text + $"　地震: {result.QuakeCollapse} 棟\n";
+            text = text + $"　浸水: {result.FloodCollapse} 棟\n";
+            text = text + $"　火災の延焼: {result.FireSpread} 棟";
+
+            if (result.Demolished > 0)
+            {
+                text = text + $"\n\n巨大猫による解体: {result.Demolished} 棟（更地化）";
+            }
+            return text;
+        }
+
+        /// <summary>
+        /// 投資と ROI（防災投資シミュレーションのステージ用）
+        /// </summary>
+        private string BuildInvestmentText(YearResult result)
+        {
+            string preventedNote = "　防災装置による延焼の抑制はありませんでした";
+            if (result.SavedBuildings > 0)
+            {
+                preventedNote = $"　防災装置により延焼を {result.SavedBuildings} 棟ぶん抑えました";
+            }
+
+            return preventedNote + "\n\n" +
                 $"今年の投資: {result.Investment} ゴールド\n" +
                 $"投資効果(ROI): {result.Roi:F1}（投資100あたり抑えた延焼棟数）";
         }
@@ -197,15 +228,20 @@ namespace CommonsUtility
 
         private string BuildSummaryText(YearResult summary)
         {
-            return
+            string text = BuildDamageBreakdownText(summary);
+
+            // [CityHack 2026] マップに残ったゴミの総量を 4t トラック換算で示す
+            text = text + "\n\n" + DemolitionSystem.GetGarbageTruckText();
+
+            // 投資が無いステージでは ROI に意味が無いので、被害と廃材だけで締める
+            if (summary.Investment <= 0)
+            {
+                return text;
+            }
+
+            return text + "\n\n" +
                 $"累計投資: {summary.Investment} ゴールド\n" +
-                $"地震による倒壊（累計）: {summary.QuakeCollapse} 棟\n" +
-                $"火災による延焼（累計）: {summary.FireSpread} 棟\n" +
-                // $"無施策時の予想延焼（累計）: {summary.AssumedSpread} 棟\n" +
-                // $"抑えた延焼（累計）: {summary.SavedBuildings} 棟\n" +
                 $"総合 投資効果(ROI): {summary.Roi:F1}\n\n" +
-                // [CityHack 2026] マップに残ったゴミの総量を 4t トラック換算で示す
-                DemolitionSystem.GetGarbageTruckText() + "\n\n" +
                 BuildSummaryMessage(summary);
         }
 
