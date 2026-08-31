@@ -333,9 +333,11 @@ value: <wind_speed>, <wind_direction>
 **説明**: 海面の高さと色を変える（潮位変動・高潮の演出）
 
 ```yaml
-value: <height>                                  # 海面のワールド Y(m)
-value: <height>, <r>, <g>, <b>                   # 併せて海面の色も変える（各 0.0-1.0）
-value: <height>, <r>, <g>, <b>, <absorption>     # さらに濁り具合も変える
+value: <height>                                              # 即座にその高さへ
+value: <height>, <duration>                                  # 秒数をかけてなめらかに上下
+value: <height>, <r>, <g>, <b>                               # 併せて海面の色も変える（各 0.0-1.0）
+value: <height>, <r>, <g>, <b>, <absorption>                 # さらに濁り具合も変える
+value: <height>, <r>, <g>, <b>, <absorption>, <duration>     # 高さだけ時間をかける
 ```
 
 | パラメータ | 説明 |
@@ -343,6 +345,12 @@ value: <height>, <r>, <g>, <b>, <absorption>     # さらに濁り具合も変�
 | `height` | 海面のワールド Y 座標（m） |
 | `r` / `g` / `b` | 海面の色（HDRP の refractionColor / scatteringColor） |
 | `absorption` | 光の吸収距離（m）。**小さいほど濁って不透明**。HDRP 既定は 5.0 |
+| `duration` | 目標の高さに達するまでの秒数。省略時は即座に変化 |
+
+[NOTE] **潮位は `duration` を使うこと。** 時刻を刻んで 10cm ずつ上げると
+変化が階段状に見える。`duration` を指定すると毎フレーム補間されるため
+はるかになめらかになる。倍速・一時停止にも追従する。
+色と濁りは補間されず即時反映される。
 
 [NOTE] 既定の海面は透明度が高く、**どこが浸水しているか判別しにくい**。
 `absorption` を 0.5 前後まで下げると濁って不透明になり、浸水域が一目で分かる。
@@ -364,7 +372,11 @@ value: <height>, <r>, <g>, <b>, <absorption>     # さらに濁り具合も変�
 
 - time: 4
   event: ocean
-  value: 1.2, 0.18, 0.22, 0.16, 0.5   # 潮位を上げ、濁らせて浸水域を見せる
+  value: 0.8, 0.18, 0.22, 0.16, 0.5, 6   # 6秒かけて 0.8 へ（同時に濁らせる）
+
+- time: 11
+  event: ocean
+  value: 1.2, 20                          # 20秒かけてじわじわ 1.2 へ
 
 - time: 34
   event: ocean

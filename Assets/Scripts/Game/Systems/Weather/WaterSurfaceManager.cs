@@ -1,4 +1,5 @@
 ﻿using CommonsUtility;
+using System.Collections;
 using System.Reflection;
 using UnityEngine;
 using Debug = CommonsUtility.Debug;
@@ -8,6 +9,9 @@ public class WaterSurfaceManager : MonoBehaviour
 	private GameObject _waterSurface;
 
 	private GameObject _ocean;
+
+	/// <summary>実行中の潮位補間（新しい指示が来たら止める）</summary>
+	private Coroutine _tideCoroutine = null;
 
 	private const float WATER_RISE_PAR_RAIN = 0.005f;
 
@@ -166,6 +170,48 @@ public class WaterSurfaceManager : MonoBehaviour
 		Vector3 position = oceanTransform.position;
 		position.y = height;
 		oceanTransform.position = position;
+	}
+
+	/// <summary>
+	/// 海面を指定秒かけて目標の高さまで動かす。
+	///
+	/// 時刻指定のイベントで 10cm ずつ上げると、変化が階段状に見えてしまう。
+	/// こちらは毎フレーム補間するので、0.01 刻みよりさらになめらかになる。
+	/// Time.deltaTime を使うため倍速・一時停止にも追従する。
+	///
+	/// 実行中に新しい指示が来たら前の補間は破棄して上書きする
+	/// </summary>
+	internal void SetOceanHeightOverTime(float targetHeight, float duration)
+	{
+		if (_tideCoroutine != null)
+		{
+			StopCoroutine(_tideCoroutine);
+			_tideCoroutine = null;
+		}
+
+		if (duration <= 0f)
+		{
+			SetOceanHeight(targetHeight);
+			return;
+		}
+		_tideCoroutine = StartCoroutine(RaiseOceanRoutine(targetHeight, duration));
+	}
+
+	private IEnumerator RaiseOceanRoutine(float targetHeight, float duration)
+	{
+		float startHeight = GetOceanHeight();
+		float elapsed = 0f;
+
+		while (elapsed < duration)
+		{
+			elapsed = elapsed + Time.deltaTime;
+			float progress = Mathf.Clamp01(elapsed / duration);
+			SetOceanHeight(Mathf.Lerp(startHeight, targetHeight, progress));
+			yield return null;
+		}
+
+		SetOceanHeight(targetHeight);
+		_tideCoroutine = null;
 	}
 
 	private Transform GetOceanTransform()

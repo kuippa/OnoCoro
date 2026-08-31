@@ -26,6 +26,12 @@ public class EventLoader : MonoBehaviour, IInitializable
     // ocean イベントで濁り（吸収距離）まで指定するときの要素数
     private const int _OCEAN_ABSORPTION_PARAM_COUNT = 5;
 
+    // ocean イベントで「高さ, 秒数」だけを指定するときの要素数
+    private const int _OCEAN_HEIGHT_DURATION_PARAM_COUNT = 2;
+
+    // ocean イベントで色・濁り・秒数まで全部指定するときの要素数
+    private const int _OCEAN_FULL_PARAM_COUNT = 6;
+
     // internal Dictionary<string, Dictionary<string, string>[]> _events = new Dictionary<string, Dictionary<string, string>[]>();
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
     // // イベント名,{イベントデータ配列}
@@ -624,9 +630,14 @@ public class EventLoader : MonoBehaviour, IInitializable
 
     /// <summary>
     /// 海面（Ocean）イベント。
-    ///   value: 高さ                        … 海面のワールド Y(m)
-    ///   value: 高さ, R, G, B               … 併せて海面の色も変える（各 0〜1）
-    ///   value: 高さ, R, G, B, 吸収距離     … さらに濁り具合も変える（m・小さいほど濁る）
+    ///   value: 高さ                             … 即座にその高さへ
+    ///   value: 高さ, 秒数                       … その秒数をかけてなめらかに上下させる
+    ///   value: 高さ, R, G, B                    … 併せて海面の色も変える（各 0〜1）
+    ///   value: 高さ, R, G, B, 吸収距離          … さらに濁り具合も変える（m・小さいほど濁る）
+    ///   value: 高さ, R, G, B, 吸収距離, 秒数    … 色と濁りは即時、高さだけ時間をかける
+    ///
+    /// 秒数を指定すると毎フレーム補間するので、時刻指定で少しずつ上げるより
+    /// なめらかに見える（色と濁りは補間せず即時反映）
     /// </summary>
     private void CallOcean(string event_value)
     {
@@ -640,7 +651,7 @@ public class EventLoader : MonoBehaviour, IInitializable
             Debug.LogWarning($"[EventLoader] ocean: 高さを解釈できません '{event_value}'");
             return;
         }
-        waterSurfaceManager.SetOceanHeight(height);
+        waterSurfaceManager.SetOceanHeightOverTime(height, ParseOceanDuration(parts));
 
         if (parts.Length < _OCEAN_COLOR_PARAM_COUNT)
         {
@@ -663,6 +674,35 @@ public class EventLoader : MonoBehaviour, IInitializable
         }
 
         waterSurfaceManager.SetWaterColor(new Color(r, g, b, 1f), absorptionDistance);
+    }
+
+    /// <summary>
+    /// ocean イベントの所要秒数を取り出す（未指定なら 0 = 即時）。
+    /// 高さだけの短い書式では 2 番目、色まで指定した書式では末尾に置く
+    /// </summary>
+    private float ParseOceanDuration(string[] parts)
+    {
+        int durationIndex = -1;
+        if (parts.Length == _OCEAN_HEIGHT_DURATION_PARAM_COUNT)
+        {
+            durationIndex = 1;
+        }
+        if (parts.Length >= _OCEAN_FULL_PARAM_COUNT)
+        {
+            durationIndex = _OCEAN_FULL_PARAM_COUNT - 1;
+        }
+
+        if (durationIndex < 0)
+        {
+            return 0f;
+        }
+
+        if (!float.TryParse(parts[durationIndex].Trim(), out float duration) || duration < 0f)
+        {
+            Debug.LogWarning($"[EventLoader] ocean: 秒数を解釈できません '{parts[durationIndex]}'");
+            return 0f;
+        }
+        return duration;
     }
 
     private void CallEarthquake(string event_value)

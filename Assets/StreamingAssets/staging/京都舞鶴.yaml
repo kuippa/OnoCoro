@@ -183,12 +183,12 @@ years:
     # 猫の登場は火が消えたあとなので、有効のままだと演出の途中で年が終わる
     auto_end: false
     baseline: 4
-    # schedule:
-    #   # 高潮の浸水を先に見せてから地震を起こす（絵コンテの順序）
-    #   - pattern: quake_fire
-    #     at: 20             # 地震 t=13, 倒壊 t=19, 出火 t=20/21
-    #     intensity: "1.6"
-    #     break_count: "4"
+    schedule:
+      # 高潮の浸水を先に見せてから地震を起こす（絵コンテの順序）
+      - pattern: quake_fire
+        at: 40             # 地震 t=13, 倒壊 t=19, 出火 t=20/21
+        intensity: "1.6"
+        break_count: "5"
     events:
       - time: 1
         event: telop
@@ -198,78 +198,38 @@ years:
       - time: 3
         event: subtelop
         value: "高潮警報。低地の建物が浸水しています"
-      # 潮位を段階的に上げる。実測では 1.2 で妥当な浸水範囲、1.4 で広域が浸かる。
-      # 最初の一段で濁らせて、どこが浸水しているか見えるようにする
-      # （既定の吸収距離 5.0 は透明度が高く、浸水域が判別しにくい）
+      # 潮位を時間をかけてなめらかに上げる。
+      # 「高さ, 秒数」で指定すると毎フレーム補間されるため、
+      # 時刻を刻んで 10cm ずつ上げるより滑らかに見える。
+      # 実測では 1.2 で妥当な浸水範囲、1.4 で広域が浸かる。
       - time: 4
         event: ocean
-        value: 0.8, 0.18, 0.22, 0.16, 0.8
-      - time: 6
+        value: 0.8, 0.18, 0.22, 0.16, 0.8, 6   # 6秒かけて 0.8 へ（同時に濁らせる）
+      - time: 11
         event: ocean
-        value: 0.85
-      - time: 8
-        event: ocean
-        value: 0.9
-      - time: 10
-        event: ocean
-        value: 1.0
-      - time: 12
-        event: ocean
-        value: 1.1, 0.16, 0.19, 0.13, 0.5
-      # - time: 15
-      #   event: ocean
-      #   value: 2.1
-
+        value: 1.2, 20                          # 20秒かけてじわじわ 1.2 へ
 
       # --- 中盤: 地震と火災（quake_fire パターンが at:3 で発火）---
 
       # --- 終盤: 海から巨大猫が現れて建物を解体していく ---
-      - time: 26
+      - time: 90
         event: bloom_path
         value: path_marker_start, path_marker_01, path_marker_goal
-      - time: 28
+      - time: 100
         event: telop
         value: "海から巨大な影が…"
-      - time: 30
+      # 海面を毒々しい赤に変えて緊迫感を出す（高さは維持）
+      - time: 101
+        event: ocean
+        value: 1.1, 0.65, 0.06, 0.06, 0.3
+      - time: 102
         event: spawn_enemy_unit
         value: Cat, path_marker_start, path_marker_01, path_marker_goal
-      - time: 32
+      - time: 105
         event: subtelop
         value: "通り道の建物が次々と解体されていく"
 
-      # 海面を毒々しい赤に変えて緊迫感を出す（高さは維持）
-      - time: 34
-        event: ocean
-        value: 1.2, 0.65, 0.06, 0.06, 0.3
+      - time: 150
+        event: weather  # 天候イベント
+        value: rain, 0.65, 0.75, 200  # 天候タイプ, 雨の強さ0~1, 雲の強さ0~1, 霧の視界
 
-  # - year: 2
-  #   duration: 90
-  #   note: "規模拡大。防火水槽（広範囲・弱効果）と比較する"
-  #   baseline: 3
-  #   schedule:
-  #     - pattern: quake_fire
-  #       at: 3
-  #       intensity: "1.8"
-  #       break_count: "5"
-  #   events:
-  #     - time: 1
-  #       event: telop
-  #       value: "Year 2: 揺れが強くなった"
-
-  # - year: 3
-  #   duration: 90
-  #   note: "本震+余震の多重編成"
-  #   baseline: 6
-  #   schedule:
-  #     - pattern: quake_fire
-  #       at: 3
-  #       intensity: "2.0"
-  #       break_count: "7"
-  #     - pattern: quake_fire
-  #       at: 45             # 余震
-  #       intensity: "1.5"
-  #       break_count: "3"
-  #   events:
-  #     - time: 1
-  #       event: telop
-  #       value: "Year 3: 大地震と余震の年"
