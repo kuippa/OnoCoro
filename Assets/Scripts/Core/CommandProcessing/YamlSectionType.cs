@@ -257,6 +257,12 @@ namespace CommonsUtility
         /// <summary>note - 年の説明（任意）</summary>
         note,
 
+        /// <summary>
+        /// auto_end - 火災鎮火時に年を自動終了するか（任意・既定 true）。
+        /// 演出を最後まで見せたいデモ用ステージでは false にする
+        /// </summary>
+        auto_end,
+
         /// <summary>schedule - スポーンパターンの編成リスト（任意）</summary>
         schedule,
 

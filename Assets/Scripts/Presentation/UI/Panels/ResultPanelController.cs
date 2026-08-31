@@ -201,8 +201,8 @@ namespace CommonsUtility
                 $"累計投資: {summary.Investment} ゴールド\n" +
                 $"地震による倒壊（累計）: {summary.QuakeCollapse} 棟\n" +
                 $"火災による延焼（累計）: {summary.FireSpread} 棟\n" +
-                $"無施策時の予想延焼（累計）: {summary.AssumedSpread} 棟\n" +
-                $"抑えた延焼（累計）: {summary.SavedBuildings} 棟\n" +
+                // $"無施策時の予想延焼（累計）: {summary.AssumedSpread} 棟\n" +
+                // $"抑えた延焼（累計）: {summary.SavedBuildings} 棟\n" +
                 $"総合 投資効果(ROI): {summary.Roi:F1}\n\n" +
                 // [CityHack 2026] マップに残ったゴミの総量を 4t トラック換算で示す
                 DemolitionSystem.GetGarbageTruckText() + "\n\n" +
@@ -213,13 +213,13 @@ namespace CommonsUtility
         {
             if (summary.SavedBuildings == 0)
             {
-                return "施策を増やせば、もっと多くの建物を火災から守れたかもしれません。";
+                return "施策を増やせば、もっと多くの建物を災害から守れたかもしれません。";
             }
             if (summary.Roi >= 2f)
             {
                 return "少ない投資で大きな被害を防げました。効率的な防災投資です。";
             }
-            return "防災投資で火災被害を抑えられました。配置場所を工夫するとさらに効果的です。";
+            return "防災投資で災害被害を抑えられました。配置場所を工夫するとさらに効果的です。";
         }
 
         private void OnClickNext()
@@ -310,7 +310,7 @@ namespace CommonsUtility
             _nextButtonRoot = BuildButton(panel.transform, "NextButton", new Vector2(0f, -290f), _BUTTON_COLOR, OnClickNext, out _nextButtonLabel);
 
             _exploreButtonRoot = BuildButton(panel.transform, "ExploreButton", new Vector2(0f, -370f), _SUBBUTTON_COLOR, OnClickExplore, out TextMeshProUGUI exploreButtonLabel);
-            exploreButtonLabel.SetText("ステージを見て回る");
+            exploreButtonLabel.SetText("見て回る");
 
             _titleButtonRoot = BuildButton(panel.transform, "TitleButton", new Vector2(0f, -450f), _SUBBUTTON_COLOR, OnClickBackToTitle, out TextMeshProUGUI titleButtonLabel);
             titleButtonLabel.SetText("タイトルへ");

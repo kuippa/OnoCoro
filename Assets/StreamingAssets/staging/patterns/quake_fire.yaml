@@ -14,10 +14,14 @@ events:
   - time: 1
     event: earthquake
     value: "{intensity}"
+  # - time: 2
+  #   event: notice
+  #   value: "地震が発生しました。"
   - time: 2
-    event: notice
-    value: "地震が発生しました。"
+    event: subtelop
+    value: "大地が揺れている"
+
   # 倒壊した各建物から出火（出火数＝倒壊数）。旧: building_break + FireCube 2箇所固定
-  - time: 7
+  - time: 4
     event: building_break_fire
     value: "{break_count}"

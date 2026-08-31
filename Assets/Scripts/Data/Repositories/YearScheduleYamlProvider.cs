@@ -80,6 +80,13 @@ namespace CommonsUtility
             eventLoader.SetYearEvents(yearNumber, timerEvents, duration);
 
             // 任意: 消火なし想定火災延焼棟数（ベースライン・W3 Task 4）
+            // auto_end: 火災鎮火での自動終了（未指定なら従来どおり有効）
+            string autoEndText = YamlParserHelper.GetChildScalar(yearMapping, YearCommandFields.auto_end.ToString());
+            if (!string.IsNullOrEmpty(autoEndText) && bool.TryParse(autoEndText.Trim(), out bool isAutoEnd))
+            {
+                eventLoader.SetYearAutoEnd(yearNumber, isAutoEnd);
+            }
+
             string baselineText = YamlParserHelper.GetChildScalar(yearMapping, YearCommandFields.baseline.ToString());
             if (int.TryParse(baselineText, out int baseline) && baseline >= 0)
             {

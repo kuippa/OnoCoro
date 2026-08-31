@@ -49,10 +49,10 @@ itemlists:
 # 舞鶴は起伏があるため、手で数値を入れるより auto のままが安全。
 pathmakers:
   - name: path_marker_start
-    pos: 131, auto, -235     # 猫の出発点
+    pos: 41, auto, 422     # 猫の出発点
 
   - name: path_marker_01
-    pos: 89, auto, -164     # 中間地点
+    pos: 74, auto, 305     # 中間地点
 
   - name: path_marker_goal
     pos: 210, auto, -150     # ゴール（ここに着くと猫は消える）
@@ -95,22 +95,22 @@ pathmakers:
 demolition:
   - type: wood        # 木造
     tons_per_sqm: 0.6     # 木造の原単位（技術資料の採用値）
-    debris_per_ton: 50    # 見た目の瓦礫量（増やすほど多く散らばる）
+    debris_per_ton: 20    # 見た目の瓦礫量（増やすほど多く散らばる）
     max_cubes: 1000       # 1棟あたりのキューブ数上限
     noncombustible_ratio: 0.89   # 可燃11% / 不燃89%
   - type: steel       # 鉄骨造(S) → 非木造として扱う
     tons_per_sqm: 1.0
-    debris_per_ton: 50
+    debris_per_ton: 20
     max_cubes: 1000
     noncombustible_ratio: 0.89
   - type: concrete    # RC / SRC 造 → 非木造として扱う
     tons_per_sqm: 1.0
-    debris_per_ton: 50
+    debris_per_ton: 20
     max_cubes: 1000
     noncombustible_ratio: 0.89
   - type: unknown     # 不明（住宅地が多いので木造相当を採用）
     tons_per_sqm: 0.6
-    debris_per_ton: 50
+    debris_per_ton: 20
     max_cubes: 1000
     noncombustible_ratio: 0.89
 
@@ -125,8 +125,8 @@ demolition:
 # このセクションが無いステージでは浸水判定そのものが動かない。
 flood:
   - depth: 0.5                  # 水面からこの深さ(m)より下に底面があれば水没
-    duration: 3.0               # 水没がこの秒数続いたら倒壊
-    max_breaks_per_second: 5    # 1秒あたりの倒壊上限
+    duration: 5.0               # 水没がこの秒数続いたら倒壊
+    max_breaks_per_second: 10    # 1秒あたりの倒壊上限
 
 # goals / gameovers は定義しない（全年の完走がシミュレーション終了条件）
 
@@ -177,15 +177,18 @@ events:
 # 未指定の年は K×地震倒壊数（K=3）にフォールバックする。
 years:
   - year: 1
-    duration: 150
+    duration: 180
     note: "高潮 → 地震火災 → 巨大猫。プレゼン動画用の一本道構成"
+    # 火災が鎮火すると年を自動終了する既定動作を切る。
+    # 猫の登場は火が消えたあとなので、有効のままだと演出の途中で年が終わる
+    auto_end: false
     baseline: 4
-    schedule:
-      # 高潮の浸水を先に見せてから地震を起こす（絵コンテの順序）
-      - pattern: quake_fire
-        at: 12             # 地震 t=13, 倒壊 t=19, 出火 t=20/21
-        intensity: "1.6"
-        break_count: "3"
+    # schedule:
+    #   # 高潮の浸水を先に見せてから地震を起こす（絵コンテの順序）
+    #   - pattern: quake_fire
+    #     at: 20             # 地震 t=13, 倒壊 t=19, 出火 t=20/21
+    #     intensity: "1.6"
+    #     break_count: "4"
     events:
       - time: 1
         event: telop
@@ -201,15 +204,22 @@ years:
       - time: 4
         event: ocean
         value: 0.8, 0.18, 0.22, 0.16, 0.8
+      - time: 6
+        event: ocean
+        value: 0.85
       - time: 8
         event: ocean
         value: 0.9
       - time: 10
         event: ocean
-        value: 1.1
+        value: 1.0
       - time: 12
         event: ocean
-        value: 1.2, 0.16, 0.19, 0.13, 0.5
+        value: 1.1, 0.16, 0.19, 0.13, 0.5
+      # - time: 15
+      #   event: ocean
+      #   value: 2.1
+
 
       # --- 中盤: 地震と火災（quake_fire パターンが at:3 で発火）---
 
@@ -230,7 +240,7 @@ years:
       # 海面を毒々しい赤に変えて緊迫感を出す（高さは維持）
       - time: 34
         event: ocean
-        value: 1.4, 0.65, 0.06, 0.06, 0.3
+        value: 1.2, 0.65, 0.06, 0.06, 0.3
 
   # - year: 2
   #   duration: 90

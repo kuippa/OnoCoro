@@ -53,6 +53,12 @@ public class EventLoader : MonoBehaviour, IInitializable
     /// </summary>
     internal Dictionary<int, int> _year_baselines = new Dictionary<int, int>();
 
+    /// <summary>
+    /// 年ごとの「火災鎮火で自動終了するか」。未登録の年は true（従来動作）。
+    /// 演出を最後まで見せたいデモ用ステージでは YAML の auto_end: false で切る
+    /// </summary>
+    internal Dictionary<int, bool> _year_auto_end = new Dictionary<int, bool>();
+
     internal Dictionary<string, string> _board_data = new Dictionary<string, string>();
     
     /// <summary>
@@ -204,6 +210,26 @@ public class EventLoader : MonoBehaviour, IInitializable
     }
 
     /// <summary>
+    /// 年の自動終了設定を登録する（YAML の auto_end）
+    /// </summary>
+    internal void SetYearAutoEnd(int year, bool isAutoEnd)
+    {
+        _year_auto_end[year] = isAutoEnd;
+    }
+
+    /// <summary>
+    /// 火災鎮火による年の自動終了が有効か（未登録なら true = 従来動作）
+    /// </summary>
+    internal bool IsYearAutoEndEnabled(int year)
+    {
+        if (_year_auto_end.TryGetValue(year, out bool isAutoEnd))
+        {
+            return isAutoEnd;
+        }
+        return true;
+    }
+
+    /// <summary>
     /// 年別イベントをすべて破棄（ステージロード時のリセット用）
     /// </summary>
     internal void ClearYearEvents()
@@ -211,6 +237,7 @@ public class EventLoader : MonoBehaviour, IInitializable
         _year_events.Clear();
         _year_durations.Clear();
         _year_baselines.Clear();
+        _year_auto_end.Clear();
     }
 
     /// <summary>

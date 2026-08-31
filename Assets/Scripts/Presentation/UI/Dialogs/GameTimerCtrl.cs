@@ -310,8 +310,24 @@ public class GameTimerCtrl : UIControllerBase
             return;
         }
 
+        // 演出を最後まで見せたいステージ（YAML の auto_end: false）では自動終了しない
+        if (EventLoader.instance != null
+            && !EventLoader.instance.IsYearAutoEndEnabled(YearCycleSystem.CurrentYear))
+        {
+            _settleTimer = 0f;
+            return;
+        }
+
         // 年序盤（出火前）や未発火イベントが残る間は対象外
         if (_time < _SETTLE_MIN_ELAPSED || _eventTimeList.Count > 0 || !IsFireFullyExtinguished())
+        {
+            _settleTimer = 0f;
+            return;
+        }
+
+        // 敵ユニットが行動中なら年を終わらせない
+        // （火が消えていても、猫が街を壊している途中で打ち切られてしまう）
+        if (IsEnemyUnitAlive())
         {
             _settleTimer = 0f;
             return;
@@ -325,6 +341,18 @@ public class GameTimerCtrl : UIControllerBase
             Debug.Log("[GameTimerCtrl] 火災鎮火を検出したため年を自動終了");
             YearCycleSystem.OnYearTimeUp();
         }
+    }
+
+    /// <summary>
+    /// 経路移動中の敵ユニットがまだ生きているかを判定（Cat / Litter）
+    /// </summary>
+    private bool IsEnemyUnitAlive()
+    {
+        if (GameObject.FindGameObjectsWithTag(GameEnum.TagType.Cat.ToString()).Length > 0)
+        {
+            return true;
+        }
+        return GameObject.FindGameObjectsWithTag(GameEnum.TagType.EnemyLitters.ToString()).Length > 0;
     }
 
     /// <summary>
