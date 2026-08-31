@@ -65,7 +65,6 @@ public class EnvironmentLightController : MonoBehaviour
         // TODO: 以下のライト影設定は現在反映されない（Unity設定の制約）
         // TODO: lightの影、解像度をウルトラ（VeryHigh）に設定する実装を完成させる
         // TODO: シャドウマップの解像度設定方法を調査し、実装する
-        // Debug.Log("light.shadowResolution: " + light.shadowResolution);
         // light.shadowResolution = LightShadowResolution.VeryHigh;
     }
 }

@@ -288,7 +288,6 @@ public static class DemController
         if (meshRenderer != null)
         {
             Vector3 center = meshRenderer.bounds.center;
-            // Debug.Log("dem center" + dem.name + " center:" + center + " setPos:" + setPos);
             setPos.x += center.x;
             setPos.y += center.y;
             setPos.z += center.z;
@@ -340,7 +339,6 @@ public static class DemController
         MeshFilter meshFilter = _dem.GetComponent<MeshFilter>();
         if (meshFilter == null)
         {
-            // Debug.Log("GetDemAbarbPosition " + "meshFilter is null");
             return abovePos;
         }
         

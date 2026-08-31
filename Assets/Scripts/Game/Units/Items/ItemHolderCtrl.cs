@@ -32,13 +32,11 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // Debug.Log("OnEndDrag" + this.name + " :" + this.transform.GetSiblingIndex());
         var results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, results);
 
         foreach (var result in results)
         {
-            // Debug.Log(result.gameObject.name + " :" + result.gameObject.GetComponentInParent<ItemHolderCtrl>().name);
             if (this.name == result.gameObject.GetComponentInParent<ItemHolderCtrl>().name 
             || result.gameObject.GetComponentInParent<ItemHolderCtrl>() == null)
             {
@@ -47,7 +45,6 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
             // _PLACEMENT_NAME で始まるオブジェクトの場合
             if (result.gameObject.GetComponentInParent<ItemHolderCtrl>().name.StartsWith(_PLACEMENT_NAME))
             {
-                // Debug.Log("OnEndDrag" + this.name + " :" 
                 //     + this.transform.GetSiblingIndex() + " : " 
                 //     + result.gameObject.GetComponentInParent<ItemHolderCtrl>().name + " :" 
                 //     + result.gameObject.GetComponentInParent<ItemHolderCtrl>().transform.GetSiblingIndex());
@@ -63,7 +60,6 @@ public class ItemHolderCtrl : MonoBehaviour, IDragHandler, IEndDragHandler, IDro
 
     public void OnDrop(PointerEventData eventData)
     {
-        // Debug.Log("OnDrop" + this.name + " :" + this.transform.GetSiblingIndex());
     }
 
 

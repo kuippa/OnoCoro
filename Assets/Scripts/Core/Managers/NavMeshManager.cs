@@ -102,7 +102,6 @@ public static class NavMeshManager
     internal static Quaternion CalculateLookAroundRotation(float currentYAngle, float rotationAngle)
     {
         float targetYAngle = Mathf.Repeat(currentYAngle + rotationAngle, 360f);
-        // Debug.Log("[NavMeshManager] CalculateLookAroundRotation: currentYAngle=" + currentYAngle + " rotationAngle=" + rotationAngle + " targetYAngle=" + targetYAngle);
         return Quaternion.Euler(0, targetYAngle, 0);
     }
 
@@ -240,7 +239,6 @@ public static class NavMeshManager
         // 意図した目的地と実際の目的地の距離がstoppingDistance以上なら到達していない
         if (Vector3.Distance(intendedDestination, destination) > NavMeshAgent.stoppingDistance)
         {
-            // Debug.Log("HasReachedDestination: Destination mismatch (intended: " 
             //     + intendedDestination + ", actual: " + destination + ") for " 
             //     + NavMeshAgent.name + " Distance: " + Vector3.Distance(intendedDestination, destination) 
             //     + " " + NavMeshAgent.stoppingDistance);

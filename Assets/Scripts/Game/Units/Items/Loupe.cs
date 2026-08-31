@@ -13,7 +13,6 @@ public class Loupe : MonoBehaviour, IItemStructProvider
     // void Start()
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         _item_struct = new ItemStruct(
             "Loupe"
@@ -28,7 +27,6 @@ public class Loupe : MonoBehaviour, IItemStructProvider
             , "imgs/icons/search_fill24"
             , 2);
 
-        // Debug.Log("GarbageCube.Awake() _item_struct.Name: " + _item_struct.Name);
 
 // Assets/Resources/imgs/icons/virus-covid-solid.svg
     }

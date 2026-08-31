@@ -182,7 +182,6 @@ public class ItemAction : MonoBehaviour
 
     private void OnDestory()
     {
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (instance == this)
         {
             instance = null;
@@ -191,7 +190,6 @@ public class ItemAction : MonoBehaviour
 
     private void Awake()
     {
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (instance == null)
         {
             instance = this;

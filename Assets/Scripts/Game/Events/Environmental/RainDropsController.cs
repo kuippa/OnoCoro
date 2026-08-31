@@ -47,7 +47,6 @@ public class RainDropsController : MonoBehaviour
         unit.name = GameEnum.TagType.Puddle.ToString() + Time.time.ToString();
         unit.transform.SetParent(GetPuddleHolder().transform);
 
-        // Debug.Log("MakePuddle" + this.name + " " + rainDropCount);
         return true;
     }
 
@@ -84,7 +83,6 @@ public class RainDropsController : MonoBehaviour
         // Rainタグのオブジェクトが5個以上ある場合の処理
         if (rainCount >= _requiredRainCount)
         {
-            // Debug.Log("一定の距離内にRainタグのオブジェクトが" + rainCount + "個あります。");
             ret = true;
         }
         return ret;
@@ -110,7 +108,6 @@ public class RainDropsController : MonoBehaviour
         {
             if (GameConfig._STAGE_PADDLE_MODE && CheckExistRainsInRadius())
             {
-                // Debug.Log("同じ場所に一定時間停止" + this.name);
                 if (MakePuddle())
                 {
                     _is_rain = false;
@@ -125,7 +122,6 @@ public class RainDropsController : MonoBehaviour
         }
 
         _rainDropPosition = this.gameObject.transform.position;
-        // Debug.Log("OnTriggerCheck" + this.name);
     }
 
     private void ChangeColliderSize()

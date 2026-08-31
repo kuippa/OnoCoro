@@ -141,7 +141,6 @@ internal static class UICanvasManager
     {
         if (canvas == null)
         {
-            // Debug.LogWarning("[UICanvasManager] Canvas is null");
             return;
         }
 
@@ -222,7 +221,6 @@ internal static class UICanvasManager
             }
         }
 
-        // Debug.Log($"[UICanvasManager] Updated {updatedCount} Canvas(es) to resolution: {newResolution}");
     }
 
     /// <summary>
@@ -244,7 +242,6 @@ internal static class UICanvasManager
         
         if (allCanvases.Length == 0)
         {
-            // Debug.LogWarning("[UICanvasManager] No Canvas found in scene");
             return;
         }
         
@@ -257,7 +254,6 @@ internal static class UICanvasManager
             appliedCount++;
         }
         
-        // Debug.Log($"[UICanvasManager] Applied standard Scaler settings to {appliedCount} Canvas(es)");
         LogCurrentResolutionInfo();
     }
 
@@ -269,12 +265,6 @@ internal static class UICanvasManager
         float canvasScale = GetCurrentCanvasScale();
         Vector2 refResolution = REFERENCE_RESOLUTION;
         
-        // Debug.Log("[UICanvasManager] ─────────────────────────────────");
-        // Debug.Log($"[UICanvasManager] Current Preset: {CURRENT_RESOLUTION_PRESET}");
-        // Debug.Log($"[UICanvasManager] Reference Resolution: {refResolution}");
-        // Debug.Log($"[UICanvasManager] Current Screen Resolution: {Screen.width}×{Screen.height}");
-        // Debug.Log($"[UICanvasManager] Current Canvas Scale: {canvasScale:F2}x");
-        // Debug.Log("[UICanvasManager] ─────────────────────────────────");
     }
 
     // ═══════════════════════════════════════════════════════════

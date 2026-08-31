@@ -78,7 +78,6 @@ public static class BloomPathController
         Vector3 sampledPosition = SampleNavMeshPosition(navAgentObject.transform.position);
         if (sampledPosition == Vector3.zero)
         {
-            // Debug.LogError($"Failed to sample NavMesh for {navAgentObject.name}");
             return null;
         }
         navAgentObject.transform.position = sampledPosition;
@@ -125,7 +124,6 @@ public static class BloomPathController
         NavMeshAgent navAgent = AddNavMeshAgent(AddNavAgent(startPosition));
         if (navAgent == null)
         {
-            // Debug.Log($" Failed to add NavMeshAgent for marker: {currentMarkerName}");
             return;
         }
 
@@ -213,7 +211,6 @@ public static class BloomPathController
 
         if (!agent.isOnNavMesh)
         {
-            // Debug.LogWarning($"Agent is not on NavMesh for path {pathName}");
             yield break;
         }
 

@@ -75,8 +75,6 @@ namespace CommonsUtility
         internal static GameConfig InitGameConfig()
         {
             #if UNITY_EDITOR
-                // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-                // Debug.Log("GameConfig.InitGameConfig()");
             #endif
 
             // Application.targetFrameRate = GlobalConst.APP_FPS;

@@ -447,7 +447,6 @@ namespace CommonsUtility
                 _birdCameraRoot.localPosition.z
             );
 
-            // Debug.Log($"[CameraCtrl] BirdView Height Set: {_birdCameraRoot.localPosition.y:F2}");
         }
 
         /// <summary>

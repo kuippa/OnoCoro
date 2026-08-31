@@ -230,7 +230,6 @@ namespace StarterAssets
         {
             if (_input.IsMenuOpen())
             {
-                // Debug.Log("CameraRotation _input._cursorInputForLook");
                 return;
             }
 
@@ -404,7 +403,6 @@ namespace StarterAssets
 
         private void OnDrawGizmosSelected()
         {
-            // Debug.Log("OnDrawGizmosSelected");
 
             // Color transparentGreen = new Color(0.0f, 1.0f, 0.0f, 0.35f);
             // Color transparentRed = new Color(1.0f, 0.0f, 0.0f, 0.35f);
@@ -442,7 +440,6 @@ namespace StarterAssets
         // キャラクターを特定の位置に移動させる
 		public void CharacterMoveToPosition(Vector3 setPos)
 		{
-            // Debug.Log("1 CharacterMoveToPosition setPos:" + setPos + " transform:" + transform.position + " _controller:" + _controller.center);
 
             // Time.timeScale = 0.0f;
             // _input.enabled = false;
@@ -465,7 +462,6 @@ namespace StarterAssets
 
             _controller.enabled = true;
 
-            // Debug.Log("2 CharacterMoveToPosition setPos:" + setPos + " transform:" + transform.position + " _controller:" + _controller.center);
 
 		}
 

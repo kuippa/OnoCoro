@@ -115,12 +115,10 @@ public class EventLoader : MonoBehaviour, IInitializable
     //     foreach (var gevent in _events)
     //     {
     //         string event_name = gevent.Key;
-    //         Debug.Log(gevent.Key);
     //         foreach (var event_data in _events[event_name])
     //         {
     //             foreach (var entry in event_data)
     //             {
-    //                 Debug.Log(entry.Key + " : " + entry.Value);
     //             }
     //         }
     //     }
@@ -139,16 +137,13 @@ public class EventLoader : MonoBehaviour, IInitializable
             if (_board_data.ContainsKey(board_code))
             {
                 returndata = _board_data[board_code];
-                // Debug.Log($"[EventLoader.GetBoardText] FOUND: '{board_code}' -> '{returndata}'");
             }
             else
             {
-                // Debug.LogWarning($"[EventLoader.GetBoardText] KEY NOT FOUND: '{board_code}' not in _board_data dictionary");
             }
         }
         else
         {
-            // Debug.LogError($"[EventLoader.GetBoardText] _board_data is EMPTY (Count=0) - YAML data not loaded");
         }
         
         return returndata;
@@ -961,7 +956,6 @@ public class EventLoader : MonoBehaviour, IInitializable
     // private void testInvoke()
     // {
     //     float tes = GameTimerCtrl.instance._time;
-    //     Debug.Log(tes);
     // }
 
     // private float GetGameTime()

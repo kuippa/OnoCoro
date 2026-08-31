@@ -158,15 +158,12 @@ public class DebugInfoCtrl : UIControllerBase
             return;
         }
 
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-        // Debug.Log("DebugInfoCtrl.InitDebugWindow()");
 
         // GameObject debugWindow = GameObject.Find("DebugWindow");
         GameObject debugWindow = this.gameObject;
         String debug_info = "";
         if (debugWindow != null)
         {
-            // Debug.Log("DebugWindow is found");
             debug_info = GetSceneName();
             debug_info += Environment.NewLine + GetAppVer();
             debug_info += Environment.NewLine + GetAppFPS();
@@ -188,7 +185,6 @@ public class DebugInfoCtrl : UIControllerBase
 
     private void Update()
     {
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         _time += Time.deltaTime;
         if (_time > _updateInterval)
         {

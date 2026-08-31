@@ -19,7 +19,6 @@ public class TelopCtrl : MonoBehaviour
 
     void Awake()
     {
-        // Debug.Log("TelopCtrl Awake");
         _UITelop = this.gameObject;
         _telop = _UITelop.transform.Find("Telop").gameObject;   
         _txtTelop = _telop.transform.Find("txtTelop").gameObject;

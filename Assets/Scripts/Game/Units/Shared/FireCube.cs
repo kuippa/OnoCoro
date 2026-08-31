@@ -15,7 +15,6 @@ public class FireCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     private void Awake()
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
 
         // [BUG-S3-016] スポーン時から直立させる（X/Z の傾きも 0 に）。

@@ -27,7 +27,6 @@ public class Flame : MonoBehaviour
     // ごみを一定数次々燃やす
     internal void GarbageToFire()
     {
-        // Debug.Log("GarbageToFire");
         GameObject[] garbage = GameObject.FindGameObjectsWithTag("Garbage");
         if (garbage.Length > 0)
         {

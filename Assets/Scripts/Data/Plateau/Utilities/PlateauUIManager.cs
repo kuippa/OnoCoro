@@ -151,7 +151,6 @@ public class PlateauUIManager : MonoBehaviour
             else
             {
                 // formattedInfo += $"{pair.Key}: {pair.Value}\n";
-                // Debug.Log($"{pair.Key}: {pair.Value}");
             }
         }
         // formattedInfo += LangCtrl.GetLangVal("rebuildcost") + ": " + rebuildCost + "\n";

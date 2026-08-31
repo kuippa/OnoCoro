@@ -14,7 +14,6 @@ public class GarbageCubeBig : MonoBehaviour, IItemStructProvider
     // void Start()  // 必要に応じてStartに変更可能
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         
         // 大きなゴミキューブの初期化

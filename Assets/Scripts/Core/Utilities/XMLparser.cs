@@ -48,8 +48,6 @@ public class XMLparser : MonoBehaviour
         XmlDocument xmlDoc = new XmlDocument();
         xmlDoc.LoadXml(xml.text);
         // XmlElement root = xmlDoc.DocumentElement;
-        // Debug.Log(root.Name);
-        // Debug.Log(root.ChildNodes.Count);
 
         XmlNamespaceManager nsmgr = new XmlNamespaceManager(xmlDoc.NameTable);
         nsmgr.AddNamespace("gml", "http://www.opengis.net/gml");
@@ -65,14 +63,11 @@ public class XMLparser : MonoBehaviour
                 if (descriptionNode != null && nameNode != null)
                 {
                     _buildingUsageDict.Add(nameNode.InnerText, descriptionNode.InnerText);
-                    // Debug.Log(descriptionNode.InnerText + " : " + nameNode.InnerText);
                 }
             }
         }
 
-        // Debug.Log(_buildingUsageDict);
         // _buildingUsageDict.TryGetValue("401", out var val);
-        // Debug.Log(val);
     }
 
     public string GetBuildingUsage(string key)

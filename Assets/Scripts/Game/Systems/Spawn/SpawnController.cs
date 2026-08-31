@@ -45,7 +45,6 @@ public class SpawnController : MonoBehaviour
 
     private void OnDestroy()
     {
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (_instance == this)
         {
             _instance = null;

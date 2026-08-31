@@ -55,13 +55,11 @@ namespace PostProcessBuild
                 sw.WriteLine(target);   // コンパイルターゲット
             }
 
-            // Debug.Log("OnPostProcessBuild" + path + " " + target);
 
             // using (var writer = new BinaryWriter(File.Open(FILE_PATH, FileMode.OpenOrCreate, FileAccess.ReadWrite) ,Encoding.UTF8 ))
             // // using (var writer = new BinaryWriter(File.Open(FILE_PATH, FileMode.OpenOrCreate, FileAccess.Write)))
             // {
             //     String writeStr = DateTime.Now.ToString("yyyy.MM.dd.HH.mm");
-            //     Debug.Log("OnPostProcessBuild" + writeStr);
             //     writer.Write(writeStr);
             //     writer.Write(@"c:\Temp");
             //     writer.Write("あいう");

@@ -91,7 +91,6 @@ public class EnemyLitter : MonoBehaviour
         
         if (_headRenderer == null)
         {
-            // Debug.LogWarning($"HeadRenderer not initialized on {name}");
             return;
         }
         
@@ -111,7 +110,6 @@ public class EnemyLitter : MonoBehaviour
 
             if (_handTransform == null)
             {
-                // Debug.LogWarning($"Hand not found in {name}");
                 _littingMode = false;
                 yield break;
             }
@@ -158,7 +156,6 @@ public class EnemyLitter : MonoBehaviour
         _towerDestructionHandler.DestroyNearbyTowers(transform.position, _MAX_TOWER_DESTRUCTION_COUNT, name);
 
         _movementController.ResetStuckCounter();
-        // Debug.Log($"{name}: タワー破壊完了。新しい経路で移動を再開します");
 
         // タイムアウト後は、現在のパスをリセットして経路算定からやり直す
         NavMeshManager.SetDestinationFromIntended(_navMeshAgent);
@@ -210,7 +207,6 @@ public class EnemyLitter : MonoBehaviour
     {
         if (_myPaths == null || _myPaths.Length == 0)
         {
-            // Debug.LogWarning($"No paths available for {name}");
             return;
         }
 
@@ -224,7 +220,6 @@ public class EnemyLitter : MonoBehaviour
         bool warped = _navMeshAgent.Warp(warpPosition);
         if (!warped)
         {
-            // Debug.LogWarning($"{name}: Warp failed at {warpPosition}. NavMesh surface may not exist nearby.");
         }
 
         // 初期スポーン位置を SpawnOriginTracker に記録する。
@@ -253,7 +248,6 @@ public class EnemyLitter : MonoBehaviour
             return boxCollider.size.y / 2f - boxCollider.center.y;
         }
 
-        // Debug.LogWarning($"{name}: CapsuleCollider も BoxCollider も見つからないため bottomOffset=0 を使用");
         return 0f;
     }
 
@@ -308,7 +302,6 @@ public class EnemyLitter : MonoBehaviour
         pathList.Insert(0, path);
         _myPaths = pathList.ToArray();
         
-        // Debug.Log("AddPathAndInterrupt:" + path.ToString());
         SetNextPath(_myPaths);
     }
 
@@ -332,7 +325,6 @@ public class EnemyLitter : MonoBehaviour
         _navMeshAgent = NavMeshManager.GetNavMeshAgent(gameObject);
         if (_navMeshAgent == null)
         {
-            // Debug.LogWarning($"NavMeshAgent not found on {name}");
             enabled = false;
             return;
         }
@@ -341,7 +333,6 @@ public class EnemyLitter : MonoBehaviour
         Transform capsuleHeadTransform = transform.Find(_CHILD_NAME_CAPSULE_HEAD);
         if (capsuleHeadTransform == null)
         {
-            // Debug.LogWarning($"CapsuleHead not found on {name}");
             enabled = false;
             return;
         }
@@ -349,7 +340,6 @@ public class EnemyLitter : MonoBehaviour
         _headRenderer = capsuleHeadTransform.GetComponent<Renderer>();
         if (_headRenderer == null)
         {
-            // Debug.LogWarning($"Renderer not found on CapsuleHead in {name}");
             enabled = false;
             return;
         }
@@ -358,7 +348,6 @@ public class EnemyLitter : MonoBehaviour
         _handTransform = transform.Find(_CHILD_NAME_HAND);
         if (_handTransform == null)
         {
-            // Debug.LogWarning($"Hand not found on {name}");
             enabled = false;
             return;
         }
@@ -377,7 +366,6 @@ public class EnemyLitter : MonoBehaviour
         // パスが有効か確認
         if (_myPaths == null || _myPaths.Length == 0)
         {
-            // Debug.LogWarning($"{name}: InitUnitSpawn: パスマーカーが見つからないため初期化に失敗しました");
             return;
         }
         AgentJumpToStartPosition();

@@ -19,7 +19,6 @@ public class GarbageCube : MonoBehaviour, IItemStructProvider, IUnitStructProvid
     void Awake()
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         _item_struct = new ItemStruct(
             "GarbageCube" // name

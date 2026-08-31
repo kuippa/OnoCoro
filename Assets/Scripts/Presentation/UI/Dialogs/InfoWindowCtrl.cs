@@ -29,7 +29,6 @@ public class InfoWindowCtrl : UIControllerBase
     {
         if (_infoWindow == null)
         {
-            // Debug.Log("InitWindow _infoWindow is null");
             _infoWindow = this.transform.Find("InfoWindow").gameObject;
         }
         if (_btnClose != null)
@@ -108,7 +107,6 @@ public class InfoWindowCtrl : UIControllerBase
 
     private void OnClickDelete()
     {
-        // Debug.Log("OnClickDelete" + _unitStruct?.Name + " " + _unitStruct?.UnitID);
         GameObject gameObject = GameObject.Find(_unitStruct?.UnitID);
         
         if (gameObject == null)
@@ -143,7 +141,6 @@ public class InfoWindowCtrl : UIControllerBase
         {
             UnitStruct? unitStruct = GetUnitStruct(hit.collider.gameObject);
             int total_score = ScoreCtrl.GetTotalGarbageScore(hit.collider);
-            // Debug.Log("total_score " + total_score + unitStruct?.Name ?? " no name");
 
             if (SetInfo(unitStruct, total_score))
             {
@@ -245,7 +242,6 @@ public class InfoWindowCtrl : UIControllerBase
         {
             if (current.GetComponent<IItemStructProvider>() != null)
             {
-                // Debug.Log("Found object with IItemStructProvider: " + current.name);
                 return current.gameObject;
             }
 
@@ -254,7 +250,6 @@ public class InfoWindowCtrl : UIControllerBase
             // 親がIItemStructProviderを持つか確認
             if (parent.GetComponent<IItemStructProvider>() != null)
             {
-                // Debug.Log("Found parent with IItemStructProvider: " + parent.name);
                 return parent.gameObject;
             }
             
@@ -263,7 +258,6 @@ public class InfoWindowCtrl : UIControllerBase
         }
         
         // ルートに到達したら、そのオブジェクトを返す
-        // Debug.Log("Reached root without finding IItemStructProvider, returning: " + current.name);
         return current.gameObject;
     }
 
@@ -273,7 +267,6 @@ public class InfoWindowCtrl : UIControllerBase
         collider = GetParentObject(collider);
         string tag = collider.tag;
         
-        // Debug.Log("collider.tag " + tag);
         // TODO : タグを持っているオブジェクトがGetUnitStructを持っている前提になっている。
         // 子どもオブジェクトにtagをもたせたらIndexObjectByTagの命名部分も破綻するし、rootしかもたないGetUnitStructも破綻する
 

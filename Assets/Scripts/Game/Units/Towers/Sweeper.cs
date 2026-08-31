@@ -15,7 +15,6 @@ public class Sweeper : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     // void Start()
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         _item_struct = new ItemStruct(
             "Sweeper"

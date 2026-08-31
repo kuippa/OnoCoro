@@ -25,20 +25,17 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
     // void OnMouseOver()
     // {
     //     //If your mouse hovers over the GameObject with the script attached, output this message
-    //     Debug.Log("Mouse is over GameObject.");
     // }
 
     // Imageなどでマウスオーバーした時に
     public void OnPointerEnter( PointerEventData eventData )
     {
-        // Debug.Log("Mouse is over OnPointerEnter." + this.gameObject.name);
         _time = 0.0f;
         _onMouseOver = true;
     }
 
     public void OnPointerExit( PointerEventData eventData )
     {
-        // Debug.Log("Mouse is over OnPointerExit.");
         _time = 0.0f;
         _onMouseOver = false;
         RemoveTooltip();
@@ -53,7 +50,6 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
             Text text1 = unit.gameObject.GetComponent<Text>();
             text = text1.text;
         }
-        // Debug.Log("text: " + text + this.name);
 
         return text;
     }
@@ -94,7 +90,6 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
         float width = rect.sizeDelta.x;
         Vector2 mousePos = GetPointerPosition();
         rect.anchoredPosition = new Vector2(mousePos.x + width / 2 + _tooltip_x_buffer, mousePos.y + _tooltip_y_buffer);
-        // Debug.Log("mousePos:" + mousePos);
         // unit 子供オブジェクトの txtTips の text を変更する
         tooltip.transform.Find("txtTips").gameObject.GetComponent<Text>().text = tooltipText;
         _tooltip = unit;
@@ -170,9 +165,6 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
         RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, Mouse.current.position.ReadValue(), canvas.worldCamera, out MousePos);
         _pointer.GetComponent<RectTransform>().anchoredPosition = new Vector2(MousePos.x, MousePos.y);
 
-        // Debug.Log("_pointer: " + Input.mousePosition + " setPos: " + setPos);
-        // Debug.Log("_pointer: " + Input.mousePosition + " point: " + point);
-        // Debug.Log("_pointer: " + Input.mousePosition + " MousePos: " + MousePos);
     }
 
     private Vector2 GetPointerPosition()
@@ -189,7 +181,6 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     // void OnGUI()
     // {
-    //     Debug.Log("OnGUI");
     // }
 
     void FixedUpdate()
@@ -199,7 +190,6 @@ public class MouseOverTipsCtrl : MonoBehaviour, IPointerEnterHandler, IPointerEx
             _time += Time.deltaTime;
             if (_time > GlobalConst.TOOL_TIP_TIME)
             {
-                // Debug.Log("Mouse is over GameObject over 3s.");
                 SetTooltip();
             }
         }

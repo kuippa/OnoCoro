@@ -17,7 +17,6 @@ public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     void Awake()
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         _item_struct = new ItemStruct(
             "PowerCube"
@@ -65,13 +64,11 @@ public class PowerCube : MonoBehaviour, IItemStructProvider, IUnitStructProvider
     {
         if (baseScore <= 0)
         {
-            // Debug.LogWarning("[PowerCube.SetBaseScore] BaseScore は 0 より大きい値である必要があります。デフォルト値を使用します");
             return;
         }
 
         // UnitStruct の BaseScore を更新
         _unit_struct.BaseScore = (int)baseScore;
-        // Debug.Log($"[PowerCube] BaseScore set to {baseScore} for {gameObject.name}");
     }
 
 }

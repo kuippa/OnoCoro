@@ -15,7 +15,6 @@ public class WaterTurret : MonoBehaviour, IItemStructProvider, IUnitStructProvid
     private void Awake()
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         #endif
         
         // 放水タレットの初期化

@@ -14,8 +14,6 @@ public class GarbageCubeBox : MonoBehaviour, IItemStructProvider
     // void Start()  // 必要に応じてStartに変更可能
     {
         #if UNITY_EDITOR
-            // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-            // Debug.Log("GarbageCube.Awake() _item_struct.Name: " + _item_struct.Name);
         #endif
         
         // ゴミ箱（ボックス）の初期化

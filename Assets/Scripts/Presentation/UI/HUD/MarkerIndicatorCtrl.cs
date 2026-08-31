@@ -71,7 +71,6 @@ public static class MarkerIndicatorCtrl
         // Renderer renderer = target.GetComponent<Renderer>();
         // if (renderer == null)
         // {
-        //     Debug.LogWarning($"Renderer component not found on {target.name}");
         //     return Vector3.zero;
         // }
 

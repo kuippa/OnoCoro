@@ -24,18 +24,15 @@ public class PlateauDataExtractor : MonoBehaviour
         if (_dictBuilding.TryGetValue(building.name, out dictInfo))
         {
             // Get from cache
-            // Debug.Log("dictInfo is already exist");
             // SetMaterialToOriginal(gameObject); 
         }
         else
         {
-            // Debug.Log("dictInfo is not exist");
             dictInfo = ExtractBuildingInfo(building);
             _dictBuilding.Add(building.name, dictInfo);
             
             // メッシュの位置を確認するためにマーカーを表示（デバッグ機能）
             // 右クリックでマーカーを表示
-            // Debug.Log("DispCubeMarker BuildingInfo: " + dictInfo);
             // PlateauCubeMaker plateauCubeMaker = gameObject.GetComponent<PlateauCubeMaker>();
             // if (plateauCubeMaker == null)
             // {
@@ -53,7 +50,6 @@ public class PlateauDataExtractor : MonoBehaviour
         PLATEAUCityObjectGroup cityObjs = building.GetComponent<PLATEAUCityObjectGroup>();
         if (cityObjs == null)
         {
-            // Debug.LogWarning("No PLATEAUCityObjectGroup found on the building.");
             return buildingInfo;
         }
 
@@ -63,7 +59,6 @@ public class PlateauDataExtractor : MonoBehaviour
         }
         buildingInfo = CalculateAdditionalInfo(buildingInfo, building);
 
-        // Debug.Log("BuildingInfo: " + buildingInfo);
         return buildingInfo;
     }
 
@@ -78,7 +73,6 @@ public class PlateauDataExtractor : MonoBehaviour
             {
                 string buildingUsage = GetBuildingUsage(pair.Value.StringValue);
                 buildingInfo["bldg:usagestr"] = buildingUsage;
-                // Debug.Log("BuildingUsage: " + buildingUsage);
             }
 
             foreach (var pair2 in pair.Value.AttributesMapValue)

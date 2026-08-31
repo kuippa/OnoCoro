@@ -107,12 +107,10 @@ namespace CommonsUtility
             if (scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3)
             {
                 // FIXME: ゴミのサイズが小さくなりすぎないように、一定以下は最低スコアを与える
-                // Debug.Log("scoreMag <= GlobalConst.GARBAGE_MINIMUM_SIZE * 3");
                 result = base_score;
             }
             else
             {
-                // Debug.Log("scoreMag :" + scoreMag);
                 int[] slice_cnts = new int[3];
                 slice_cnts[0] = GetCountSliceGarbage(target.transform.localScale.x);
                 slice_cnts[1] = GetCountSliceGarbage(target.transform.localScale.y);

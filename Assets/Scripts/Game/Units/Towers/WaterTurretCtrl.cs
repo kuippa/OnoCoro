@@ -45,7 +45,6 @@ public class WaterTurretCtrl : MonoBehaviour
     /// </summary>
     private void WaterShoot()
     {
-        // Debug.Log("[WaterTurretCtrl.WaterShoot] Shooting water at target: " + _target.name);
         if (_sinValue > 360f)
         {
             _sinValue = 0f;
@@ -86,7 +85,6 @@ public class WaterTurretCtrl : MonoBehaviour
     {
         if (!(_target == null) && !(_target.transform == null))
         {
-            // Debug.Log("[WaterTurretCtrl.LookRotateTarget] Rotating to look at target: " + _target.name);    
             Vector3 forward = _target.transform.position - this.gameObject.transform.position;
             forward.y = 0f;
             Quaternion b = Quaternion.LookRotation(forward);
@@ -98,7 +96,6 @@ public class WaterTurretCtrl : MonoBehaviour
             }
             else
             {
-                // Debug.Log("[WaterTurretCtrl.LookRotateTarget] Rotating turret towards target " + forward.ToString());
                 this.gameObject.transform.rotation = Quaternion.Slerp(this.gameObject.transform.rotation, b, t);
             }
         }
@@ -133,7 +130,6 @@ public class WaterTurretCtrl : MonoBehaviour
                 num = num2;
                 _target = gameObject;
                 // #if UNITY_EDITOR
-                //     Debug.Log("target: " + _target.name);
                 // #endif
             }
         }

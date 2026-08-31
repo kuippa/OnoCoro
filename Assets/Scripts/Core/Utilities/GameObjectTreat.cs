@@ -307,7 +307,6 @@ namespace CommonsUtility
                 output.AppendLine($"{indent}{folderName}: {fileName}");                
                 // out_buf += ($"{indent}{folderName}: {fileName}") + "\n";
             }
-            // Debug.Log(out_buf);
             Debug.Log(output.ToString());
             #endif
         }

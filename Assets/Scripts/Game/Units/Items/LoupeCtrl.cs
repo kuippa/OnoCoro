@@ -81,7 +81,6 @@ public class LoupeCtrl : MonoBehaviour
 
     void OnDestory()
     {
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (instance == this)
         {
             instance = null;
@@ -90,7 +89,6 @@ public class LoupeCtrl : MonoBehaviour
 
     void Awake()
     {
-        // Debug.Log(this.GetType().FullName + " " + System.Reflection.MethodBase.GetCurrentMethod().Name);
         if (instance == null)
         {
             instance = this;

@@ -25,7 +25,6 @@ public class MarkerPointerCtrl : MonoBehaviour
         {
             if (hit.collider.gameObject.tag != GameEnum.LayerType.Ground.ToString())
             {
-                // Debug.Log("hit.collider.gameObject.tag: " + hit.collider.gameObject.tag);
                 return;
             }
 
@@ -38,7 +37,6 @@ public class MarkerPointerCtrl : MonoBehaviour
             Vector3 playerPos = GameObject.FindWithTag(GameEnum.UnitType.Player.ToString()).transform.position;
             if (Vector3.Distance(hit.point, playerPos) > GlobalConst.UI_RAYCAST_MAX_DISTANCE)
             {
-                // Debug.Log("hit.point: " + hit.point + " Player.position: " + GameObject.FindWithTag(EnemyEnum.UnitType.Player.ToString()).transform.position);
                 return;
             }
             Vector3 markerPos = hit.point;

@@ -21,7 +21,6 @@ public class WaterSurfaceManager : MonoBehaviour
 
 	private void Start()
 	{
-		// Debug.Log("[WaterSurfaceCtrl] Start called");
 		// SetDistalWindSpeed(DEFAULT_DISTAL_WIND_SPEED);
 	}
 
@@ -31,7 +30,6 @@ public class WaterSurfaceManager : MonoBehaviour
 		GameObject waterSurface = GetWaterSurface();
 		if (waterSurface == null)
 		{
-			// Debug.LogWarning("[WaterSurfaceCtrl] watersurface が null です");
 			return;
 		}
 
@@ -39,7 +37,6 @@ public class WaterSurfaceManager : MonoBehaviour
 		Transform oceanTransform = waterSurface.transform.Find("Ocean");
 		if (oceanTransform == null)
 		{
-			// Debug.LogWarning("[WaterSurfaceCtrl] 子オブジェクト 'Ocean' が見つかりません");
 			return;
 		}
 
@@ -47,7 +44,6 @@ public class WaterSurfaceManager : MonoBehaviour
 		Component waterComponent = oceanTransform.GetComponent("WaterSurface");
 		if (waterComponent == null)
 		{
-			// Debug.LogWarning("[WaterSurfaceCtrl] WaterSurface コンポーネントが見つかりません");
 			return;
 		}
 
@@ -55,7 +51,6 @@ public class WaterSurfaceManager : MonoBehaviour
 		FieldInfo largeWindSpeedField = waterComponent.GetType().GetField("largeWindSpeed");
 		if (largeWindSpeedField == null)
 		{
-			// Debug.LogWarning("[WaterSurfaceCtrl] largeWindSpeed フィールドが見つかりません");
 			return;
 		}
 

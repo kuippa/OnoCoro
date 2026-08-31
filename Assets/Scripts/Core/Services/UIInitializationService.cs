@@ -41,7 +41,6 @@ internal static class UIInitializationService
     /// </summary>
     internal static IEnumerator InitializeUIForScene()
     {
-        // Debug.Log("[UIInitializationService] UI シーン初期化開始"); // [PROD] ログ抑制
         
         // Canvas Scaler 設定
         InitializeCanvasScalersInternal();
@@ -50,7 +49,6 @@ internal static class UIInitializationService
         // フォント初期化
         yield return UIFontManager.InitializeFontSettings();
         
-        // Debug.Log("[UIInitializationService] UI シーン初期化完了"); // [PROD] ログ抑制
     }
 
     /// <summary>
@@ -60,7 +58,6 @@ internal static class UIInitializationService
     {
         try
         {
-            // Debug.Log("[UIInitializationService] ステップ 1/2: Canvas Scaler 設定開始"); // [PROD] ログ抑制
             UICanvasManager.InitializeCanvasSettings();
         }
         catch (System.Exception ex)

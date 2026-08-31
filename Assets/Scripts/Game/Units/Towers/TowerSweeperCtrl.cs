@@ -103,7 +103,6 @@ public class TowerSweeperCtrl : MonoBehaviour
         _NavMeshAgent = this.GetComponent<NavMeshAgent>();
         if (_NavMeshAgent == null)
         {
-            // Debug.Log("NavMeshAgent is null");
             NavMeshBuildSettings settings = NavMesh.GetSettingsByIndex(1);
             _NavMeshAgent = this.gameObject.AddComponent<NavMeshAgent>();
             _NavMeshAgent.enabled = false;
@@ -136,7 +135,6 @@ public class TowerSweeperCtrl : MonoBehaviour
 
         if (_targetingService == null)
         {
-            // Debug.LogWarning("[TowerSweeperCtrl] TargetingService is null");
             return;
         }
 
@@ -158,7 +156,6 @@ public class TowerSweeperCtrl : MonoBehaviour
 
         if (_targetingService == null)
         {
-            // Debug.LogWarning("[TowerSweeperCtrl] TargetingService is null");
             return;
         }
 
@@ -180,7 +177,6 @@ public class TowerSweeperCtrl : MonoBehaviour
         GameObject targetGarbage = _targetingService.GetBestTarget();
         if (targetGarbage == null)
         {
-            // Debug.Log("No target garbage found  StartLookAround");
             _navigationManager.StartLookAround();
             return;
         }
@@ -225,7 +221,6 @@ public class TowerSweeperCtrl : MonoBehaviour
         // TODO: ユニットを灰色、半透明にする
 
         // ターゲットを消去する
-        // Debug.Log("DeleteUnitProcess" + this.name);
 
         UnitStruct unitStruct = this.GetComponent<Sweeper>().GetUnitStruct();
         // if (ScoreCtrl.IsScorePositiveInt(unitStruct.DeleteCost, unitStruct.ScoreType))

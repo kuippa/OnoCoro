@@ -33,7 +33,6 @@ internal static class UIFontManager
     /// </summary>
     internal static IEnumerator InitializeFontSettings()
     {
-        // Debug.Log("[UIFontManager] フォント初期化開始");
         
         try
         {
@@ -43,7 +42,6 @@ internal static class UIFontManager
             
             if (allTextMeshPros.Length == 0)
             {
-                // Debug.LogWarning("[UIFontManager] TextMeshProUGUI コンポーネントがシーン内に見つかりません");
                 yield break;
             }
             
@@ -61,16 +59,12 @@ internal static class UIFontManager
                 // GetComponentInParent は非アクティブな親を検索できないため、手動でトレース
                 Canvas parentCanvas = FindParentCanvasIncludeInactive(textMesh.transform);
                 
-                // Debug.Log($"[UIFontManager] TMP: {textMesh.gameObject.name}, Found Parent Canvas: {(parentCanvas != null ? parentCanvas.gameObject.name : "NULL")}");
-                // Debug.Log($"[UIFontManager] TMP: {textMesh.gameObject.name}, Found Parent Canvas: {(parentCanvas != null ? parentCanvas.gameObject.name : "NULL")}");
-                // Debug.Log($"[UIFontManager] TMP: {textMesh.gameObject.name}, Found Parent Canvas: {(parentCanvas != null ? parentCanvas.gameObject.name : "NULL")}"); // [PROD] ログ抑制
                 
                 // Canvas Scaler が ScaleWithScreenSize の場合のみスケーリングを適用
                 // （UICanvasManager の設定を尊重する防御層）
                 // parentCanvas が null の場合もスキップ（Canvas がない = 独立したキャンバスシステム）
                 if (parentCanvas == null)
                 {
-                    // Debug.Log($"[UIFontManager] フォント初期化スキップ: {textMesh.gameObject.name} (親 Canvas が見つかりません)");
                     continue;
                 }
                 
@@ -79,7 +73,6 @@ internal static class UIFontManager
                 // ScaleMode が ScaleWithScreenSize でない場合、またはCanvasScalerがない場合はスキップ
                 if (canvasScaler == null || canvasScaler.uiScaleMode != CanvasScaler.ScaleMode.ScaleWithScreenSize)
                 {
-                    // Debug.Log($"[UIFontManager] フォント初期化スキップ: {textMesh.gameObject.name} (Canvas '{parentCanvas.name}' の ScaleMode は {(canvasScaler != null ? canvasScaler.uiScaleMode.ToString() : "未設定")})");
                     continue;
                 }
                 
@@ -88,11 +81,9 @@ internal static class UIFontManager
                 processedCount++;
             }
             
-            // Debug.Log($"[UIFontManager] フォント初期化完了: {processedCount}/{allTextMeshPros.Length} コンポーネント処理");
         }
         catch (System.Exception ex)
         {
-            // Debug.LogError($"[UIFontManager] フォント初期化エラー: {ex.Message}");
         }
         
         yield return null;

@@ -221,7 +221,6 @@ namespace StarterAssets
 			{
 				if (keyboard[Key.Digit1 + i - 1].wasPressedThisFrame)
 				{
-					// Debug.Log($"数字 {i} が入力されました");
 					HandleMenuShortcut(i);
 					return;
 				}
