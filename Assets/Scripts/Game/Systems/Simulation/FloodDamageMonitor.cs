@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using CommonsUtility;
 using Debug = CommonsUtility.Debug;
 
@@ -11,7 +12,8 @@ using Debug = CommonsUtility.Debug;
 ///
 /// [負荷対策]
 /// 舞鶴は建物が 7928 棟あるため、以下で負荷を抑えている。
-///   - 建物リストと底面 Y は初回に一度だけ収集してキャッシュする
+///   - 建物リストと底面 Y は一度収集したらキャッシュする
+///     （PLATEAU の読み込み前だと 0 棟になるため、見つかるまでは再試行する）
 ///   - 判定は毎フレームではなく一定間隔
 ///   - 倒壊は 1 秒あたりの上限までしか行わない（YAML の max_breaks_per_second）
 /// </summary>
@@ -22,6 +24,11 @@ public class FloodDamageMonitor : MonoBehaviour
 
     private const string _PLATEAU_OBJECT_NAME = "Plateau";
     private const string _BUILDING_NAME_KEYWORD = "bldg_";
+
+    /// <summary>建物収集を諦めるまでの試行回数（PLATEAU の読み込み待ち用）</summary>
+    private const int _MAX_COLLECT_ATTEMPTS = 40;
+
+    private int _collectAttempts = 0;
 
     /// <summary>建物ごとの底面 Y と水没継続時間</summary>
     private class BuildingFloodState
@@ -144,8 +151,12 @@ public class FloodDamageMonitor : MonoBehaviour
     }
 
     /// <summary>
-    /// 建物リストと底面 Y を一度だけ収集する。
-    /// 底面 Y は Renderer の bounds から取る（建物は動かない前提でキャッシュ）
+    /// 建物リストと底面 Y を収集する（建物は動かない前提でキャッシュ）。
+    ///
+    /// [注意] 建物は "Plateau" オブジェクトの配下にあるとは限らないため、
+    /// BuildingBreak と同じくシーンの全ルートオブジェクトを走査する。
+    /// また PLATEAU の読み込みが終わる前だと 0 棟になるので、
+    /// 1 棟も見つからないうちはキャッシュせず次回また試す
     /// </summary>
     private void EnsureBuildingsCollected()
     {
@@ -154,14 +165,36 @@ public class FloodDamageMonitor : MonoBehaviour
             return;
         }
 
-        _buildings = new List<BuildingFloodState>();
-        GameObject plateauObject = GameObject.Find(_PLATEAU_OBJECT_NAME);
-        if (plateauObject == null)
+        List<BuildingFloodState> collected = new List<BuildingFloodState>();
+        GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+
+        foreach (GameObject rootObject in rootGameObjects)
         {
+            CollectBuildingsUnder(rootObject, collected);
+        }
+
+        if (collected.Count == 0)
+        {
+            // まだ建物が生成されていない可能性があるのでキャッシュせず次回に回す。
+            // ただし建物が無いステージで走査を繰り返しても無駄なので回数を打ち切る
+            _collectAttempts = _collectAttempts + 1;
+            if (_collectAttempts >= _MAX_COLLECT_ATTEMPTS)
+            {
+                _buildings = collected;
+                Debug.LogWarning(
+                    $"[FloodDamageMonitor] 対象建物が {_MAX_COLLECT_ATTEMPTS} 回試しても見つからないため監視を諦めます"
+                    + "（シーンに bldg_ オブジェクトが無い可能性）");
+            }
             return;
         }
 
-        foreach (Transform child in plateauObject.GetComponentsInChildren<Transform>())
+        _buildings = collected;
+        Debug.Log($"[FloodDamageMonitor] 浸水監視の対象建物 {_buildings.Count} 棟を収集しました");
+    }
+
+    private void CollectBuildingsUnder(GameObject rootObject, List<BuildingFloodState> collected)
+    {
+        foreach (Transform child in rootObject.GetComponentsInChildren<Transform>(includeInactive: false))
         {
             if (!child.gameObject.name.Contains(_BUILDING_NAME_KEYWORD))
             {
@@ -174,20 +207,14 @@ public class FloodDamageMonitor : MonoBehaviour
                 continue;
             }
 
-            Renderer renderer = child.GetComponent<Renderer>();
-            if (renderer == null)
-            {
-                continue;
-            }
-
             BuildingFloodState state = new BuildingFloodState();
             state.Building = child.gameObject;
-            state.BottomY = renderer.bounds.min.y;
-            state.SubmergedSeconds = 0f;
-            _buildings.Add(state);
-        }
 
-        Debug.Log($"[FloodDamageMonitor] 浸水監視の対象建物 {_buildings.Count} 棟を収集しました");
+            // 底面はコライダーの境界から取る（Renderer が無い建物でも拾えるようにする）
+            state.BottomY = collider.bounds.min.y;
+            state.SubmergedSeconds = 0f;
+            collected.Add(state);
+        }
     }
 
     private float GetWaterSurfaceHeight()
