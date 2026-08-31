@@ -53,6 +53,7 @@ public class FloodDamageMonitor : MonoBehaviour
 
     private List<BuildingFloodState> _buildings = null;
     private PlateauInfoManager _plateauInfoManager = null;
+    private PlateauBuildingInteractor _buildingInteractor = null;
     private WaterSurfaceManager _waterSurfaceManager = null;
     private int _collectAttempts = 0;
 
@@ -147,12 +148,34 @@ public class FloodDamageMonitor : MonoBehaviour
             return;
         }
 
+        // [重要] 地震や火災で既に倒壊している建物は数えない。
+        // 数えてしまうと浸水倒壊が水増しされ、
+        // 「総被害 - 地震倒壊 - 浸水倒壊」で求める火災延焼が 0 に潰れる
+        bool isAlreadyDoomed = IsBuildingAlreadyDoomed(state.Building);
+
         infoManager.SetBuildingToDoom(state.Building);
         state.IsBroken = true;
-        FloodDamageSystem.RecordFloodedBuilding();
 
-        // 報告しないと「総被害 - 地震倒壊」の引き算で火災延焼に混ざる
+        if (isAlreadyDoomed)
+        {
+            return;
+        }
+
+        FloodDamageSystem.RecordFloodedBuilding();
         DamageReportSystem.AddFloodCollapse(1);
+    }
+
+    /// <summary>
+    /// 既に倒壊扱いの建物か（BuildingBreak の新規倒壊判定と同じ方法）
+    /// </summary>
+    private bool IsBuildingAlreadyDoomed(GameObject building)
+    {
+        PlateauBuildingInteractor interactor = GetBuildingInteractor();
+        if (interactor == null)
+        {
+            return false;
+        }
+        return interactor.IsBuildingDoomed(building);
     }
 
     /// <summary>
@@ -231,6 +254,22 @@ public class FloodDamageMonitor : MonoBehaviour
                 GameObjectTreat.GetEventSystem());
         }
         return _waterSurfaceManager.GetOceanHeight();
+    }
+
+    private PlateauBuildingInteractor GetBuildingInteractor()
+    {
+        if (_buildingInteractor != null)
+        {
+            return _buildingInteractor;
+        }
+
+        GameObject plateauObject = GameObject.Find(_PLATEAU_OBJECT_NAME);
+        if (plateauObject == null)
+        {
+            return null;
+        }
+        _buildingInteractor = plateauObject.GetComponent<PlateauBuildingInteractor>();
+        return _buildingInteractor;
     }
 
     private PlateauInfoManager GetPlateauInfoManager()

@@ -102,6 +102,16 @@ namespace CommonsUtility
             // 浸水倒壊まで火災延焼として数えられてしまう
             int fireSpread = totalNewDamage - quakeCollapse - floodCollapse;
 
+            // 内訳の合計が総被害を超えるのは、いずれかの報告が二重計上している証拠。
+            // 黙って火災延焼が 0 に潰れると原因に気づけないため警告を出す
+            if (_quakeCollapseThisYear + _floodCollapseThisYear > totalNewDamage)
+            {
+                Debug.LogWarning(
+                    $"[DamageReportSystem] Year {year}: 被害内訳の合計が総被害を超えています"
+                    + $"（総被害 {totalNewDamage} < 地震 {_quakeCollapseThisYear} + 浸水 {_floodCollapseThisYear}）。"
+                    + "倒壊済みの建物を重複して報告している可能性があります");
+            }
+
             int demolished = Mathf.Max(0,
                 DemolitionSystem.DemolishedBuildingCount - _demolishedCountAtYearStart);
 
