@@ -8,8 +8,11 @@
 # [構成] 3〜5 分のデモに収めるため 1 年のみ有効。year 2/3 はコメントアウトしてある。
 # 内容は今後調整する。戻すときは years 配下のコメントを外すだけでよい。
 #
-# [デモの流れ] t=2 経路ハイライト → t=5 巨大猫が出現して建物を解体しながら移動
-#   → t=7 前後 地震で倒壊・出火 → 年末リザルトで廃材の 4t トラック換算を表示
+# [デモの流れ]（プレゼン動画の絵コンテに対応。year 1 の events で組んでいる）
+#   t=3〜10  高潮で潮位上昇 → 低地の建物が浸水して倒壊（内水氾濫の可視化に見せる）
+#   t=13〜21 地震 → 倒壊 → 出火（瓦礫が放出される）
+#   t=26〜34 海から巨大猫が出現し、通り道の建物を解体していく
+#   リザルト  廃材を可燃/不燃に分けて 4t トラック換算で表示し、実用性で締める
 #
 # [このマップの特徴]
 # 舞鶴は港湾都市で、三鷹（内陸・木密住宅地）とは災害の性格が異なる。
@@ -111,6 +114,20 @@ demolition:
     max_cubes: 1000
     noncombustible_ratio: 0.89
 
+# ===== 浸水による建物被害（CityHack 2026）=====
+# 水面より depth(m) 以上深く沈んだ建物を、duration 秒続いたら倒壊させる。
+# 倒壊処理は building_break と同じ（新しい壊し方は作っていない）。
+#
+# [重要] max_breaks_per_second は負荷の安全弁。舞鶴は 7928 棟あるため、
+#   潮位を大きく上げると数百棟が同時に条件を満たす。上限が無いと固まる。
+#   じわじわ壊れていく絵になるので演出としても都合がよい。
+#
+# このセクションが無いステージでは浸水判定そのものが動かない。
+flood:
+  - depth: 0.5                  # 水面からこの深さ(m)より下に底面があれば水没
+    duration: 3.0               # 水没がこの秒数続いたら倒壊
+    max_breaks_per_second: 5    # 1秒あたりの倒壊上限
+
 # goals / gameovers は定義しない（全年の完走がシミュレーション終了条件）
 
 # 年に依存しない初期設定イベント（ステージ開始時に1回だけ実行）
@@ -121,6 +138,14 @@ events:
   - time: 0
     event: wind
     value: 7, 300  # 風速, 風向き(0~360) 西北西・日本海側の冬季卓越風向
+
+  # 海面の初期高さ（ベースライン）。シーン配置時の watersurface は Y=6.97。
+  # 以降の潮位変動もこのイベントで「絶対高さ」を指定する
+  #   value: 高さ                → 高さだけ変える
+  #   value: 高さ, R, G, B       → 水面の色も変える（各0〜1）
+  - time: 0
+    event: watersurface
+    value: 6.9
   # - time: 1
   #   event: telop
   #   value: "地震火災から街を守ろう"
@@ -137,24 +162,6 @@ events:
   #   event: building_demolish
   #   value: "3"
 
-  # ===== 巨大猫（CityHack 2026）=====
-  # 指定した経路を移動し、近づいた建物を次々と解体していく。
-  # マーカーは上の pathmakers セクションで定義している。
-  # 経路を変えたいときは、pathmakers の座標か Unity 上のマーカー位置を直す。
-
-  # 経路をハイライト表示（どこを通るか観客に見せる）
-  - time: 2
-    event: bloom_path
-    value: path_marker_start, path_marker_01, path_marker_goal
-
-  - time: 4
-    event: subtelop
-    value: "巨大猫が現れた。通り道の建物が解体されていく"
-
-  # value: Cat, <開始マーカー>, <経由マーカー...>, <ゴールマーカー>
-  - time: 5
-    event: spawn_enemy_unit
-    value: Cat, path_marker_start, path_marker_01, path_marker_goal
 
 # baseline = 消火なし時の想定火災延焼棟数（防いだ延焼 = baseline - 実延焼）。
 # [未計測] 下記は三鷹の値をそのまま置いた暫定値。
@@ -162,18 +169,51 @@ events:
 # 未指定の年は K×地震倒壊数（K=3）にフォールバックする。
 years:
   - year: 1
-    duration: 60
-    note: "中規模地震と出火。消火栓の鎮火効果を観察する"
+    duration: 150
+    note: "高潮 → 地震火災 → 巨大猫。プレゼン動画用の一本道構成"
     baseline: 4
     schedule:
+      # 高潮の浸水を先に見せてから地震を起こす（絵コンテの順序）
       - pattern: quake_fire
-        at: 3              # 地震 t=4, 倒壊 t=10, 出火 t=11/12
+        at: 12             # 地震 t=13, 倒壊 t=19, 出火 t=20/21
         intensity: "1.6"
         break_count: "3"
     events:
       - time: 1
         event: telop
-        value: "Year 1: 地震発生。倒壊建物から出火"
+        value: "Year 1: 高潮が押し寄せる"
+
+      # --- 導入: 潮位を上げて低地から浸水させる ---
+      - time: 3
+        event: subtelop
+        value: "高潮警報。低地の建物が浸水しています"
+      - time: 4
+        event: watersurface
+        value: 9.5
+      - time: 10
+        event: watersurface
+        value: 11.5
+
+      # --- 中盤: 地震と火災（quake_fire パターンが at:3 で発火）---
+
+      # --- 終盤: 海から巨大猫が現れて建物を解体していく ---
+      - time: 26
+        event: bloom_path
+        value: path_marker_start, path_marker_01, path_marker_goal
+      - time: 28
+        event: telop
+        value: "海から巨大な影が…"
+      - time: 30
+        event: spawn_enemy_unit
+        value: Cat, path_marker_start, path_marker_01, path_marker_goal
+      - time: 32
+        event: subtelop
+        value: "通り道の建物が次々と解体されていく"
+
+      # 水面を毒々しい赤に変えて緊迫感を出す（高さは維持）
+      - time: 34
+        event: watersurface
+        value: 11.5, 0.65, 0.06, 0.06
 
   # - year: 2
   #   duration: 90

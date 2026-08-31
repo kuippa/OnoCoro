@@ -20,6 +20,9 @@ public class EventLoader : MonoBehaviour, IInitializable
     // 倒壊建物からの出火 Y オフセット（PlateauCubeMaker のゴミ放出基準 center.y+0.5 に合わせる）
     private const float _DOOM_FIRE_Y_OFFSET = 0.5f;
 
+    // watersurface イベントで色まで指定するときの要素数（高さ + RGB）
+    private const int _WATER_COLOR_PARAM_COUNT = 4;
+
     // internal Dictionary<string, Dictionary<string, string>[]> _events = new Dictionary<string, Dictionary<string, string>[]>();
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
     // // イベント名,{イベントデータ配列}
@@ -577,9 +580,39 @@ public class EventLoader : MonoBehaviour, IInitializable
         GameObjectTreat.GetOrAddComponent<WeatherController>(GameObjectTreat.GetEventSystem()).ChangeSolarAltitude(float.Parse(event_value));
     }
 
+    /// <summary>
+    /// 水面イベント。
+    ///   value: 高さ                         … 従来どおり水面の高さ(m)だけを変える
+    ///   value: 高さ, R, G, B                … 併せて水面の色も変える（各 0〜1）
+    /// 引数 1 個の既存ステージをそのまま動かすため、色は省略可能にしている
+    /// </summary>
     private void CallWaterSurface(string event_value)
     {
-        GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(GameObjectTreat.GetEventSystem()).SetWaterSurfaceHeight(float.Parse(event_value));
+        string[] parts = event_value.Split(',');
+
+        WaterSurfaceManager waterSurfaceManager =
+            GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(GameObjectTreat.GetEventSystem());
+
+        if (!float.TryParse(parts[0].Trim(), out float height))
+        {
+            Debug.LogWarning($"[EventLoader] watersurface: 高さを解釈できません '{event_value}'");
+            return;
+        }
+        waterSurfaceManager.SetWaterSurfaceHeight(height);
+
+        if (parts.Length < _WATER_COLOR_PARAM_COUNT)
+        {
+            return;
+        }
+
+        if (!float.TryParse(parts[1].Trim(), out float r)
+            || !float.TryParse(parts[2].Trim(), out float g)
+            || !float.TryParse(parts[3].Trim(), out float b))
+        {
+            Debug.LogWarning($"[EventLoader] watersurface: 色を解釈できません '{event_value}'");
+            return;
+        }
+        waterSurfaceManager.SetWaterColor(new Color(r, g, b, 1f));
     }
 
     private void CallEarthquake(string event_value)

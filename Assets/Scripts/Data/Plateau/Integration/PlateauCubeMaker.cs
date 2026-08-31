@@ -128,7 +128,8 @@ public class PlateauCubeMaker : MonoBehaviour
         {
             garbageCubeSpawner = gameManagerObject.AddComponent<GarbageCubeSpawner>();
         }
-        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true, isNoBurn: isNoBurn);
+        // 解体の瓦礫は外向きに弾けさせる（その場に落とすだけだと地味なため）
+        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true, isNoBurn: isNoBurn, isBurst: true);
 
         // 可燃・不燃で基準スコアは同値。換算式を共通に保つため
         return GarbageCube.GetBaseScore();

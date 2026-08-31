@@ -172,4 +172,53 @@ public static class GarbageCubeFactory
             unit.AddComponent<BoxCollider>();
         }
     }
+
+    /// <summary>瓦礫を弾き飛ばす初速の水平成分(m/s)</summary>
+    private const float _BURST_HORIZONTAL_SPEED = 4.0f;
+
+    /// <summary>瓦礫を弾き飛ばす初速の上向き成分(m/s)</summary>
+    private const float _BURST_UP_SPEED_MIN = 2.0f;
+    private const float _BURST_UP_SPEED_MAX = 6.0f;
+
+    /// <summary>瓦礫の回転の強さ(deg/s)</summary>
+    private const float _BURST_ANGULAR_SPEED = 540f;
+
+    /// <summary>
+    /// 生成済みの瓦礫に初速と角速度を与えて爆散させる（CityHack 2026）
+    ///
+    /// 解体時にその場へ落とすだけだと地味なので、外向きに弾き飛ばして回転させる。
+    /// 可燃・不燃どちらの Factory から作ったものにも使える
+    /// </summary>
+    internal static void ApplyBurstImpulse(GameObject unit)
+    {
+        if (unit == null)
+        {
+            return;
+        }
+
+        Rigidbody rb = unit.GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            return;
+        }
+
+        Vector3 horizontal = new Vector3(
+            Utility.fRandomRange(-1f, 1f),
+            0f,
+            Utility.fRandomRange(-1f, 1f));
+
+        // 真上ばかりに飛ばないよう水平方向を正規化してから合成する
+        if (horizontal.sqrMagnitude > 0.0001f)
+        {
+            horizontal = horizontal.normalized * _BURST_HORIZONTAL_SPEED;
+        }
+
+        float upSpeed = Utility.fRandomRange(_BURST_UP_SPEED_MIN, _BURST_UP_SPEED_MAX);
+        rb.linearVelocity = horizontal + Vector3.up * upSpeed;
+
+        rb.angularVelocity = new Vector3(
+            Utility.fRandomRange(-1f, 1f),
+            Utility.fRandomRange(-1f, 1f),
+            Utility.fRandomRange(-1f, 1f)).normalized * (_BURST_ANGULAR_SPEED * Mathf.Deg2Rad);
+    }
 }

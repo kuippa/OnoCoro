@@ -47,6 +47,7 @@ public class StageYamlRepository : MonoBehaviour
 
         // 解体廃棄物の係数（建物種別ごと）を読み込む（CityHack 2026）
         DemolitionYamlProvider.LoadDemolitionConfig(yaml);
+        FloodYamlProvider.LoadFloodConfig(yaml);
 
         // パス・ナビゲーションセットアップ
         RouteYamlProvider.LoadPathMakers(yaml);

@@ -132,6 +132,70 @@ public class WaterSurfaceManager : MonoBehaviour
 		return GetWaterSurface().transform.position.y;
 	}
 
+	/// <summary>
+	/// 現在の水面高さ（浸水判定など外部から参照する用）
+	/// </summary>
+	internal float GetWaterSurfaceHeightPublic()
+	{
+		return GetWaterSurfaceHeight();
+	}
+
+	/// <summary>
+	/// 水面の色を変更する（HDRP WaterSurface の屈折色・散乱色）。
+	///
+	/// HDRP のバージョン差でフィールド名が変わりうるため、
+	/// 既存の largeWindSpeed と同様にリフレクションで触っている。
+	/// 見つからないフィールドは黙って飛ばす（演出なので落とさない）
+	/// </summary>
+	internal void SetWaterColor(Color color)
+	{
+		Component waterComponent = GetOceanWaterComponent();
+		if (waterComponent == null)
+		{
+			Debug.LogWarning("[WaterSurfaceManager] WaterSurface コンポーネントが見つからないため色を変更できません");
+			return;
+		}
+
+		TrySetColorField(waterComponent, "refractionColor", color);
+		TrySetColorField(waterComponent, "scatteringColor", color);
+
+		MethodInfo markDirtyMethod = waterComponent.GetType().GetMethod(
+			"MarkDirty", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if (markDirtyMethod != null)
+		{
+			markDirtyMethod.Invoke(waterComponent, null);
+		}
+	}
+
+	private void TrySetColorField(Component waterComponent, string fieldName, Color color)
+	{
+		FieldInfo field = waterComponent.GetType().GetField(fieldName);
+		if (field == null || field.FieldType != typeof(Color))
+		{
+			return;
+		}
+		field.SetValue(waterComponent, color);
+	}
+
+	/// <summary>
+	/// 子オブジェクト "Ocean" の WaterSurface コンポーネントを取得する
+	/// </summary>
+	private Component GetOceanWaterComponent()
+	{
+		GameObject waterSurface = GetWaterSurface();
+		if (waterSurface == null)
+		{
+			return null;
+		}
+
+		Transform oceanTransform = waterSurface.transform.Find("Ocean");
+		if (oceanTransform == null)
+		{
+			return null;
+		}
+		return oceanTransform.GetComponent("WaterSurface");
+	}
+
 	internal void SetWaterSurfaceHeight(float height)
 	{
 		Vector3 position = GetWaterSurface().transform.position;

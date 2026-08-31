@@ -17,13 +17,15 @@ public class GarbageCubeSpawner : MonoBehaviour
         public int SizeFlag;
         public bool IsSwayingPoint;
         public bool IsNoBurn;
+        public bool IsBurst;
 
-        public SpawnRequest(Vector3 pos, int size, bool sway, bool noBurn)
+        public SpawnRequest(Vector3 pos, int size, bool sway, bool noBurn, bool burst)
         {
             Position = pos;
             SizeFlag = size;
             IsSwayingPoint = sway;
             IsNoBurn = noBurn;
+            IsBurst = burst;
         }
     }
 
@@ -37,9 +39,9 @@ public class GarbageCubeSpawner : MonoBehaviour
     /// 非同期でゴミキューブをスポーンします（キューに追加）
     /// UnitFireDisaster など大量生成時に使用
     /// </summary>
-    internal void SpawnGarbageCubeAsync(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false, bool isNoBurn = false)
+    internal void SpawnGarbageCubeAsync(Vector3 spawnPoint = default(Vector3), int sizeFlag = 0, bool isSwayingPoint = false, bool isNoBurn = false, bool isBurst = false)
     {
-        _spawnQueue.Enqueue(new SpawnRequest(spawnPoint, sizeFlag, isSwayingPoint, isNoBurn));
+        _spawnQueue.Enqueue(new SpawnRequest(spawnPoint, sizeFlag, isSwayingPoint, isNoBurn, isBurst));
         
         if (!_isProcessingQueue)
         {
@@ -72,20 +74,29 @@ public class GarbageCubeSpawner : MonoBehaviour
                 }
 
                 SpawnRequest request = _spawnQueue.Dequeue();
+                GameObject spawned;
                 if (request.IsNoBurn)
                 {
-                    GarbageCubeNoBurnFactory.SpawnGarbageCube(
+                    spawned = GarbageCubeNoBurnFactory.SpawnGarbageCube(
                         request.Position,
                         request.SizeFlag,
                         request.IsSwayingPoint
                     );
-                    continue;
                 }
-                GarbageCubeFactory.SpawnGarbageCube(
-                    request.Position,
-                    request.SizeFlag,
-                    request.IsSwayingPoint
-                );
+                else
+                {
+                    spawned = GarbageCubeFactory.SpawnGarbageCube(
+                        request.Position,
+                        request.SizeFlag,
+                        request.IsSwayingPoint
+                    );
+                }
+
+                // 解体由来の瓦礫だけ外向きに弾き飛ばす（通常のゴミ生成はその場に落とす）
+                if (request.IsBurst)
+                {
+                    GarbageCubeFactory.ApplyBurstImpulse(spawned);
+                }
             }
 
             yield return waitForEndOfFrame;
