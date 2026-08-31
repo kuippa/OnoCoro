@@ -139,13 +139,16 @@ events:
     event: wind
     value: 7, 300  # 風速, 風向き(0~360) 西北西・日本海側の冬季卓越風向
 
-  # 海面の初期高さ（ベースライン）。シーン配置時の watersurface は Y=6.97。
-  # 以降の潮位変動もこのイベントで「絶対高さ」を指定する
-  #   value: 高さ                → 高さだけ変える
-  #   value: 高さ, R, G, B       → 水面の色も変える（各0〜1）
+  # 海面の初期高さ（ベースライン）。
+  # [注意] watersurface イベントは親ホルダー（Ocean/River などを束ねる箱）を
+  #   動かすもので、海面の高さではない。海面を動かすのは ocean イベント。
+  #   舞鶴のシーン初期値は 親Y=6.97 ・ Ocean localY=-6.25 で、実際の海面は 0.72。
+  #   ocean はワールド Y をそのまま指定する。
+  #     value: 高さ                → 高さだけ変える
+  #     value: 高さ, R, G, B       → 海面の色も変える（各0〜1）
   - time: 0
-    event: watersurface
-    value: 6.9
+    event: ocean
+    value: 0.7
   # - time: 1
   #   event: telop
   #   value: "地震火災から街を守ろう"
@@ -188,11 +191,11 @@ years:
         event: subtelop
         value: "高潮警報。低地の建物が浸水しています"
       - time: 4
-        event: watersurface
-        value: 9.5
+        event: ocean
+        value: 3.0
       - time: 10
-        event: watersurface
-        value: 11.5
+        event: ocean
+        value: 6.0
 
       # --- 中盤: 地震と火災（quake_fire パターンが at:3 で発火）---
 
@@ -210,10 +213,10 @@ years:
         event: subtelop
         value: "通り道の建物が次々と解体されていく"
 
-      # 水面を毒々しい赤に変えて緊迫感を出す（高さは維持）
+      # 海面を毒々しい赤に変えて緊迫感を出す（高さは維持）
       - time: 34
-        event: watersurface
-        value: 11.5, 0.65, 0.06, 0.06
+        event: ocean
+        value: 6.0, 0.65, 0.06, 0.06
 
   # - year: 2
   #   duration: 90

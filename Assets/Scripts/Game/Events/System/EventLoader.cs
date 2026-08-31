@@ -20,8 +20,8 @@ public class EventLoader : MonoBehaviour, IInitializable
     // 倒壊建物からの出火 Y オフセット（PlateauCubeMaker のゴミ放出基準 center.y+0.5 に合わせる）
     private const float _DOOM_FIRE_Y_OFFSET = 0.5f;
 
-    // watersurface イベントで色まで指定するときの要素数（高さ + RGB）
-    private const int _WATER_COLOR_PARAM_COUNT = 4;
+    // ocean イベントで色まで指定するときの要素数（高さ + RGB）
+    private const int _OCEAN_COLOR_PARAM_COUNT = 4;
 
     // internal Dictionary<string, Dictionary<string, string>[]> _events = new Dictionary<string, Dictionary<string, string>[]>();
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
@@ -293,6 +293,9 @@ public class EventLoader : MonoBehaviour, IInitializable
                 break;
             case nameof(YamlEventType.watersurface):
                 CallWaterSurface(event_value);
+                break;
+            case nameof(YamlEventType.ocean):
+                CallOcean(event_value);
                 break;
             case nameof(YamlEventType.bloom_path):
                 CallBloomPath(event_value);
@@ -581,12 +584,20 @@ public class EventLoader : MonoBehaviour, IInitializable
     }
 
     /// <summary>
-    /// 水面イベント。
-    ///   value: 高さ                         … 従来どおり水面の高さ(m)だけを変える
-    ///   value: 高さ, R, G, B                … 併せて水面の色も変える（各 0〜1）
-    /// 引数 1 個の既存ステージをそのまま動かすため、色は省略可能にしている
+    /// 水面ホルダー（watersurface 親）の高さを変える従来イベント。
+    /// 海面だけを動かしたい場合は ocean を使うこと（三鷹大沢が本イベントを使用中のため据え置き）
     /// </summary>
     private void CallWaterSurface(string event_value)
+    {
+        GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(GameObjectTreat.GetEventSystem()).SetWaterSurfaceHeight(float.Parse(event_value));
+    }
+
+    /// <summary>
+    /// 海面（Ocean）イベント。
+    ///   value: 高さ                  … 海面のワールド Y(m)
+    ///   value: 高さ, R, G, B         … 併せて海面の色も変える（各 0〜1）
+    /// </summary>
+    private void CallOcean(string event_value)
     {
         string[] parts = event_value.Split(',');
 
@@ -595,12 +606,12 @@ public class EventLoader : MonoBehaviour, IInitializable
 
         if (!float.TryParse(parts[0].Trim(), out float height))
         {
-            Debug.LogWarning($"[EventLoader] watersurface: 高さを解釈できません '{event_value}'");
+            Debug.LogWarning($"[EventLoader] ocean: 高さを解釈できません '{event_value}'");
             return;
         }
-        waterSurfaceManager.SetWaterSurfaceHeight(height);
+        waterSurfaceManager.SetOceanHeight(height);
 
-        if (parts.Length < _WATER_COLOR_PARAM_COUNT)
+        if (parts.Length < _OCEAN_COLOR_PARAM_COUNT)
         {
             return;
         }
@@ -609,7 +620,7 @@ public class EventLoader : MonoBehaviour, IInitializable
             || !float.TryParse(parts[2].Trim(), out float g)
             || !float.TryParse(parts[3].Trim(), out float b))
         {
-            Debug.LogWarning($"[EventLoader] watersurface: 色を解釈できません '{event_value}'");
+            Debug.LogWarning($"[EventLoader] ocean: 色を解釈できません '{event_value}'");
             return;
         }
         waterSurfaceManager.SetWaterColor(new Color(r, g, b, 1f));

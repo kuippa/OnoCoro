@@ -197,7 +197,9 @@ public class FloodDamageMonitor : MonoBehaviour
             _waterSurfaceManager = GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(
                 GameObjectTreat.GetEventSystem());
         }
-        return _waterSurfaceManager.GetWaterSurfaceHeightPublic();
+        // 親の watersurface は Ocean / River などを束ねるホルダーで、
+        // その Y は海面の高さではない。必ず Ocean のワールド Y を見る
+        return _waterSurfaceManager.GetOceanHeight();
     }
 
     private PlateauInfoManager GetPlateauInfoManager()

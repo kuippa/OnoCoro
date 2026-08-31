@@ -97,8 +97,16 @@ namespace CommonsUtility
         /// <summary>風設定イベント（WindController で処理）</summary>
         wind,
         
-        /// <summary>水面高さ変更イベント（WaterSurfaceCtrl で処理）</summary>
+        /// <summary>
+        /// 水面ホルダー（watersurface 親オブジェクト）の高さ変更イベント。
+        /// [注意] 動かすのは親であって海面そのものではない。
+        /// 子に Ocean / River / Water Foam Generator をまとめて持ち上げる。
+        /// 海面だけを動かしたい場合は ocean を使うこと（三鷹大沢が本イベントを使用中）
+        /// </summary>
         watersurface,
+
+        /// <summary>海面（Ocean）の高さ・色の変更イベント（WaterSurfaceManager で処理）</summary>
+        ocean,
         
         // 災害イベント
         /// <summary>地震イベント（Earthquake コンポーネント で処理）</summary>

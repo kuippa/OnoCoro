@@ -328,6 +328,41 @@ value: <wind_speed>, <wind_direction>
   value: 5, 225    # 風速 5、南西から吹く
 ```
 
+#### 7.2.1 `ocean` イベント / `watersurface` イベント
+
+**説明**: 海面の高さと色を変える（潮位変動・高潮の演出）
+
+```yaml
+value: <height>                      # 海面のワールド Y(m)
+value: <height>, <r>, <g>, <b>       # 併せて海面の色も変える（各 0.0-1.0）
+```
+
+[WARN] **`watersurface` は海面ではなく親ホルダーを動かす**。
+`watersurface` オブジェクトは `Ocean` / `River` / `Water Foam Generator` を
+束ねる箱で、その Y は海面の高さと一致しない。
+例えば京都舞鶴では 親 Y=6.97・`Ocean` の localY=-6.25 で、実際の海面は 0.72。
+
+海面を動かしたいときは **`ocean` を使うこと**。
+`watersurface` は三鷹大沢が使用中のため互換目的で残している。
+
+**例**:
+```yaml
+- time: 0
+  event: ocean
+  value: 0.7                      # 海面を Y=0.7 に
+
+- time: 10
+  event: ocean
+  value: 6.0                      # 潮位を上げる（高潮）
+
+- time: 34
+  event: ocean
+  value: 6.0, 0.65, 0.06, 0.06    # 高さは維持して赤く濁らせる
+```
+
+[NOTE] 浸水による建物被害（`flood` セクション）の判定も `Ocean` の
+ワールド Y を基準にしている。
+
 #### 7.3 `spawn_unit` イベント
 
 **説明**: 固定位置にユニットをスポーン

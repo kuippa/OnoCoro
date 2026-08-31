@@ -133,11 +133,49 @@ public class WaterSurfaceManager : MonoBehaviour
 	}
 
 	/// <summary>
-	/// 現在の水面高さ（浸水判定など外部から参照する用）
+	/// 海面（子オブジェクト Ocean）のワールド高さを取得する。
+	///
+	/// [重要] 親の watersurface は Ocean / River / Water Foam Generator を
+	/// まとめて持つホルダーで、その Y は海面の高さではない。
+	/// 舞鶴では親 Y=6.97・Ocean の localY=-6.25 で、実際の海面は 0.72 になる。
+	/// 浸水判定などはこちらを使うこと
 	/// </summary>
-	internal float GetWaterSurfaceHeightPublic()
+	internal float GetOceanHeight()
 	{
-		return GetWaterSurfaceHeight();
+		Transform oceanTransform = GetOceanTransform();
+		if (oceanTransform == null)
+		{
+			return GetWaterSurfaceHeight();
+		}
+		return oceanTransform.position.y;
+	}
+
+	/// <summary>
+	/// 海面（Ocean）のワールド高さを設定する。
+	/// 親ごと動かす SetWaterSurfaceHeight と違い、海面だけを上下させる
+	/// </summary>
+	internal void SetOceanHeight(float height)
+	{
+		Transform oceanTransform = GetOceanTransform();
+		if (oceanTransform == null)
+		{
+			Debug.LogWarning("[WaterSurfaceManager] 子オブジェクト 'Ocean' が見つからないため海面を動かせません");
+			return;
+		}
+
+		Vector3 position = oceanTransform.position;
+		position.y = height;
+		oceanTransform.position = position;
+	}
+
+	private Transform GetOceanTransform()
+	{
+		GameObject waterSurface = GetWaterSurface();
+		if (waterSurface == null)
+		{
+			return null;
+		}
+		return waterSurface.transform.Find("Ocean");
 	}
 
 	/// <summary>

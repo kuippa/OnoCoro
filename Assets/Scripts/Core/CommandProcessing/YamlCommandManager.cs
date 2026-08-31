@@ -14,7 +14,7 @@ namespace CommonsUtility
     internal static class YamlCommandManager
     {
         // Error/Warning messages（重要な条件のみ）
-        private const string _MSG_INVALID_EVENT_TYPE = "不正な YamlEventType: {0}（実装済みのイベント型: spawn_unit, spawn_enemy_unit, weather, solar, wind, watersurface, earthquake, building_break, notice, telop, subtelop, bloom_path, off_bloom_path, off_bloom_path_complete, bloom_sakura, volcano）";
+        private const string _MSG_INVALID_EVENT_TYPE = "不正な YamlEventType: {0}（実装済みのイベント型: spawn_unit, spawn_enemy_unit, weather, solar, wind, watersurface, ocean, earthquake, building_break, notice, telop, subtelop, bloom_path, off_bloom_path, off_bloom_path_complete, bloom_sakura, volcano）";
         private const string _MSG_PARSE_FAIL_TIME = "イベント時刻パース失敗: {0}";
         private const string _MSG_INVALID_TIME = "イベント時刻が無効です（0 以上の値が必要）";
         private const string _MSG_MISSING_NAME_FIELD = "Board コマンド: name フィールドが見つかりません";
