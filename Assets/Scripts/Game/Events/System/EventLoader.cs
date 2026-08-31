@@ -23,6 +23,9 @@ public class EventLoader : MonoBehaviour, IInitializable
     // ocean イベントで色まで指定するときの要素数（高さ + RGB）
     private const int _OCEAN_COLOR_PARAM_COUNT = 4;
 
+    // ocean イベントで濁り（吸収距離）まで指定するときの要素数
+    private const int _OCEAN_ABSORPTION_PARAM_COUNT = 5;
+
     // internal Dictionary<string, Dictionary<string, string>[]> _events = new Dictionary<string, Dictionary<string, string>[]>();
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
     // // イベント名,{イベントデータ配列}
@@ -594,8 +597,9 @@ public class EventLoader : MonoBehaviour, IInitializable
 
     /// <summary>
     /// 海面（Ocean）イベント。
-    ///   value: 高さ                  … 海面のワールド Y(m)
-    ///   value: 高さ, R, G, B         … 併せて海面の色も変える（各 0〜1）
+    ///   value: 高さ                        … 海面のワールド Y(m)
+    ///   value: 高さ, R, G, B               … 併せて海面の色も変える（各 0〜1）
+    ///   value: 高さ, R, G, B, 吸収距離     … さらに濁り具合も変える（m・小さいほど濁る）
     /// </summary>
     private void CallOcean(string event_value)
     {
@@ -623,7 +627,15 @@ public class EventLoader : MonoBehaviour, IInitializable
             Debug.LogWarning($"[EventLoader] ocean: 色を解釈できません '{event_value}'");
             return;
         }
-        waterSurfaceManager.SetWaterColor(new Color(r, g, b, 1f));
+
+        // 吸収距離は省略可。指定が無ければ現在の透明度を維持する
+        float absorptionDistance = 0f;
+        if (parts.Length >= _OCEAN_ABSORPTION_PARAM_COUNT)
+        {
+            float.TryParse(parts[4].Trim(), out absorptionDistance);
+        }
+
+        waterSurfaceManager.SetWaterColor(new Color(r, g, b, 1f), absorptionDistance);
     }
 
     private void CallEarthquake(string event_value)

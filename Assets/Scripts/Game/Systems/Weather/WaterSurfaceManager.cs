@@ -185,7 +185,7 @@ public class WaterSurfaceManager : MonoBehaviour
 	/// 既存の largeWindSpeed と同様にリフレクションで触っている。
 	/// 見つからないフィールドは黙って飛ばす（演出なので落とさない）
 	/// </summary>
-	internal void SetWaterColor(Color color)
+	internal void SetWaterColor(Color color, float absorptionDistance = 0f)
 	{
 		Component waterComponent = GetOceanWaterComponent();
 		if (waterComponent == null)
@@ -196,6 +196,14 @@ public class WaterSurfaceManager : MonoBehaviour
 
 		TrySetColorField(waterComponent, "refractionColor", color);
 		TrySetColorField(waterComponent, "scatteringColor", color);
+
+		// absorptionDistance は光が吸収されきるまでの距離(m)。
+		// 既定 5.0 では澄んで水底が透けるため、浸水範囲が見分けにくい。
+		// 小さくするほど濁って不透明になり、どこが浸かっているか一目で分かる
+		if (absorptionDistance > 0f)
+		{
+			TrySetFloatField(waterComponent, "absorptionDistance", absorptionDistance);
+		}
 
 		MethodInfo markDirtyMethod = waterComponent.GetType().GetMethod(
 			"MarkDirty", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -210,9 +218,21 @@ public class WaterSurfaceManager : MonoBehaviour
 		FieldInfo field = waterComponent.GetType().GetField(fieldName);
 		if (field == null || field.FieldType != typeof(Color))
 		{
+			Debug.LogWarning($"[WaterSurfaceManager] WaterSurface に {fieldName} がありません");
 			return;
 		}
 		field.SetValue(waterComponent, color);
+	}
+
+	private void TrySetFloatField(Component waterComponent, string fieldName, float value)
+	{
+		FieldInfo field = waterComponent.GetType().GetField(fieldName);
+		if (field == null || field.FieldType != typeof(float))
+		{
+			Debug.LogWarning($"[WaterSurfaceManager] WaterSurface に {fieldName} がありません");
+			return;
+		}
+		field.SetValue(waterComponent, value);
 	}
 
 	/// <summary>

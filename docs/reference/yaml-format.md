@@ -333,9 +333,20 @@ value: <wind_speed>, <wind_direction>
 **説明**: 海面の高さと色を変える（潮位変動・高潮の演出）
 
 ```yaml
-value: <height>                      # 海面のワールド Y(m)
-value: <height>, <r>, <g>, <b>       # 併せて海面の色も変える（各 0.0-1.0）
+value: <height>                                  # 海面のワールド Y(m)
+value: <height>, <r>, <g>, <b>                   # 併せて海面の色も変える（各 0.0-1.0）
+value: <height>, <r>, <g>, <b>, <absorption>     # さらに濁り具合も変える
 ```
+
+| パラメータ | 説明 |
+|-----------|------|
+| `height` | 海面のワールド Y 座標（m） |
+| `r` / `g` / `b` | 海面の色（HDRP の refractionColor / scatteringColor） |
+| `absorption` | 光の吸収距離（m）。**小さいほど濁って不透明**。HDRP 既定は 5.0 |
+
+[NOTE] 既定の海面は透明度が高く、**どこが浸水しているか判別しにくい**。
+`absorption` を 0.5 前後まで下げると濁って不透明になり、浸水域が一目で分かる。
+色と濁りは省略可能で、省略時は現在の設定を維持する。
 
 [WARN] **`watersurface` は海面ではなく親ホルダーを動かす**。
 `watersurface` オブジェクトは `Ocean` / `River` / `Water Foam Generator` を
@@ -351,13 +362,13 @@ value: <height>, <r>, <g>, <b>       # 併せて海面の色も変える（各 0
   event: ocean
   value: 0.7                      # 海面を Y=0.7 に
 
-- time: 10
+- time: 4
   event: ocean
-  value: 6.0                      # 潮位を上げる（高潮）
+  value: 1.2, 0.18, 0.22, 0.16, 0.5   # 潮位を上げ、濁らせて浸水域を見せる
 
 - time: 34
   event: ocean
-  value: 6.0, 0.65, 0.06, 0.06    # 高さは維持して赤く濁らせる
+  value: 1.4, 0.65, 0.06, 0.06, 0.3   # さらに上げて赤く濁らせる
 ```
 
 [NOTE] 浸水による建物被害（`flood` セクション）の判定も `Ocean` の
