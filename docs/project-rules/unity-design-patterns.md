@@ -128,6 +128,56 @@ private IEnumerator DoSomethingAfterDelay()
 }
 ```
 
+### Update を避ける（重要）
+
+**`MonoBehaviour.Update` は極力使わない。**
+
+理由は 2 つある。
+
+1. **倍速・一時停止に追従しない**
+   本プロジェクトは `GameSpeedManager` が `Time.timeScale` を操作する。
+   `Update` 内で自前に経過時間を数えると、倍速対応を個別に実装することになり
+   実装漏れが起きる。`WaitForSeconds` は `Time.timeScale` に従うため、
+   **倍速も一時停止も自動で正しく動く**
+2. **毎フレームに処理が集中する**
+   Update を持つコンポーネントが増えるほど 1 フレームの負荷が積み上がる
+
+```csharp
+// [NG] Update で自前にタイマーを回す
+private float _timer = 0f;
+private void Update()
+{
+    _timer += Time.deltaTime;
+    if (_timer < 0.5f) { return; }
+    _timer = 0f;
+    CheckSomething();
+}
+
+// [OK] コルーチンで間隔を作る（倍速・一時停止に自動追従）
+private void Start()
+{
+    StartCoroutine(MonitorLoop());
+}
+
+private IEnumerator MonitorLoop()
+{
+    WaitForSeconds interval = new WaitForSeconds(0.5f);
+    while (true)
+    {
+        yield return interval;
+        CheckSomething();
+    }
+}
+```
+
+| 用途 | 使うもの |
+|------|---------|
+| 一定間隔の監視・定期処理 | コルーチン + `WaitForSeconds` |
+| 大量オブジェクトの分散処理 | コルーチンでキューを小分けに消化 |
+| 他システムと足並みを揃える処理 | 既存の統合ループから呼ぶ |
+
+[NOTE] 入力受付・カメラ追従など、毎フレームでなければ成立しない処理は Update でよい。
+
 ---
 
 ## Singleton パターン

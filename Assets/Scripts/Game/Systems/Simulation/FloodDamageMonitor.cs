@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,12 +11,17 @@ using Debug = CommonsUtility.Debug;
 /// 水面より一定以上深く沈んだ建物を、一定時間続いたら倒壊させる。
 /// 倒壊は building_break と同じ PlateauInfoManager.SetBuildingToDoom を使う。
 ///
+/// [実装方針] Update は使わずコルーチンで回している。
+/// WaitForSeconds は Time.timeScale に従うため、GameSpeedManager による
+/// 倍速・一時停止にそのまま追従する。Update だと自前で倍速を扱う必要があり、
+/// 毎フレームの処理集中も招く。
+///
 /// [負荷対策]
 /// 舞鶴は建物が 7928 棟あるため、以下で負荷を抑えている。
 ///   - 建物リストと底面 Y は一度収集したらキャッシュする
 ///     （PLATEAU の読み込み前だと 0 棟になるため、見つかるまでは再試行する）
-///   - 判定は毎フレームではなく一定間隔
-///   - 倒壊は 1 秒あたりの上限までしか行わない（YAML の max_breaks_per_second）
+///   - 判定は _CHECK_INTERVAL 間隔
+///   - 倒壊は 1 秒あたり max_breaks_per_second 件までに制限する
 /// </summary>
 public class FloodDamageMonitor : MonoBehaviour
 {
@@ -28,7 +34,7 @@ public class FloodDamageMonitor : MonoBehaviour
     /// <summary>建物収集を諦めるまでの試行回数（PLATEAU の読み込み待ち用）</summary>
     private const int _MAX_COLLECT_ATTEMPTS = 40;
 
-    private int _collectAttempts = 0;
+    private const string _HOST_OBJECT_NAME = "FloodDamageMonitor";
 
     /// <summary>建物ごとの底面 Y と水没継続時間</summary>
     private class BuildingFloodState
@@ -36,21 +42,23 @@ public class FloodDamageMonitor : MonoBehaviour
         public GameObject Building;
         public float BottomY;
         public float SubmergedSeconds;
+
+        /// <summary>
+        /// 倒壊済みか。SetBuildingToDoom を呼んでも建物は active のまま残るため、
+        /// この印を付けないと同じ建物を何度も倒壊させ続け、
+        /// 1 秒あたりの倒壊枠を食い潰して他の建物が永久に壊れなくなる
+        /// </summary>
+        public bool IsBroken;
     }
 
     private List<BuildingFloodState> _buildings = null;
     private PlateauInfoManager _plateauInfoManager = null;
     private WaterSurfaceManager _waterSurfaceManager = null;
-
-    private float _checkTimer = 0f;
-    private float _breakBudgetTimer = 0f;
-    private int _breaksThisSecond = 0;
-
-    private const string _HOST_OBJECT_NAME = "FloodDamageMonitor";
+    private int _collectAttempts = 0;
 
     /// <summary>
     /// シーンロード時に自己生成する（シーン配置不要）。
-    /// flood セクションが無いステージでは Update が即 return するので実害は無い
+    /// flood セクションが無いステージでは監視ループが何もしない
     /// </summary>
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -63,36 +71,28 @@ public class FloodDamageMonitor : MonoBehaviour
         host.AddComponent<FloodDamageMonitor>();
     }
 
-    private void Update()
+    private void Start()
     {
-        if (!FloodDamageSystem.IsEnabled)
-        {
-            return;
-        }
-
-        UpdateBreakBudget();
-
-        _checkTimer = _checkTimer + Time.deltaTime;
-        if (_checkTimer < _CHECK_INTERVAL)
-        {
-            return;
-        }
-        float elapsed = _checkTimer;
-        _checkTimer = 0f;
-
-        CheckSubmergedBuildings(elapsed);
+        StartCoroutine(MonitorLoop());
     }
 
-    /// <summary>1 秒ごとに倒壊の残枠を戻す</summary>
-    private void UpdateBreakBudget()
+    /// <summary>
+    /// 一定間隔で水没状態を更新する監視ループ
+    /// </summary>
+    private IEnumerator MonitorLoop()
     {
-        _breakBudgetTimer = _breakBudgetTimer + Time.deltaTime;
-        if (_breakBudgetTimer < 1f)
+        WaitForSeconds interval = new WaitForSeconds(_CHECK_INTERVAL);
+
+        while (true)
         {
-            return;
+            yield return interval;
+
+            if (!FloodDamageSystem.IsEnabled)
+            {
+                continue;
+            }
+            CheckSubmergedBuildings(_CHECK_INTERVAL);
         }
-        _breakBudgetTimer = 0f;
-        _breaksThisSecond = 0;
     }
 
     private void CheckSubmergedBuildings(float elapsed)
@@ -103,12 +103,12 @@ public class FloodDamageMonitor : MonoBehaviour
             return;
         }
 
-        float waterY = GetWaterSurfaceHeight();
-        float submergeLine = waterY - FloodDamageSystem.DepthMeters;
+        float submergeLine = GetOceanHeight() - FloodDamageSystem.DepthMeters;
+        int breakQuota = Mathf.CeilToInt(FloodDamageSystem.MaxBreaksPerSecond * elapsed);
 
         foreach (BuildingFloodState state in _buildings)
         {
-            if (state.Building == null || !state.Building.activeSelf)
+            if (state.IsBroken || state.Building == null || !state.Building.activeSelf)
             {
                 continue;
             }
@@ -120,19 +120,22 @@ public class FloodDamageMonitor : MonoBehaviour
                 continue;
             }
 
+            // 水没時間は全建物ぶん進める。倒壊枠が尽きても計測は止めない
+            // （止めるとリストの後ろの建物がいつまでも条件を満たさなくなる）
             state.SubmergedSeconds = state.SubmergedSeconds + elapsed;
             if (state.SubmergedSeconds < FloodDamageSystem.DurationSeconds)
             {
                 continue;
             }
 
-            if (_breaksThisSecond >= FloodDamageSystem.MaxBreaksPerSecond)
+            if (breakQuota <= 0)
             {
-                // 今秒の枠を使い切った。残りは次の秒に持ち越す
-                return;
+                // 今回の枠は使い切った。条件は満たしたままなので次回倒壊する
+                continue;
             }
 
             BreakBuilding(state);
+            breakQuota = breakQuota - 1;
         }
     }
 
@@ -145,8 +148,7 @@ public class FloodDamageMonitor : MonoBehaviour
         }
 
         infoManager.SetBuildingToDoom(state.Building);
-        state.SubmergedSeconds = 0f;
-        _breaksThisSecond = _breaksThisSecond + 1;
+        state.IsBroken = true;
         FloodDamageSystem.RecordFloodedBuilding();
     }
 
@@ -154,9 +156,7 @@ public class FloodDamageMonitor : MonoBehaviour
     /// 建物リストと底面 Y を収集する（建物は動かない前提でキャッシュ）。
     ///
     /// [注意] 建物は "Plateau" オブジェクトの配下にあるとは限らないため、
-    /// BuildingBreak と同じくシーンの全ルートオブジェクトを走査する。
-    /// また PLATEAU の読み込みが終わる前だと 0 棟になるので、
-    /// 1 棟も見つからないうちはキャッシュせず次回また試す
+    /// BuildingBreak と同じくシーンの全ルートオブジェクトを走査する
     /// </summary>
     private void EnsureBuildingsCollected()
     {
@@ -166,17 +166,15 @@ public class FloodDamageMonitor : MonoBehaviour
         }
 
         List<BuildingFloodState> collected = new List<BuildingFloodState>();
-        GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
-
-        foreach (GameObject rootObject in rootGameObjects)
+        foreach (GameObject rootObject in SceneManager.GetActiveScene().GetRootGameObjects())
         {
             CollectBuildingsUnder(rootObject, collected);
         }
 
         if (collected.Count == 0)
         {
-            // まだ建物が生成されていない可能性があるのでキャッシュせず次回に回す。
-            // ただし建物が無いステージで走査を繰り返しても無駄なので回数を打ち切る
+            // PLATEAU の読み込み前かもしれないのでキャッシュせず次回に回す。
+            // 建物が無いステージで走査を繰り返しても無駄なので回数で打ち切る
             _collectAttempts = _collectAttempts + 1;
             if (_collectAttempts >= _MAX_COLLECT_ATTEMPTS)
             {
@@ -213,19 +211,22 @@ public class FloodDamageMonitor : MonoBehaviour
             // 底面はコライダーの境界から取る（Renderer が無い建物でも拾えるようにする）
             state.BottomY = collider.bounds.min.y;
             state.SubmergedSeconds = 0f;
+            state.IsBroken = false;
             collected.Add(state);
         }
     }
 
-    private float GetWaterSurfaceHeight()
+    /// <summary>
+    /// 海面の高さ。親の watersurface は Ocean / River などを束ねるホルダーで、
+    /// その Y は海面の高さではないため必ず Ocean のワールド Y を見る
+    /// </summary>
+    private float GetOceanHeight()
     {
         if (_waterSurfaceManager == null)
         {
             _waterSurfaceManager = GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(
                 GameObjectTreat.GetEventSystem());
         }
-        // 親の watersurface は Ocean / River などを束ねるホルダーで、
-        // その Y は海面の高さではない。必ず Ocean のワールド Y を見る
         return _waterSurfaceManager.GetOceanHeight();
     }
 

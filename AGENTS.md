@@ -129,8 +129,34 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
    - **例外2**: `Editor/` 配下のエディタ拡張。インポート時・ビルド時に動くもので、
      実行時のログファイル出力に載せる意味が無いため対象外
 9. **Keep logging sparse** - See "Logging Policy" below
+10. **Avoid MonoBehaviour.Update** - See "Update Policy" below
 
 For detailed code examples and rationale, see [docs/project-rules/coding-csharp.md](docs/project-rules/coding-csharp.md).
+
+### Update Policy
+
+**`MonoBehaviour.Update` は極力使わないこと。**
+
+理由は 2 つある。
+
+1. **倍速・一時停止に追従しない** — 本プロジェクトは `GameSpeedManager` が
+   `Time.timeScale` を操作する。`Update` で自前に時間を数えると倍速処理を
+   個別に実装することになり、実装漏れが起きる
+2. **毎フレームに処理が集中する** — Update を持つコンポーネントが増えるほど
+   1 フレームの負荷が積み上がる
+
+**代わりに使うもの**:
+
+| 用途 | 使うもの |
+|------|---------|
+| 一定間隔の監視・定期処理 | コルーチン + `yield return new WaitForSeconds(n)` |
+| 大量オブジェクトの分散処理 | コルーチンでキューを小分けに消化する |
+| 他システムと足並みを揃えたい処理 | 既存の統合ループから呼ぶ |
+
+`WaitForSeconds` は `Time.timeScale` に従うため、**倍速・一時停止に自動で追従する**。
+これが Update より優れている一番の理由。
+
+[NOTE] 入力受付やカメラ追従など、毎フレームでなければ成立しない処理は Update でよい。
 
 ### Logging Policy
 
