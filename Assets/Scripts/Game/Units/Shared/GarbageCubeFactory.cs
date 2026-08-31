@@ -173,15 +173,20 @@ public static class GarbageCubeFactory
         }
     }
 
+    // 瓦礫の飛距離は「水平速度 × 滞空時間」で決まり、滞空時間は上向き速度に比例する。
+    // つまり飛距離は 水平速度 × 上向き速度 におおよそ比例する。
+    // 5 倍飛ばすため、水平を 2.5 倍・上向きを 2 倍にしてある（2.5 × 2 = 5）。
+    // さらに散らしたいときは、この 2 つを一緒に上げること（片方だけだと効きが鈍い）
+
     /// <summary>瓦礫を弾き飛ばす初速の水平成分(m/s)</summary>
-    private const float _BURST_HORIZONTAL_SPEED = 4.0f;
+    private const float _BURST_HORIZONTAL_SPEED = 10.0f;
 
     /// <summary>瓦礫を弾き飛ばす初速の上向き成分(m/s)</summary>
-    private const float _BURST_UP_SPEED_MIN = 2.0f;
-    private const float _BURST_UP_SPEED_MAX = 6.0f;
+    private const float _BURST_UP_SPEED_MIN = 4.0f;
+    private const float _BURST_UP_SPEED_MAX = 12.0f;
 
     /// <summary>瓦礫の回転の強さ(deg/s)</summary>
-    private const float _BURST_ANGULAR_SPEED = 540f;
+    private const float _BURST_ANGULAR_SPEED = 720f;
 
     /// <summary>
     /// 生成済みの瓦礫に初速と角速度を与えて爆散させる（CityHack 2026）
