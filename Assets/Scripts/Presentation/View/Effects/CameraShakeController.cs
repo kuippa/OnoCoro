@@ -20,7 +20,16 @@ namespace CommonsUtility
 
         private const string _HOST_OBJECT_NAME = "CameraShakeController";
 
+        /// <summary>
+        /// 追従の速さ。大きいほど目標値に速く追いつく（小さいほどなめらかで鈍い）。
+        /// フレームレートに依存しないよう指数補間の係数として使う
+        /// </summary>
+        private const float _SMOOTHING_RATE = 40f;
+
         private Camera _cachedCamera = null;
+
+        /// <summary>実際にカメラへ加算しているオフセット（補間後）</summary>
+        private float _appliedOffset = 0f;
 
         /// <summary>
         /// 起動時に自動生成（シーン配置不要のブートストラップ）
@@ -37,6 +46,8 @@ namespace CommonsUtility
         {
             if (!Earthquake.IsShaking)
             {
+                // 揺れが終わったら補間値も戻す（次の地震に前回の残りを持ち込まない）
+                _appliedOffset = 0f;
                 return;
             }
 
@@ -46,8 +57,15 @@ namespace CommonsUtility
                 return;
             }
 
-            Vector3 shakeOffset = new Vector3(0f, Earthquake.CurrentVerticalOffset, 0f);
-            targetCamera.transform.position += shakeOffset;
+            // Earthquake 側は _INTERVAL(0.02秒)ごとにしかオフセットを更新しないため、
+            // そのまま加算すると高フレームレートで階段状に見える。
+            // フレーム間で目標値へ寄せてなめらかにする
+            _appliedOffset = Mathf.Lerp(
+                _appliedOffset,
+                Earthquake.CurrentVerticalOffset,
+                1f - Mathf.Exp(-_SMOOTHING_RATE * Time.deltaTime));
+
+            targetCamera.transform.position += new Vector3(0f, _appliedOffset, 0f);
         }
 
         /// <summary>

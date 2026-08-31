@@ -27,6 +27,18 @@ public class Earthquake : MonoBehaviour
     private const float _DEGREE_STEP = 30.0f;
 
     /// <summary>
+    /// 最大振幅の倍率。派手すぎたため従来の半分にしている
+    /// （YAML の intensity はそのままで揺れ幅だけ抑えたいのでここで調整する）
+    /// </summary>
+    private const float _AMPLITUDE_SCALE = 0.5f;
+
+    /// <summary>
+    /// 揺れが最大に達するまでの割合（継続時間に対する比）。
+    /// ここまでが立ち上がり、以降が減衰になる
+    /// </summary>
+    private const float _ATTACK_RATIO = 0.25f;
+
+    /// <summary>
     /// 現在の揺れ縦オフセット（CameraShakeController が毎フレーム参照）
     /// 揺れていないときは 0
     /// </summary>
@@ -97,23 +109,33 @@ public class Earthquake : MonoBehaviour
     }
 
     /// <summary>
-    /// 振幅の減衰を計算
-    /// 地震開始時と終了時で振幅が小さくなるように計算
+    /// 振幅の包絡線を計算する。
+    ///
+    /// [2026-08-31 修正] 旧実装は継続時間の中点で符号を反転させており、
+    /// そこで振幅が +A から -A へ跳ぶ不連続が生じていた。
+    /// さらに (t/T)^2 で単調増加するため終了直前が最大振幅になり、
+    /// 揺れが最も強いところで唐突に止まっていた。
+    ///
+    /// 新実装は「立ち上がり × 減衰」の包絡線にして、
+    /// 始まりと終わりが 0、途中が最大になるよう SmoothStep でならしている
     /// </summary>
-    /// <returns>減衰係数</returns>
+    /// <returns>符号なしの振幅（0 〜 _magnitude × _AMPLITUDE_SCALE）</returns>
     private float CalcAmpDecay()
     {
-        float ret = 0.0f;
-        float sign = 1f;
-        if (_time_duration > _total_duration / 2)
+        if (_total_duration <= 0f)
         {
-            sign = -1f;
+            return 0f;
         }
-        if (_time_duration != 0)
-        {
-            ret = sign * _magnitude * (float)Math.Pow(_time_duration / _total_duration, 2);
-        }
-        return ret;
+
+        float progress = Mathf.Clamp01(_time_duration / _total_duration);
+
+        // 立ち上がり: 0 → _ATTACK_RATIO の区間でなめらかに最大へ
+        float attack = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(progress / _ATTACK_RATIO));
+
+        // 減衰: _ATTACK_RATIO → 1 の区間でなめらかに 0 へ
+        float release = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((1f - progress) / (1f - _ATTACK_RATIO)));
+
+        return _magnitude * _AMPLITUDE_SCALE * attack * release;
     }
 
     private void Update()
