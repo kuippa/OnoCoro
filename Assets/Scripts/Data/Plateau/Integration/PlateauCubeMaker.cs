@@ -78,7 +78,8 @@ public class PlateauCubeMaker : MonoBehaviour
             // 不燃率に応じて可燃・不燃を振り分ける。
             // 1 個ずつ抽選するので、まばらに混ざって山ができる
             bool isNoBurn = Utility.fRandomRange(0f, 1f) < noncombustibleRatio;
-            accumulated += CreateGarbageCubeSmall(spawnPoint, isNoBurn);
+            // 解体だけは外向きに弾けさせる（跡地に落とすだけだと地味なため）
+            accumulated += CreateGarbageCubeSmall(spawnPoint, isNoBurn, isBurst: true);
             spawnCount++;
             if (spawnCount >= maxCubes)
             {
@@ -120,7 +121,14 @@ public class PlateauCubeMaker : MonoBehaviour
         return num;
     }
 
-    private int CreateGarbageCubeSmall(Vector3 pos, bool isNoBurn = false)
+    /// <summary>
+    /// 小サイズのゴミキューブを 1 個スポーンする。
+    ///
+    /// [注意] 地震倒壊（BreakUpBuildingCube）と解体（ScatterDemolitionDebris）の
+    /// 両方がここを通る。爆散させてよいのは解体だけなので isBurst で分ける。
+    /// 倒壊時に散らばらせると瓦礫が広がりすぎて延焼が繋がらなくなる
+    /// </summary>
+    private int CreateGarbageCubeSmall(Vector3 pos, bool isNoBurn = false, bool isBurst = false)
     {
         GameObject gameManagerObject = GameObjectTreat.GetGameManagerObject();
         GarbageCubeSpawner garbageCubeSpawner = gameManagerObject.GetComponent<GarbageCubeSpawner>();
@@ -128,8 +136,7 @@ public class PlateauCubeMaker : MonoBehaviour
         {
             garbageCubeSpawner = gameManagerObject.AddComponent<GarbageCubeSpawner>();
         }
-        // 解体の瓦礫は外向きに弾けさせる（その場に落とすだけだと地味なため）
-        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true, isNoBurn: isNoBurn, isBurst: true);
+        garbageCubeSpawner.SpawnGarbageCubeAsync(pos, 1, isSwayingPoint: true, isNoBurn: isNoBurn, isBurst: isBurst);
 
         // 可燃・不燃で基準スコアは同値。換算式を共通に保つため
         return GarbageCube.GetBaseScore();
