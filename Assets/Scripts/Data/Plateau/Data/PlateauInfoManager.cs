@@ -296,7 +296,12 @@ public class PlateauInfoManager : MonoBehaviour
         return debrisTons;
     }
 
-    internal void SetBuildingToDoom(GameObject building, bool isFire = false)
+    /// <param name="isSpawnDebris">
+    /// 瓦礫を出すか。1 棟あたり最大 200 個のゴミキューブ（Rigidbody 付き）が生成され、
+    /// 消えずに蓄積するため、多数を一度に倒壊させる場合は false にして負荷を抑える
+    /// （浸水倒壊は水中で瓦礫が見えないため既定で出さない）
+    /// </param>
+    internal void SetBuildingToDoom(GameObject building, bool isFire = false, bool isSpawnDebris = true)
     {
         if (!_buildingInteractor.IsBuildingDoomed(building))
         {
@@ -304,12 +309,16 @@ public class PlateauInfoManager : MonoBehaviour
             float num = _dataExtractor.CalcRebuildBonus(buildingInfo) * -1;
             float num2 = _dataExtractor.CalcRebuildCost(buildingInfo);
             ScoreCtrl.UpdateAndDisplayScore((int)num, "CLK");
-            PlateauCubeMaker plateauCubeMaker = base.gameObject.GetComponent<PlateauCubeMaker>();
-            if (plateauCubeMaker == null)
+
+            if (isSpawnDebris)
             {
-                plateauCubeMaker = base.gameObject.AddComponent<PlateauCubeMaker>();
+                PlateauCubeMaker plateauCubeMaker = base.gameObject.GetComponent<PlateauCubeMaker>();
+                if (plateauCubeMaker == null)
+                {
+                    plateauCubeMaker = base.gameObject.AddComponent<PlateauCubeMaker>();
+                }
+                plateauCubeMaker.BreakUpBuildingCube(building, (int)num2);
             }
-            plateauCubeMaker.BreakUpBuildingCube(building, (int)num2);
             _buildingInteractor.SetBuildingToDoom(building, isFire);
         }
     }

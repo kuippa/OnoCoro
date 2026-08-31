@@ -153,7 +153,10 @@ public class FloodDamageMonitor : MonoBehaviour
         // 「総被害 - 地震倒壊 - 浸水倒壊」で求める火災延焼が 0 に潰れる
         bool isAlreadyDoomed = IsBuildingAlreadyDoomed(state.Building);
 
-        infoManager.SetBuildingToDoom(state.Building);
+        // 瓦礫は既定で出さない。1 棟あたり最大 200 個の Rigidbody が生成され蓄積するため、
+        // 広域浸水では数万個に達して FPS が落ちる（水中なので見た目の損失も無い）
+        infoManager.SetBuildingToDoom(state.Building, isFire: false,
+            isSpawnDebris: FloodDamageSystem.IsDebrisEnabled);
         state.IsBroken = true;
 
         if (isAlreadyDoomed)

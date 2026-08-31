@@ -27,6 +27,13 @@ namespace CommonsUtility
         private static int _maxBreaksPerSecond = _DEFAULT_MAX_BREAKS_PER_SECOND;
         private static bool _isEnabled = false;
 
+        /// <summary>
+        /// 浸水倒壊で瓦礫を出すか。
+        /// 1 棟あたり最大 200 個の Rigidbody が生成され蓄積するため、
+        /// 広域が一度に浸かるステージでは既定で出さない（水中で見えないため実害も無い）
+        /// </summary>
+        private static bool _isDebrisEnabled = false;
+
         private static int _floodedBuildingCount = 0;
 
         /// <summary>浸水判定を行うか（YAML の flood セクションがあるステージだけ有効）</summary>
@@ -35,6 +42,9 @@ namespace CommonsUtility
         internal static float DepthMeters => _depthMeters;
         internal static float DurationSeconds => _durationSeconds;
         internal static int MaxBreaksPerSecond => _maxBreaksPerSecond;
+
+        /// <summary>浸水倒壊で瓦礫を出すか（YAML の debris）</summary>
+        internal static bool IsDebrisEnabled => _isDebrisEnabled;
 
         /// <summary>浸水で倒壊させた建物数</summary>
         internal static int FloodedBuildingCount => _floodedBuildingCount;
@@ -48,6 +58,7 @@ namespace CommonsUtility
             _depthMeters = _DEFAULT_DEPTH_METERS;
             _durationSeconds = _DEFAULT_DURATION_SECONDS;
             _maxBreaksPerSecond = _DEFAULT_MAX_BREAKS_PER_SECOND;
+            _isDebrisEnabled = false;
             _isEnabled = false;
             _floodedBuildingCount = 0;
         }
@@ -55,8 +66,10 @@ namespace CommonsUtility
         /// <summary>
         /// YAML から読み込んだ設定を反映して浸水判定を有効にする
         /// </summary>
-        internal static void Configure(float depthMeters, float durationSeconds, int maxBreaksPerSecond)
+        internal static void Configure(float depthMeters, float durationSeconds, int maxBreaksPerSecond,
+            bool isDebrisEnabled)
         {
+            _isDebrisEnabled = isDebrisEnabled;
             if (depthMeters > 0f)
             {
                 _depthMeters = depthMeters;
@@ -72,7 +85,7 @@ namespace CommonsUtility
             _isEnabled = true;
 
             Debug.Log($"[FloodDamageSystem] 浸水被害を有効化 深さ {_depthMeters}m / {_durationSeconds}秒 /"
-                + $" 最大 {_maxBreaksPerSecond} 棟毎秒");
+                + $" 最大 {_maxBreaksPerSecond} 棟毎秒 / 瓦礫 {_isDebrisEnabled}");
         }
 
         /// <summary>倒壊 1 棟ぶんを記録する</summary>
