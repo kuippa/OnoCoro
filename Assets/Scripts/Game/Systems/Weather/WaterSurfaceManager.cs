@@ -13,6 +13,15 @@ public class WaterSurfaceManager : MonoBehaviour
 	/// <summary>実行中の潮位補間（新しい指示が来たら止める）</summary>
 	private Coroutine _tideCoroutine = null;
 
+	/// <summary>実行中のうねり補間（新しい指示が来たら止める）</summary>
+	private Coroutine _swellCoroutine = null;
+
+	/// <summary>
+	/// うねりを段階的に変えるときの更新間隔（秒）。
+	/// 更新のたびに HDRP のシミュレーションが再計算されるため毎フレームでは重い
+	/// </summary>
+	private const float _SWELL_UPDATE_INTERVAL = 0.1f;
+
 	private const float WATER_RISE_PAR_RAIN = 0.005f;
 
 	private const float IGNORE_RAIN_SIZE = 0.1f;
@@ -24,63 +33,43 @@ public class WaterSurfaceManager : MonoBehaviour
 		// SetDistalWindSpeed(DEFAULT_DISTAL_WIND_SPEED);
 	}
 
-	// 遠方風速を変更して波の高さを変える
-	internal void SetDistalWindSpeed(float windSpeed)
+	/// <summary>
+	/// 波の荒れ具合（largeChaos）を変える。0 に近いほど規則的なうねり、
+	/// 1 に近いほど乱れた波になる
+	/// </summary>
+	internal void SetWaveChaos(float chaos)
 	{
-		GameObject waterSurface = GetWaterSurface();
-		if (waterSurface == null)
-		{
-			return;
-		}
-
-		// watersurface の子オブジェクト "Ocean" を探す
-		Transform oceanTransform = waterSurface.transform.Find("Ocean");
-		if (oceanTransform == null)
-		{
-			return;
-		}
-
-		// Ocean オブジェクトから WaterSurface コンポーネントを取得
-		Component waterComponent = oceanTransform.GetComponent("WaterSurface");
+		Component waterComponent = GetOceanWaterComponent();
 		if (waterComponent == null)
 		{
+			Debug.LogWarning("[WaterSurfaceManager] WaterSurface コンポーネントが見つからないため波の荒れ具合を変更できません");
 			return;
 		}
 
-		// Simulation Swell の遠方風速（largeWindSpeed）を設定
-		FieldInfo largeWindSpeedField = waterComponent.GetType().GetField("largeWindSpeed");
-		if (largeWindSpeedField == null)
+		TrySetFloatField(waterComponent, "largeChaos", Mathf.Clamp01(chaos));
+		MarkWaterDirty(waterComponent);
+	}
+
+	/// <summary>
+	/// 遠方風速（largeWindSpeed）を変えてうねりの大きさを変える。
+	/// 単位は km/h で HDRP 側の上限は 250。既定値は 30
+	/// </summary>
+	internal void SetDistalWindSpeed(float windSpeed)
+	{
+		Component waterComponent = GetOceanWaterComponent();
+		if (waterComponent == null)
 		{
+			Debug.LogWarning("[WaterSurfaceManager] WaterSurface コンポーネントが見つからないためうねりを変更できません");
 			return;
 		}
 
-		largeWindSpeedField.SetValue(waterComponent, windSpeed);
-
-		// HDRP に変更を通知して再計算させる
-		MethodInfo markDirtyMethod = waterComponent.GetType().GetMethod("MarkDirty", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		if (markDirtyMethod != null)
-		{
-			markDirtyMethod.Invoke(waterComponent, null);
-		}
+		TrySetFloatField(waterComponent, "largeWindSpeed", Mathf.Max(0f, windSpeed));
+		MarkWaterDirty(waterComponent);
 	}
 
 	internal float GetDistalWindSpeed()
 	{
-		GameObject waterSurface = GetWaterSurface();
-		if (waterSurface == null)
-		{
-			return 0f;
-		}
-
-		// watersurface の子オブジェクト "Ocean" を探す
-		Transform oceanTransform = waterSurface.transform.Find("Ocean");
-		if (oceanTransform == null)
-		{
-			return 0f;
-		}
-
-		// Ocean オブジェクトから WaterSurface コンポーネントを取得
-		Component waterComponent = oceanTransform.GetComponent("WaterSurface");
+		Component waterComponent = GetOceanWaterComponent();
 		if (waterComponent == null)
 		{
 			return 0f;
@@ -97,8 +86,20 @@ public class WaterSurfaceManager : MonoBehaviour
 		{
 			return floatValue;
 		}
-
 		return 0f;
+	}
+
+	/// <summary>
+	/// HDRP に変更を通知してシミュレーションを再計算させる
+	/// </summary>
+	private void MarkWaterDirty(Component waterComponent)
+	{
+		MethodInfo markDirtyMethod = waterComponent.GetType().GetMethod(
+			"MarkDirty", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		if (markDirtyMethod != null)
+		{
+			markDirtyMethod.Invoke(waterComponent, null);
+		}
 	}
 
 	private GameObject GetWaterSurface()
@@ -209,6 +210,50 @@ public class WaterSurfaceManager : MonoBehaviour
 		_tideCoroutine = null;
 	}
 
+	/// <summary>
+	/// うねり（遠方風速）を指定秒かけて目標値へ変化させる。
+	///
+	/// 波の高さは HDRP WaterSurface の largeWindSpeed で決まる。
+	/// 急に変えると海面が一瞬で作り替わって不自然なので、時間をかけて寄せる。
+	///
+	/// [注意] 更新のたびにリフレクションと MarkDirty が走り、
+	/// HDRP 側でシミュレーションが再計算される。毎フレーム呼ぶと重いため、
+	/// 一定間隔で段階的に変えている（うねりの変化は緩やかなので十分）
+	/// </summary>
+	internal void SetDistalWindSpeedOverTime(float targetWindSpeed, float duration)
+	{
+		if (_swellCoroutine != null)
+		{
+			StopCoroutine(_swellCoroutine);
+			_swellCoroutine = null;
+		}
+
+		if (duration <= 0f)
+		{
+			SetDistalWindSpeed(targetWindSpeed);
+			return;
+		}
+		_swellCoroutine = StartCoroutine(ChangeSwellRoutine(targetWindSpeed, duration));
+	}
+
+	private IEnumerator ChangeSwellRoutine(float targetWindSpeed, float duration)
+	{
+		float startWindSpeed = GetDistalWindSpeed();
+		float elapsed = 0f;
+		WaitForSeconds interval = new WaitForSeconds(_SWELL_UPDATE_INTERVAL);
+
+		while (elapsed < duration)
+		{
+			yield return interval;
+			elapsed = elapsed + _SWELL_UPDATE_INTERVAL;
+			float progress = Mathf.Clamp01(elapsed / duration);
+			SetDistalWindSpeed(Mathf.Lerp(startWindSpeed, targetWindSpeed, progress));
+		}
+
+		SetDistalWindSpeed(targetWindSpeed);
+		_swellCoroutine = null;
+	}
+
 	private Transform GetOceanTransform()
 	{
 		GameObject waterSurface = GetWaterSurface();
@@ -246,12 +291,7 @@ public class WaterSurfaceManager : MonoBehaviour
 			TrySetFloatField(waterComponent, "absorptionDistance", absorptionDistance);
 		}
 
-		MethodInfo markDirtyMethod = waterComponent.GetType().GetMethod(
-			"MarkDirty", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		if (markDirtyMethod != null)
-		{
-			markDirtyMethod.Invoke(waterComponent, null);
-		}
+		MarkWaterDirty(waterComponent);
 	}
 
 	private void TrySetColorField(Component waterComponent, string fieldName, Color color)

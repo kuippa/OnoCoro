@@ -107,6 +107,9 @@ namespace CommonsUtility
 
         /// <summary>海面（Ocean）の高さ・色の変更イベント（WaterSurfaceManager で処理）</summary>
         ocean,
+
+        /// <summary>海のうねり（遠方風速・波の荒れ具合）の変更イベント（WaterSurfaceManager で処理）</summary>
+        swell,
         
         // 災害イベント
         /// <summary>地震イベント（Earthquake コンポーネント で処理）</summary>

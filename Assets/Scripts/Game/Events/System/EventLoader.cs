@@ -32,6 +32,12 @@ public class EventLoader : MonoBehaviour, IInitializable
     // ocean イベントで色・濁り・秒数まで全部指定するときの要素数
     private const int _OCEAN_FULL_PARAM_COUNT = 6;
 
+    // swell イベントで秒数まで指定するときの要素数
+    private const int _SWELL_DURATION_PARAM_COUNT = 2;
+
+    // swell イベントで波の荒れ具合まで指定するときの要素数
+    private const int _SWELL_CHAOS_PARAM_COUNT = 3;
+
     // internal Dictionary<string, Dictionary<string, string>[]> _events = new Dictionary<string, Dictionary<string, string>[]>();
     // // ex. {notice,{time:10,value:"地震が発生しました。"}}
     // // イベント名,{イベントデータ配列}
@@ -327,6 +333,9 @@ public class EventLoader : MonoBehaviour, IInitializable
                 break;
             case nameof(YamlEventType.ocean):
                 CallOcean(event_value);
+                break;
+            case nameof(YamlEventType.swell):
+                CallSwell(event_value);
                 break;
             case nameof(YamlEventType.bloom_path):
                 CallBloomPath(event_value);
@@ -669,6 +678,47 @@ public class EventLoader : MonoBehaviour, IInitializable
         }
 
         waterSurfaceManager.SetWaterColor(new Color(r, g, b, 1f), absorptionDistance);
+    }
+
+    /// <summary>
+    /// うねり（swell）イベント。海の波の大きさを変える。
+    ///   value: 風速                        … 即座にその大きさへ
+    ///   value: 風速, 秒数                  … その秒数をかけてなめらかに変える
+    ///   value: 風速, 秒数, 荒れ具合        … 波の乱れ方も変える（0〜1・即時反映）
+    ///
+    /// 風速は HDRP の遠方風速(km/h)で、大きいほどうねりが高くなる。
+    /// 荒れ具合は 0 に近いほど規則的なうねり、1 に近いほど乱れた波になる
+    /// </summary>
+    private void CallSwell(string event_value)
+    {
+        string[] parts = event_value.Split(',');
+
+        WaterSurfaceManager waterSurfaceManager =
+            GameObjectTreat.GetOrAddComponent<WaterSurfaceManager>(GameObjectTreat.GetEventSystem());
+
+        if (!float.TryParse(parts[0].Trim(), out float windSpeed))
+        {
+            Debug.LogWarning($"[EventLoader] swell: 風速を解釈できません '{event_value}'");
+            return;
+        }
+
+        float duration = 0f;
+        if (parts.Length >= _SWELL_DURATION_PARAM_COUNT)
+        {
+            float.TryParse(parts[1].Trim(), out duration);
+        }
+        waterSurfaceManager.SetDistalWindSpeedOverTime(windSpeed, duration);
+
+        if (parts.Length < _SWELL_CHAOS_PARAM_COUNT)
+        {
+            return;
+        }
+        if (!float.TryParse(parts[2].Trim(), out float chaos))
+        {
+            Debug.LogWarning($"[EventLoader] swell: 荒れ具合を解釈できません '{event_value}'");
+            return;
+        }
+        waterSurfaceManager.SetWaveChaos(chaos);
     }
 
     /// <summary>

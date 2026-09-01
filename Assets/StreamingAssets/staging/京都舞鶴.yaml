@@ -132,6 +132,14 @@ events:
     event: ocean
     value: 0.7
 
+  # うねりの初期値（穏やかな海）。
+  #   value: 風速                       → うねりの大きさ（大きいほど波が高い）
+  #   value: 風速, 秒数                 → その秒数をかけてなめらかに変える
+  #   value: 風速, 秒数, 荒れ具合       → 波の乱れ方も変える（即時反映）
+  - time: 0
+    event: swell
+    value: 30
+
   # ===== 解体の単体テスト用（試すときだけコメントを外す）=====
   # building_demolish: 建物を N 棟解体して更地化し、跡地に瓦礫を散布する。
   # Console に [Demolition] とトラック換算のサマリーが出る。
@@ -177,6 +185,10 @@ years:
       - time: 11
         event: ocean
         value: 1.1, 20
+      # 潮位の上昇に合わせて海を荒らす
+      - time: 11
+        event: swell
+        value: 110, 25, 0.9
 
       # --- 中盤: 地震と火災（上の schedule で発生する）---
 
@@ -201,3 +213,6 @@ years:
       - time: 150
         event: weather
         value: rain, 0.65, 0.75, 200  # 天候タイプ, 雨の強さ, 雲の強さ, 霧の視界
+      - time: 150
+        event: swell
+        value: 160, 20
