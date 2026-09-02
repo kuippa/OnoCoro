@@ -2,7 +2,7 @@
 
 > 国土交通省の PLATEAU を使った、まちづくりをテーマにしたタワーディフェンスゲーム
 
-![version](https://img.shields.io/badge/version-0.1.0--alpha-blue)
+![version](https://img.shields.io/badge/version-0.0.25--prototype-blue)
 ![unity](https://img.shields.io/badge/Unity-6.3.10f1-green)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
@@ -18,19 +18,20 @@ OnoCoro は、日本の都市 3D データ（[PLATEAU](https://www.mlit.go.jp/pl
 
 ## リリース
 
-### 📦 [v0.1.0-alpha (Prototype)](https://github.com/kuippa/OnoCoro/releases) - 2026-03-08
+### 📦 [v0.0.25-prototype](https://github.com/kuippa/OnoCoro/releases/tag/v0.0.25-prototype) - 2026-09-03
 
-**プロトタイプビルド公開開始します！**
+**災害廃棄物シミュレーション**（PLATEAU CityHack Challenge 2026 向け）
 
-実装済み機能：
-- ✅ マルチシーン環境（タイトル + 2 ステージ）
-- ✅ ユニット作成・配置システム
-- ✅ Enemy Litter スポーン・移動
-- ✅ カメラ制御（FPS / TPS / LongShot / BirdView）
-- ✅ YAML ベース PLATEAU 統合
-- ✅ Cinemachine 3.x 対応
+京都・舞鶴のマップで、高潮による浸水 → 地震と火災 → 巨大猫による解体 と被害が進み、
+最後に発生した災害廃棄物を可燃・不燃に分けて 4t トラック換算で表示します。
 
-[詳細な変更履歴を見る →](CHANGELOG.md)
+- 建物の延床面積と構造種別から**災害廃棄物の発生量を推計**
+  （原単位は PLATEAU 技術資料の採用値に準拠）
+- 被害の要因を**地震 / 浸水 / 火災の延焼 / 猫の解体**に分けて集計
+- 潮位・海面の色・うねりを YAML から操作できる高潮イベント
+- 経路上の建物を解体していく巨大猫（EnemyCat）
+
+[リリースノート →](RELEASE_NOTES.md) ／ [詳細な変更履歴 →](CHANGELOG.md)
 
 ---
 
@@ -52,9 +53,9 @@ OnoCoro は、日本の都市 3D データ（[PLATEAU](https://www.mlit.go.jp/pl
 
 ### ダウンロード・実行
 
-1. [リリースページ](https://github.com/kuippa/OnoCoro/releases) から `OnoCoro_v0.1.0-alpha.zip` をダウンロード
+1. [リリースページ](https://github.com/kuippa/OnoCoro/releases) から `OnoCoro_v0.0.25-prototype.zip` をダウンロード
 2. 解凍
-3. `OnoCoro.exe` をダブルクリック
+3. `Onokoro.exe` をダブルクリック
 
 ### ビルドから実行（開発者向け）
 
