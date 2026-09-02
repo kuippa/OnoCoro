@@ -1,23 +1,23 @@
-# OnoCoro v0.0.21-prototype - Prototype Build
+# OnoCoro v0.0.25-prototype - Prototype Build
 
-**Release Date**: 2026-03-10  
-**Tag**: `v0.0.21-prototype`  
-**Version**: v0.0.21-prototype
-**Build Number**: 21
+**Release Date**: 2026-09-03
+**Tag**: `v0.0.25-prototype`
+**Version**: v0.0.25-prototype
+**Build Number**: 25
+**Build Target**: StandaloneWindows64
 
 ---
 
 ## 概要
 
-OnoCoro プロトタイプビルド。前回リリース（v0.0.6, 2026-01-26）からの開発成果をまとめました。
+PLATEAU CityHack Challenge 2026 に向けて開発した **災害廃棄物シミュレーション** を中心としたビルド。
+前回リリース（v0.0.21-prototype, 2026-03-10）以降の開発成果をまとめています。
 
-本ビルドでは **パフォーマンス診断インフラ実装** と **複数シーン間のユニットメニュー更新問題の根本解決** を実施。ゲームシステムの安定性が向上しました。
+本ビルドの主題は、**街が壊れたときに出る廃材の量を推計して見せる**ことです。
+京都・舞鶴のマップで、高潮による浸水 → 地震と火災 → 巨大猫による解体 と被害が進み、
+最後に発生した災害廃棄物を可燃・不燃に分けて 4t トラック換算で表示します。
 
-### ゲーム概要
-
-> 国土交通省の PLATEAU を使った、まちづくりをテーマにしたタワーディフェンスゲーム
-
-**ストーリー**: 都市のゴミ問題を解決するため、清掃ロボットを配置して汚染物質を撃退し、建物を修復するタワーディフェンス。
+> 国土交通省の PLATEAU を使った、まちづくりをテーマにしたゲーム
 
 ---
 
@@ -25,106 +25,108 @@ OnoCoro プロトタイプビルド。前回リリース（v0.0.6, 2026-01-26）
 
 | 形式 | リンク |
 |------|--------|
-| **Standalone PC (EXE)** | [OnoCoro_v0.0.21-prototype.zip](https://github.com/kuippa/OnoCoro/releases/download/v0.0.21-prototype/OnoCoro_v0.0.21-prototype.zip) |
-| **ソースコード (ZIP)** | GitHub リポジトリ から Clone |
-| **ソースコード (TAR)** | GitHub リポジトリ から Clone |
+| **Standalone PC (EXE)** | [OnoCoro_v0.0.25-prototype.zip](https://github.com/kuippa/OnoCoro/releases/download/v0.0.25-prototype/OnoCoro_v0.0.25-prototype.zip) |
+| **ソースコード** | GitHub リポジトリから Clone |
 
 ---
 
 ## インストール・実行
 
-### 方法 1: EXE ファイル（推奨）
-
-1. `OnoCoro_v0.0.21-prototype.zip` をダウンロード
-2. 任意のフォルダに解凍
-3. `OnoCoro.exe` をダブルクリック
+1. zip をダウンロードして任意のフォルダに解凍
+2. `Onokoro.exe` をダブルクリック
 
 **動作環境:**
 - OS: Windows 10 / 11
 - RAM: 8GB 以上推奨
 - GPU: VRAM 2GB 以上
 
-### 方法 2: ソースコードからビルド（開発者向け）
-
-```powershell
-# リポジトリクローン
-git clone https://github.com/kuippa/OnoCoro.git
-cd OnoCoro
-
-# Unity 6.3.10f1 で開く
-unity -projectPath . -openFile
-
-# Editor で File > Build and Run
-```
-
-詳細: [README.md](https://github.com/kuippa/OnoCoro#インストール) 参照
+[NOTE] 舞鶴ステージは建物が約 7,900 棟あります。
+広域が浸水すると倒壊処理が集中するため、低スペック環境ではフレームレートが落ちることがあります。
 
 ---
 
-## プレイ動画
+## 新機能 [FEATURE]
 
-### プロトタイプビルド デモンストレーション
+### 災害廃棄物の推計
 
-以下の動画でゲームプレイと基本操作をご確認いただけます：
+建物を壊すと、その建物の延床面積と構造種別から廃棄物の発生量を算出します。
 
-**[OnoCoro v0.0.21-prototype - Gameplay Demo](https://youtu.be/VTvzlBCW4Jg)**
+- **発生原単位は公的資料の採用値** - PLATEAU 技術資料 `plateau_tech_doc_0015`
+  「5.7 災害廃棄物発生量の採用原単位」に準拠
+  （横浜市災害廃棄物処理計画 / 環境省 災害廃棄物対策指針 技術資料）
+- **木造 0.6 t/㎡・非木造 1.0 t/㎡** を構造種別に応じて適用
+- **可燃・不燃の組成比**（重量比）で廃材を分けて集計
+- **4t トラック換算** をリザルト画面に表示。可燃・不燃それぞれの台数を出す
+- 建物情報ウィンドウに**構造種別と解体廃棄物量**を表示
 
-▶️ 動画内容：
-- タイトル画面～ステージ選択
-- 兼六園ステージでのチュートリアル
-- ユニット配置・操作方法
-- ゲームプレイの流れ
-- カメラ操作・視点切り替え
+[NOTE] PLATEAU のデータに建物構造そのものは含まれないため、
+耐火構造種別・階数・用途地域から**推定**しています。
 
-*注: 低スペック環境での起動遅延が含まれています（診断中）*
+### 被害の要因を分けて集計
 
----
+リザルトで、倒壊の原因を**地震 / 浸水 / 火災の延焼 / 猫の解体**に分けて表示します。
 
-### 起動パフォーマンス診断インフラ
+### 高潮による浸水被害
 
-- **LogWithTimestamp()** - 初期化各フェーズでタイムスタンプ記録
-- **LogWithMilliseconds()** - 各フェーズの実行時間を計測
-- **InitializationManager 計測** - Phase 2-3 の ResourceLoaders / Managers / UIComponents ごとにタイミング記録
-- **パフォーマンスログ出力** - Application.persistentDataPath に YYYYMMDD_onoco.log として自動出力
+- `ocean` イベントで海面の高さ・色・濁り（吸収距離）を YAML から操作
+- 秒数を指定して**なめらかに潮位を変化**させられる
+- 一定の深さに一定時間浸かった建物が倒壊する
+- 1 秒あたりの倒壊数に上限を設けて負荷を制御
 
-### ドキュメント充実化
+### 海のうねり
 
-- **versioning.md** - バージョン管理・タグ付ルール、BuildDate.txt フォーマット、GitHub リリースタグ規則を体系化
-- **debugging-and-logging.md** - デバッグログ・パフォーマンス診断ガイドを追加
-- **内部ドキュメント更新** - AGENTS.md / aboutthisgame.txt をプロトタイプ版表記に統一
+- `swell` イベントで海の遠方風速と荒れ具合を変更
+
+### 巨大猫（EnemyCat）
+
+- 経路上の建物を次々と解体していく敵ユニット
+- 壊し方が違っても、出てくる廃材の計算は共通
+
+### 水位標（量水標）
+
+- 20cm ごとの紅白帯と 1m ごとの数字を持つ設置物
+- 潮位の上昇を目盛りで読み取れる
+
+### 京都舞鶴ステージ
+
+港湾都市のマップを追加。デモ用に 1 年・180 秒の一本道構成にしています。
 
 ---
 
 ## バグ修正 [FIX]
 
-### Build 21 での修正
+### Build 25 での修正
 
-- **(2026-03-10) Debug.cs コンパイルエラー** - `using UnityEngine;` を追加
-  - Time.realtimeSinceStartup へのアクセス時に UnityEngine の参照が必要
+- **ビルド版で浸水による建物破壊が起きない** -
+  監視オブジェクトを `RuntimeInitializeOnLoadMethod` で自己生成しており、
+  タイトル画面で作られてステージロード時に破棄されていた。
+  ステージ開始処理から生成する形に変更
+- **リザルト表示中に ESC メニューへ到達できない** -
+  パネルの Canvas sorting order が UIEscMenu を越えていたため、
+  ゲーム終了もタイトルへ戻ることもできなかった
 
-### 既存修正（v0.0.20 からの継続）
+[IMPORTANT] 上の 2 件はいずれも**エディタでは再現せず、ビルド版でだけ起きる**不具合でした。
 
-- **(2026-03-08) シーン遷移時 itemlist が更新されない** - `StageYamlRepository._ItemList.Clear()` を追加
-- **(2026-03-06) GameTimer GameObject.Find 統合** - Naraku 配置ロジック改善
-- **(2026-02-27) GarbageCount 表示されない** - TextMeshProUGUI 参照をシーン遷移時にリフレッシュ
-- **(2026-02-11) Stage Goal 判定エラー** - static フラグリセット漏れ修正
-- **(2026-02-07) Raycast QueryTriggerInteraction** - IgnoreTriggers を全 Physics.Raycast に統一
+### その他の修正
+
+- 火災延焼が 0 棟になる浸水倒壊の二重計上を修正
+- 火災鎮火による年の自動終了を YAML で切れるようにした（演出の途中で年が終わる問題）
+- 地震のカメラシェイクを半分の振幅にし、イージングでならした
+- 瓦礫の爆散を解体時のみに限定し、地震倒壊は従来どおりの落ち方に戻した
+- 瓦礫のスポーン上限で係数が黙って頭打ちになる問題を修正（警告を出すようにした）
+- 猫が経路上で停止する問題への復帰処理を追加
 
 ---
 
-## リファクタリング [REFACTOR]
+## 開発方針の変更 [POLICY]
 
-### パフォーマンス診断インフラ
+コーディング規約に以下を追加しました（[AGENTS.md](https://github.com/kuippa/OnoCoro/blob/main/AGENTS.md)）。
 
-- **Debug.cs 拡張** - LogWithTimestamp / LogWithMilliseconds メソッド追加
-- **GameConfig ログ設定** - LogFilePath / LogFileName を Application.persistentDataPath に統一
-- **InitializationManager 計測** - Phase 2-3 で詳細なタイミング情報を記録
-
-### ドキュメント整備
-
-- **AGENTS.md / CHANGELOG.md** - プロトタイプ版表記に統一
-- **versioning.md 新規作成** - GitHub タグ・バージョン管理規則を体系化
-- **aboutthisgame.txt 更新** - Unity 6.3.10f1、プロトタイプ版表記
+- **`MonoBehaviour.Update` を極力使わない** -
+  `Time.timeScale` による倍速・一時停止に自動追従させるため、コルーチンを優先する
+- **`DontDestroyOnLoad` を使わない** -
+  シーンをまたぐ状態の持ち越しが、再現条件の追いにくい不具合を生むため
+- **ログは追える量に保つ** - トレース用のログは `Debug.LogTrace` に分離
 
 ---
 
@@ -132,65 +134,28 @@ unity -projectPath . -openFile
 
 ### 新規作成
 
-- `docs/project-rules/versioning.md` - バージョン管理・タグ付ルール完全ガイド
-- パフォーマンス診断ガイド - ログファイル位置・フォーマット説明
+- `docs/reference/ui-sorting-order.md` - UI Canvas の重なり順の割当表
+- `docs/howto/release-build.md` - ビルドから GitHub Release 公開までの手順
+- `docs/howto/import-builtin-assets-to-hdrp.md` - Built-in 用アセットの HDRP 変換手順
+- `docs/cityhack2026/` - CityHack 2026 の設計メモ・発表資料
 
 ### 更新
 
-- `AGENTS.md` - プロトタイプ版表記、セッション情報要件統一
-- `CHANGELOG.md` - v0.0.20-prototype / v0.0.21-prototype の詳細変更履歴
-- `aboutthisgame.txt` - Unity 6.3.10f1、プロトタイプ版表記に統一
-- `README.md` - ビルド環境・ログ位置情報を詳細化
-
----
-
-## パフォーマンス [PERF]
-
-- **起動パフォーマンス診断インフラ完成** - Phase 2-3 の詳細な実行時間計測機能を実装
-- **ログ記録の標準化** - LogWithTimestamp / LogWithMilliseconds で統一フォーマット確立
-
----
-
-## テスト対象機能
-
-### ✓ 確認済み
-
-- [x] マルチシーン遷移・UI初期化
-- [x] itemlist シーン別更新（本ビルドで修正）
-- [x] YAML イベント・パス読み込み
-- [x] ユニット作成・配置
-- [x] Enemy Litter スポーン・移動
-- [x] カメラ制御（FPS / TPS / LongShot / BirdView）
-- [x] Sweeper 移動・掃除
-
-### ⏳ 未確認（テストユーザー向け検証必要）
-
-- [ ] GPU 互換性（Intel / NVIDIA / AMD）
-- [ ] 低仕様環境での FPS 安定性
-- [ ] 長時間連続プレイ（メモリリーク検証）
-
----
-
-## 既知の問題 [KNOWN_ISSUES]
-
-| 問題 | 状態 | 予定 |
-|------|------|------|
-| **低スペック環境での起動遅延** | ⏳ 診断中 | ログ分析により原因特定・最適化予定 |
-| マップの端から落ちる可能性 | ⏳ | Phase 3 で修正予定 |
-| Fire イベント延焼範囲の表示 | ❌ 未実装 | Phase 3 機能追加 |
-| ユニットアップグレード機能 | ❌ 未実装 | Phase 3 機能追加 |
-| ゲーム効果音・BGM | ❌ 未実装 | Phase 3 機能追加 |
-| セーブ機能 | ❌ 未実装 | Phase 3 以降検討 |
+- `docs/project-rules/unity-design-patterns.md` - シーン寿命・Canvas 順序の方針を追加
+- `AGENTS.md` - Update / DontDestroyOnLoad / ログの各ポリシー
 
 ---
 
 ## リリース対象シーン
 
-| シーン | 説明 | ステージ選択 |
-|--------|------|-----------|
-| **TitleScene** | タイトル・ステージ選択 | メインメニュー |
-| **Kanazawa Kenroku-en** | 石川県金沢市兼六園 | チュートリアルステージ |
-| **Mitaka Inokashira** | 三鷹井の頭 | Wave テストステージ |
+| シーン | 説明 |
+|--------|------|
+| **TitlteStart** | タイトル・ステージ選択 |
+| **京都舞鶴** | 災害廃棄物シミュレーション（本ビルドの主題） |
+| **石川県金沢市兼六園** | チュートリアルステージ |
+| **三鷹大沢 / 三鷹駅前 / 三鷹井の頭 / 三鷹井の頭５丁目** | 各種テストステージ |
+| **新宿都庁 / 武蔵野堺南木密** | 各種テストステージ |
+| **今日はここまで** | 終了画面 |
 
 ---
 
@@ -203,49 +168,60 @@ unity -projectPath . -openFile
 | **マウス** | 視点操作 |
 | **マウスホイール** | ズーム |
 | **SPACE** | ジャンプ |
+| **右クリック** | 建物情報の表示 |
 | **TAB** | ユニット作成メニュー |
 | **1-5** | ユニット選択 |
+| **ESC** | メニュー（終了・タイトルへ戻る） |
 | **F2** | 一時停止（デバッグ） |
 | **F3-F5** | 時間倍速（デバッグ） |
 
 ---
 
-## 技術仕様
+## 既知の問題 [KNOWN_ISSUES]
 
-### 開発環境
+| 問題 | 状態 |
+|------|------|
+| 広域浸水時のフレームレート低下 | 倒壊数の上限で緩和済みだが、低スペック環境では残る |
+| 焼失建物の発生原単位が未適用 | 資料にある焼失区分（0.23 t/㎡）は未実装。構造別のみで判定している |
+| 猫の移動経路が道に沿っていない | 経路マーカーの調整が未了 |
+| 三鷹駅前・兼六園で ESC メニューが操作できない可能性 | シーン内の Canvas 順序が帯域外。未修正 |
+| ゲーム効果音・BGM | 未実装 |
+| セーブ機能 | 未実装 |
+
+---
+
+## 技術仕様
 
 | 項目 | バージョン |
 |------|----------|
 | **Unity Engine** | 6.3.10f1 |
-| **Cinemachine** | 3.1.6 |
 | **HDRP (Render Pipeline)** | 17.3.0 |
+| **Cinemachine** | 3.1.6 |
 | **PLATEAU SDK** | Latest |
 | **Input System** | 1.18.0 |
 | **Visual Effect Graph** | 17.3.0 |
 
-**詳細な開発環境・全パッケージ仕様**: [docs/BUILD_ENVIRONMENT.md](https://github.com/kuippa/OnoCoro/blob/main/docs/BUILD_ENVIRONMENT.md)
-
-### システム要件
-
-**最小要件:**
-- OS: Windows 10以上
-- CPU: Intel Core i5-8400 相当
-- RAM: 8GB
-- GPU: VRAM 2GB以上
-
-**推奨スペック:**
-- OS: Windows 11
-- CPU: Intel Core i7-12700K / AMD Ryzen 7 5800X 相当
-- RAM: 16GB以上
-- GPU: VRAM 4GB以上
+**詳細**: [docs/BUILD_ENVIRONMENT.md](https://github.com/kuippa/OnoCoro/blob/main/docs/BUILD_ENVIRONMENT.md)
 
 ---
 
-## テストユーザー向け情報
+## ステージを自分で作る
 
-### バグ報告方法
+ステージの進行は YAML で記述されており、**ビルド版でもそのまま編集できます**。
 
-[GitHub Issues](https://github.com/kuippa/OnoCoro/issues) にて以下のテンプレートで報告をお願いします：
+```
+<解凍先>\Onokoro_Data\StreamingAssets\staging\
+```
+
+イベントの書式は
+[docs/reference/yaml-format.md](https://github.com/kuippa/OnoCoro/blob/main/docs/reference/yaml-format.md) を参照してください。
+`京都舞鶴.yaml` にはコメントで各パラメータの意味を書いてあります。
+
+---
+
+## バグ報告
+
+[GitHub Issues](https://github.com/kuippa/OnoCoro/issues) へお願いします。
 
 ```
 **Title**: [BUG] 現象を一行で説明
@@ -253,82 +229,38 @@ unity -projectPath . -openFile
 **Environment**:
 - Windows バージョン:
 - GPU モデル:
-- ビルド番号: v0.0.21-prototype
+- ビルド番号: v0.0.25-prototype
 
 **Reproduction**:
 1. 手順1
 2. 手順2
 3. 現象発生
 
-**Screenshots**:
-(スクリーンショット添付)
-
-**Logs**:
-ログファイルをご確認の上、添付ください。
-
-場所: `C:\Users\[username]\AppData\LocalLow\Hagurachaya\Onokoro\`
-
-ファイル:
-- `Player.log` - Unity 標準ログ（エラー・警告など）
-- `[日付]_onoco.log` - パフォーマンス計測ログ（起動タイミング情報）
-
-例: 
-```
-C:\Users\[ユーザー名]\AppData\LocalLow\Hagurachaya\Onokoro\
-├── Player.log
-└── 20260310_onoco.log
-```
+**Logs**: 下記フォルダのログを添付してください
 ```
 
-### アンケート
+ログの場所:
 
-プレイ後のアンケートも大歓迎です：
-- ゲームバランス（難度、報酬のバランス）
-- UI/UX（操作感、メニュー構成）
-- グラフィックス（フレームレート、描画品質）
-- その他ご意見・ご要望
+```
+C:\Users\<ユーザー名>\AppData\LocalLow\Hagurachaya\Onokoro\
+├── Player.log            Unity 標準ログ
+└── <YYYYMMDD>_onocoro.log  ゲーム側のログ
+```
 
 ---
 
 ## 開発者向け情報
 
-### ソースコード
-
 - **Repository**: https://github.com/kuippa/OnoCoro
 - **Branch**: main
-- **Version**: v0.0.21-prototype (Build 21)
+- **Version**: v0.0.25-prototype (Build 25)
 
-### 開発ドキュメント
-
-- [README.md](https://github.com/kuippa/OnoCoro/blob/main/README.md) - プロジェクト概要
-- [AGENTS.md](https://github.com/kuippa/OnoCoro/blob/main/AGENTS.md) - コーディング基準（必読）
-- [CHANGELOG.md](https://github.com/kuippa/OnoCoro/blob/main/CHANGELOG.md) - 詳細な変更履歴
-- [docs/](https://github.com/kuippa/OnoCoro/tree/main/docs) - アーキテクチャ・設計ドキュメント
-
-### プロジェクト構成
-
-```
-Assets/Scripts/
-├── Presentation/     UI・カメラ・入力制御
-├── Game/             ゲームロジック・ユニット
-├── Data/             YAML・PLATEAU・ステージデータ
-└── Core/             マネージャー・ユーティリティ
-```
-
-**4-Layer Architecture** により責任範囲を明確化。詳細: [docs/architecture.md](https://github.com/kuippa/OnoCoro/blob/main/docs/architecture.md)
-
----
-
-## 次のマイルストーン
-
-### Phase 3 (2026-04月予定)
-
-- [ ] Fire イベント延焼表示実装
-- [ ] ユニットアップグレード機能実装
-- [ ] マップ端落下についての改善
-- [ ] セーブ機能実装（ローカル）
-
-**進捗**: [prototype-phase-roadmap.md](https://github.com/kuippa/OnoCoro/blob/main/docs/vision/prototype-phase-roadmap.md)
+| ドキュメント | 内容 |
+|-----------|------|
+| [README.md](https://github.com/kuippa/OnoCoro/blob/main/README.md) | プロジェクト概要 |
+| [AGENTS.md](https://github.com/kuippa/OnoCoro/blob/main/AGENTS.md) | コーディング基準（必読） |
+| [CHANGELOG.md](https://github.com/kuippa/OnoCoro/blob/main/CHANGELOG.md) | 変更履歴 |
+| [docs/](https://github.com/kuippa/OnoCoro/tree/main/docs) | 設計ドキュメント |
 
 ---
 
@@ -340,16 +272,13 @@ MIT License - [LICENSE](https://github.com/kuippa/OnoCoro/blob/main/LICENSE)
 
 ## コミュニティ
 
-- 🐛 [バグ報告](https://github.com/kuippa/OnoCoro/issues)
-- 💬 [Discussions](https://github.com/kuippa/OnoCoro/discussions)
-- � [プレイ動画](https://youtu.be/VTvzlBCW4Jg) - v0.0.21-prototype デモンストレーション
-- �📺 [開発ライブ配信](https://www.youtube.com/playlist?list=PLxWlv9T7cA6YhDW4aLlfn6BCZQFYPrOJ3)
+- [バグ報告](https://github.com/kuippa/OnoCoro/issues)
+- [Discussions](https://github.com/kuippa/OnoCoro/discussions)
+- [開発ライブ配信](https://www.youtube.com/playlist?list=PLxWlv9T7cA6YhDW4aLlfn6BCZQFYPrOJ3)
 
 ---
 
-**感謝**: 本プロジェクトの復旧とリリースを可能にしていただいたすべてのコントリビューターとテストユーザーの皆様に感謝申し上げます。
-
-**作成日**: 2026-03-10  
-**バージョン**: v0.0.21-prototype  
-**ビルド番号**: 21  
-**Tag**: `v0.0.21-prototype`
+**作成日**: 2026-09-03
+**バージョン**: v0.0.25-prototype
+**ビルド番号**: 25
+**Tag**: `v0.0.25-prototype`
