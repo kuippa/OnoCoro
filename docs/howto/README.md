@@ -14,6 +14,8 @@ description: たまにしかやらないため手順を忘れがちな作業の�
 
 - [import-builtin-assets-to-hdrp.md](import-builtin-assets-to-hdrp.md) -
   アセットストアのモデルを入れてマテリアルがマゼンタになったときの直し方
+- [release-build.md](release-build.md) -
+  ビルドから GitHub Release 公開までの手順
 
 ## 書くときの方針
 
