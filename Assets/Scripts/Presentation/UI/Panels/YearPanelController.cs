@@ -20,7 +20,10 @@ namespace CommonsUtility
     {
         private const string _HOST_OBJECT_NAME = "YearPanelController";
         private const string _CANVAS_NAME = "YearPanelCanvas";
-        private const int _CANVAS_SORT_ORDER = 100;
+        // UIEscMenu(99) より必ず後ろに置く。前に出すと ESC メニューが
+        // クリックできなくなりゲーム終了などの操作が塞がる。
+        // 一覧は docs/reference/ui-sorting-order.md を参照
+        private const int _CANVAS_SORT_ORDER = 90;
         private static readonly Vector2 _REFERENCE_RESOLUTION = new Vector2(1920f, 1080f);
 
         private const string _LABEL_FORMAT_YEAR = "Year {0} / {1}";

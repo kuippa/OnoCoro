@@ -19,7 +19,10 @@ namespace CommonsUtility
     {
         private const string _HOST_OBJECT_NAME = "ResultPanelController";
         private const string _CANVAS_NAME = "ResultPanelCanvas";
-        private const int _CANVAS_SORT_ORDER = 200;  // YearPanel(100) より前面
+        // YearPanel(90) より前面、UIEscMenu(99) より後ろ。
+        // UIEscMenu を越えるとゲーム終了などの操作が塞がる。
+        // 一覧は docs/reference/ui-sorting-order.md を参照
+        private const int _CANVAS_SORT_ORDER = 91;
         private static readonly Vector2 _REFERENCE_RESOLUTION = new Vector2(1920f, 1080f);
 
         private static readonly Color _BG_COLOR = new Color(0.05f, 0.05f, 0.08f, 0.92f);

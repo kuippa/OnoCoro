@@ -13,6 +13,7 @@ reference/ 層は、OnoCoro プロジェクトの **標準仕様・データフ�
 | **yaml-format.md** | YAML ステージファイルの仕様 | ステージ設計者・開発者 |
 | **data-models.md** | ゲームデータモデル定義（struct/class） | プログラマ・データエンジニア |
 | **coordinate-systems.md** | 座標系・変換・PLATEAU 統合 | GIS 開発者・エンジニア |
+| **ui-sorting-order.md** | UI Canvas の重なり順の割当表 | UI 実装者 |
 
 ---
 
