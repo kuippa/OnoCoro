@@ -130,7 +130,7 @@ events:
   #   吸収距離を小さくすると濁って不透明になり、どこが浸かっているか一目で分かる。
   - time: 0
     event: ocean
-    value: 0.7
+    value: 0.6
 
   # うねりの初期値（穏やかな海）。
   #   value: 風速                       → うねりの大きさ（大きいほど波が高い）
@@ -138,7 +138,7 @@ events:
   #   value: 風速, 秒数, 荒れ具合       → 波の乱れ方も変える（即時反映）
   - time: 0
     event: swell
-    value: 30
+    value: 1
 
   # ===== 解体の単体テスト用（試すときだけコメントを外す）=====
   # building_demolish: 建物を N 棟解体して更地化し、跡地に瓦礫を散布する。
@@ -164,7 +164,7 @@ years:
       # 浸水を見せてから地震を起こす。パターン内部でも数秒の間があるため、
       # 実際の発生は at より少し後になる
       - pattern: quake_fire
-        at: 40
+        at: 45
         intensity: "1.6"
         break_count: "5"
     events:
@@ -185,14 +185,14 @@ years:
       - time: 11
         event: ocean
         value: 1.1, 20
-      # 潮位の上昇に合わせて海を荒らす
-      - time: 11
-        event: swell
-        value: 110, 25, 0.9
 
       # --- 中盤: 地震と火災（上の schedule で発生する）---
 
       # --- 終盤: 海から巨大猫が現れて建物を解体していく ---
+      # 潮位の上昇に合わせて海を荒らす
+      - time: 85
+        event: swell  # 海の遠方風速 0-250
+        value: 250, 25, 0.9
       - time: 90
         event: bloom_path
         value: path_marker_start, path_marker_01, path_marker_goal
