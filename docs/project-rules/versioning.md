@@ -48,37 +48,56 @@ StandaloneWindows64
 
 ### 仕組み
 
-**PostProcessBuild.cs** が Unity ビルド完了後に自動実行され：
+**BuildVersionStamper.cs** が **ビルド開始前** に自動実行され：
 
 1. 現在の `BuildDate.txt` から MAJOR / MINOR / BUILD を読み込む
 2. **BUILD を +1 インクリメント**
-3. ビルド実行日時を記録（`DateTime.Now.ToString("yyyy.MM.dd.HH.mm")`）
-4. 更新した内容を `BuildDate.txt` に書き込み
+3. ビルド実行日時とビルドターゲットを記録
+4. 更新した内容を `BuildDate.txt` に書き込み、`AssetDatabase.ImportAsset` で取り込ませる
+5. **`PlayerSettings.bundleVersion` にも同じ番号を設定する**
 
 ```csharp
-// PostProcessBuild.cs の処理流れ
-[PostProcessBuild(1)]
-public static void OnPostProcessBuild(BuildTarget target, string path)
+// BuildVersionStamper.cs（IPreprocessBuildWithReport）
+public void OnPreprocessBuild(BuildReport report)
 {
-    // BuildDate.txt から読み込む
-    version_major = sr.ReadLine();  // 0
-    version_minor = sr.ReadLine();  // 0
-    version_build = sr.ReadLine();  // 20
-    
-    // BUILD をインクリメント
-    version_build = (build + 1).ToString(); // 21
-    
-    // 新しい BUILD 日時を記録
-    writeStr = DateTime.Now.ToString("yyyy.MM.dd.HH.mm");
-    
-    // BuildDate.txt に書き込み
-    sw.WriteLine(version_major);     // 0
-    sw.WriteLine(version_minor);     // 0
-    sw.WriteLine(version_build);     // 21
-    sw.WriteLine(writeStr);          // 2026.03.10.15.30
-    sw.WriteLine(target);            // StandaloneWindows64
+    VersionInfo info = ReadVersion();
+    info.Build = info.Build + 1;
+
+    WriteVersion(info, report.summary.platform);
+    AssetDatabase.ImportAsset(_FILE_PATH, ImportAssetOptions.ForceSynchronousImport);
+
+    PlayerSettings.bundleVersion = $"{info.Major}.{info.Minor}.{info.Build}";
 }
 ```
+
+### なぜビルド前なのか
+
+[IMPORTANT] `BuildDate.txt` は `Assets/Resources` 配下にあり、
+**ビルド時にプレイヤーへ焼き込まれる**。
+
+以前は `PostProcessBuild.cs` がビルド完了後に採番していたが、
+これでは焼き込みが終わったあとにファイルを書き換えることになり、
+**配布物の中身は 1 つ前のビルド番号のまま**になる。
+（例: BuildDate.txt が 25 になっていても、その exe が表示するのは 24）
+
+このため採番をビルド前へ移した。
+`PostProcessBuild.cs` はログ出力のみを行う。**ここで書き戻すと二重採番になる**。
+
+### Unity の Application.version との関係
+
+Unity 側の `PlayerSettings.bundleVersion`（= `Application.version`）は
+以前は手動更新の運用で、実際のビルド番号と食い違っていた
+（v0.0.25 時点で `0.1` のまま放置されていた）。
+
+現在は採番時に自動で同じ値が入るため、**手で書き換える必要はない**。
+
+| 取得方法 | 返る値 |
+|---------|-------|
+| `Application.version` | `0.0.25` |
+| `Utility.GetAppVersion()` | `Version: 0.0.25.2026.09.03.02.11.StandaloneWindows64` |
+
+[NOTE] ビルドが途中で失敗しても採番は進む。番号が飛ぶだけで実害は無いが、
+戻したい場合は `BuildDate.txt` を手で書き換えてから再ビルドする。
 
 ---
 
@@ -191,14 +210,17 @@ v[MAJOR].[MINOR].[BUILD][-status]
 
 - [ ] CHANGELOG.md が最新か確認
 - [ ] README.md のバージョン表記が古くないか確認
-- [ ] RELEASE_NOTES.md が手動更新か確認（BuildDate.txt は自動更新）
+- [ ] RELEASE_NOTES.md が手動更新か確認（BuildDate.txt と bundleVersion は自動更新）
 - [ ] GitHub タグ名を決定（例: `v0.1.0-alpha`）
-- [ ] ビルトターゲットが正しいか確認（StandaloneWindows64）
+- [ ] ビルドターゲットが正しいか確認（StandaloneWindows64）
 
 **ビルド実行後：**
 
 - [ ] BuildDate.txt が更新されているか確認
-- [ ] 新しいビルド番号がゲーム内で表示されているか確認（UI メニューに表示機能がある場合）
+- [ ] **ゲームを起動して、タイトル画面のバージョン表示が今回の番号になっているか確認**
+      （BuildDate.txt の値と一致しない場合は採番のタイミングがずれている）
+
+公開までの手順は [howto/release-build.md](../howto/release-build.md) を参照。
 
 ---
 

@@ -48,6 +48,21 @@ git status --short --branch
 プレイヤーが解凍後に編集できてしまうので、
 **実験用の設定や未完成のステージが残っていないか**を見ておく。
 
+### 開発用の表示物を消す
+
+シーンによっては作業用の備忘録（`cvsMemo`）が最前面に出したままになっている。
+**配布物には載せない**ので、対象シーンで非アクティブにしてからビルドする。
+
+対象は [ui-sorting-order.md](../reference/ui-sorting-order.md) の
+「シーンに直接置かれているもの」を参照。
+
+### バージョン番号
+
+[NOTE] **手で変えるものは無い。**
+ビルド開始時に `BuildVersionStamper` が `BuildDate.txt` の BUILD を +1 し、
+`PlayerSettings.bundleVersion` にも同じ値を入れる。
+仕組みは [versioning.md](../project-rules/versioning.md) を参照。
+
 ### TextMeshPro のシェーダー設定
 
 [IMPORTANT] エディタでは見えていた UI テキストが、
@@ -60,8 +75,9 @@ Always Included Shaders の設定漏れが原因。
 ## 2. ビルド
 
 Unity Editor から通常どおりビルドする。
-ビルド完了時に `PostProcessBuild.cs` が走り、
-`Assets/Resources/BuildDate.txt` の BUILD 番号が自動で +1 される。
+ビルド開始時に `BuildVersionStamper` が走り、
+`Assets/Resources/BuildDate.txt` の BUILD 番号が自動で +1 され、
+`PlayerSettings.bundleVersion` にも同じ値が入る。
 
 ビルド後の `BuildDate.txt` を確認する:
 
@@ -92,6 +108,8 @@ Remove-Item "G:\unity\OnoCoro<YYYYMMDD>_build_prot\Onokoro_BurstDebugInformation
 
 Unity が名前で "DoNotShip" と言っているとおり、配布物に含めない。
 サイズは小さいが、配布物にデバッグ情報を混ぜないための作法。
+
+[NOTE] **ビルドのたびに再生成される。** 一度消しても、作り直したら再度消すこと。
 
 ### 動作確認（ここが一番大事）
 
