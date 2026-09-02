@@ -49,6 +49,13 @@ public class StageYamlRepository : MonoBehaviour
         DemolitionYamlProvider.LoadDemolitionConfig(yaml);
         FloodYamlProvider.LoadFloodConfig(yaml);
 
+        // 浸水監視はステージごとに生成する（シーン遷移で破棄され、次のステージで作り直される）。
+        // flood セクションが無いステージでは生成しない
+        if (FloodDamageSystem.IsEnabled)
+        {
+            FloodDamageMonitor.EnsureExists();
+        }
+
         // パス・ナビゲーションセットアップ
         RouteYamlProvider.LoadPathMakers(yaml);
         RouteYamlProvider.LoadRouteNames(yaml, _eventLoader);

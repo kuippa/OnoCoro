@@ -58,11 +58,18 @@ public class FloodDamageMonitor : MonoBehaviour
     private int _collectAttempts = 0;
 
     /// <summary>
-    /// シーンロード時に自己生成する（シーン配置不要）。
-    /// flood セクションが無いステージでは監視ループが何もしない
+    /// ステージロード処理から呼んで監視役を用意する（シーン配置不要）。
+    ///
+    /// [重要] シーンをまたがせない。生成したホストはシーン遷移で破棄され、
+    /// 次のステージで作り直される。建物キャッシュも一緒に捨てられるので、
+    /// 前ステージの建物を掴んだままになる事故が起きない。
+    ///
+    /// 以前は RuntimeInitializeOnLoadMethod で起動時に一度だけ生成していたが、
+    /// これはタイトルシーンで作られてステージロードで破棄されるため、
+    /// ビルド版では監視役が居ない状態になっていた
+    /// （エディタはステージシーンで直接 Play するので露見しなかった）。
     /// </summary>
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void Bootstrap()
+    internal static void EnsureExists()
     {
         if (FindFirstObjectByType<FloodDamageMonitor>() != null)
         {

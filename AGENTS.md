@@ -130,6 +130,7 @@ This file defines the essential rules and guidelines that GitHub Copilot and AI 
      実行時のログファイル出力に載せる意味が無いため対象外
 9. **Keep logging sparse** - See "Logging Policy" below
 10. **Avoid MonoBehaviour.Update** - See "Update Policy" below
+11. **No DontDestroyOnLoad** - See "Scene Lifetime Policy" below
 
 For detailed code examples and rationale, see [docs/project-rules/coding-csharp.md](docs/project-rules/coding-csharp.md).
 
@@ -157,6 +158,20 @@ For detailed code examples and rationale, see [docs/project-rules/coding-csharp.
 これが Update より優れている一番の理由。
 
 [NOTE] 入力受付やカメラ追従など、毎フレームでなければ成立しない処理は Update でよい。
+
+### Scene Lifetime Policy
+
+**`DontDestroyOnLoad` は使わないこと。** ステージ寿命のオブジェクトは
+ステージ開始処理の中で生成し、シーン遷移で破棄させる。
+
+詳細と、常駐させた場合に何が壊れるかは
+[docs/project-rules/unity-design-patterns.md](docs/project-rules/unity-design-patterns.md)
+の「シーン寿命とオブジェクトの生成場所」を参照。
+
+[IMPORTANT] `[RuntimeInitializeOnLoadMethod]` での自己生成も同じ理由で禁止。
+**起動時に一度しか走らないため、タイトル画面で生成されてステージロードで消える。**
+エディタはステージシーンで直接 Play するので露見せず、
+ビルド版でだけ機能が丸ごと動かなくなる。
 
 ### Logging Policy
 

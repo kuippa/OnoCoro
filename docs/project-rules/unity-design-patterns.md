@@ -180,6 +180,90 @@ private IEnumerator MonitorLoop()
 
 ---
 
+## シーン寿命とオブジェクトの生成場所
+
+### DontDestroyOnLoad を使わない（重要）
+
+[NG] **`DontDestroyOnLoad` でオブジェクトを常駐させない。**
+
+常駐オブジェクトは前のシーンの状態を持ち越す。持ち越すのは参照だけではない。
+
+- キャッシュした GameObject 参照が、破棄済みの前ステージの建物を指し続ける
+- コルーチンが走ったまま次のステージへ入り、二重に処理が走る
+- イベント購読が解除されず、シーンを跨ぐたびに購読が積み上がる
+- 二重生成の抑止漏れで、同じ役目のオブジェクトが増えていく
+
+いずれも**再現条件がシーン遷移の履歴に依存する**ため、
+発生してからの切り分けが極端に難しい。持ち越さない設計にするのが確実に安い。
+
+[OK] **ステージ寿命のオブジェクトは、ステージ開始処理の中で生成する。**
+
+シーン遷移で自動的に破棄され、次のステージで作り直される。
+キャッシュも一緒に捨てられるので、後始末のコードが要らなくなる。
+
+```csharp
+// [OK] ステージロード処理から呼ぶ
+internal static void EnsureExists()
+{
+    if (FindFirstObjectByType<FloodDamageMonitor>() != null)
+    {
+        return;
+    }
+    GameObject host = new GameObject(_HOST_OBJECT_NAME);
+    host.AddComponent<FloodDamageMonitor>();
+}
+```
+
+呼び出し側（`StageYamlRepository.LoadYamlData`）:
+
+```csharp
+FloodYamlProvider.LoadFloodConfig(yaml);
+
+// 設定が有効なステージでだけ生成する
+if (FloodDamageSystem.IsEnabled)
+{
+    FloodDamageMonitor.EnsureExists();
+}
+```
+
+### RuntimeInitializeOnLoadMethod での自己生成も禁止
+
+[NG] **`[RuntimeInitializeOnLoadMethod]` でシーンオブジェクトを作らない。**
+
+```csharp
+// [NG] 起動時に一度しか走らない
+[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+private static void Bootstrap()
+{
+    GameObject host = new GameObject("FloodDamageMonitor");
+    host.AddComponent<FloodDamageMonitor>();
+}
+```
+
+この属性はプレイヤー起動時に一度だけ走る。
+つまり**タイトル画面で生成され、ステージをロードした時点で破棄される**。
+ステージに到達したときには、もう居ない。
+
+[IMPORTANT] **この不具合はエディタでは再現しない。**
+エディタではステージシーンを開いて直接 Play するため、
+そのシーンで生成されてそのまま生き続ける。
+**ビルドしたときにだけ機能が丸ごと動かない**という形で表面化する。
+
+`DontDestroyOnLoad` を足せば動くように見えるが、それは上記の常駐の問題を
+引き受けるだけなので採らない。ステージ開始処理から生成すること。
+
+### 実例
+
+浸水被害の監視（`FloodDamageMonitor`）が
+`RuntimeInitializeOnLoadMethod` で自己生成していたため、
+ビルド版で潮位は上がるのに建物が一切壊れなかった。
+
+ログには設定の有効化だけが出て、監視側のログが一行も出ないという形で現れる。
+**「設定は通っているのに担当オブジェクトのログが無い」ときは、
+生成場所とシーン寿命を疑う。**
+
+---
+
 ## Singleton パターン
 
 ### Manager Singleton（状態管理）
@@ -418,6 +502,19 @@ waterTurretUI.renderMode = RenderMode.ScreenSpaceOverlay;  // ❌ 壊れる
 // [OK] WorldSpace は保持する
 // UICanvasManager は自動的にスキップ
 ```
+
+### Sorting Order は必ず一覧を見てから決める
+
+[IMPORTANT] **`sortingOrder` を新しく決めるときは
+[reference/ui-sorting-order.md](../reference/ui-sorting-order.md) の割当表を先に読むこと。**
+
+数字を大きくすれば前に出るが、**操作を受け付ける UI を覆い隠すと
+その機能に到達できなくなる**。特に UIEscMenu を越えてはならない。
+ESC メニューはゲーム終了・タイトルへ戻るの唯一の出口なので、
+これを塞ぐとプレイヤーがステージから抜けられなくなる。
+
+新しい Canvas を追加したら、割当表にも行を追加する。
+表に無い値が増えると衝突の予測ができなくなる。
 
 ---
 
